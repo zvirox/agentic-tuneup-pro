@@ -9,7 +9,7 @@
 
 ## Master Checklist & Progress Tracker
 
-- [ ] **Phase 0 — Workspace Foundation & WebKitGTK Glass Spike** (Shell, Design Tokens, WebKitGTK 60fps)
+- [x] **Phase 0 — Workspace Foundation & WebKitGTK Glass Spike** (Shell, Design Tokens, WebKitGTK 60fps)
 - [ ] **Phase 1 — Core Safety Engine & Quarantine Store** (Quarantine Mover, Undo Journal, Protected Validator)
 - [ ] **Phase 2 — Privileged Polkit Helper & System Monitor** (`atpd-helper` D-Bus Daemon, Telemetry Stream, Health Score)
 - [ ] **Phase 3 — Cleaner Engine & Quarantine UI** (TOML Rules, Parallel Scanner, File Tree Diff, Instant Undo)
@@ -25,26 +25,26 @@
 
 > **Goal:** Establish the Cargo workspace, Tauri 2 desktop shell, React 19 frontend, Mother Ship design tokens, and verify that frosted-glass rendering idles under 1.0% CPU without continuous blur animations.
 
-- [ ] **0.1 Scaffold Root Cargo Workspace & Crate Layout**
+- [x] **0.1 Scaffold Root Cargo Workspace & Crate Layout**
   - Setup root `Cargo.toml` with members: `app`, `crates/atp-core`, `crates/atp-cleaner`, `crates/atp-safety`, `crates/atp-pkg`, `crates/atp-monitor`, `crates/atp-procs`, `crates/atp-mcp`, `crates/atpd-helper`.
   - Configure workspace lints (`deny(unsafe_code)`, `warn(clippy::pedantic)`, Rust 2024 edition).
   - *Verify:* `cargo check --workspace` compiles cleanly with zero warnings.
-- [ ] **0.2 Tauri 2 Desktop Shell Scaffolding**
+- [x] **0.2 Tauri 2 Desktop Shell Scaffolding**
   - Initialize Tauri 2 with React 19, TypeScript, and Vite in `app/`.
   - Configure `tauri.conf.json` with main window (1280×800 default, 960×640 minimum, transparent, decorated).
   - Setup least-privilege Tauri capabilities in `app/src-tauri/capabilities/default.json`.
   - *Verify:* `cargo tauri dev` launches an empty desktop window on Linux (Wayland & X11).
-- [ ] **0.3 Tailwind CSS v4 `@theme` & Token Bridging**
+- [x] **0.3 Tailwind CSS v4 `@theme` & Token Bridging**
   - Self-host fonts: `FamiljenGrotesk` (variable) and `JetBrainsMono` (variable) via `@font-face`.
   - Author `tailwind.css` using `DESIGN.md` tokens (Obsidian `#080B10`, Electric Cyan `#38BDF8`, Amber `#F59E0B`, Emerald `#10B981`, Rose `#F43F5E`, Violet `#A855F7`).
   - Implement static glass recipes (`surface.glass: rgba(255, 255, 255, 0.055)` + 1px specular inner stroke `rgba(255, 255, 255, 0.15)`).
   - *Verify:* Visual swatch test renders typography, accents, and glass cards with high contrast.
-- [ ] **0.4 WebKitGTK Glass Performance & CPU Spike**
+- [x] **0.4 WebKitGTK Glass Performance & CPU Spike**
   - Mount 8 glass cards with static numbers and canvas sparklines in React.
   - Stress test WebKitGTK compositor: confirm zero continuous CSS filter animations (`filter: blur(...)` keyframes are removed).
   - Measure CPU usage during 60 seconds of idle on the host machine.
   - *Verify:* Idle CPU usage remains under **1.0%**; window resizing and route transitions maintain 60 fps.
-- [ ] **0.5 "Reduce Effects" Mode & Error Envelope Types**
+- [x] **0.5 "Reduce Effects" Mode & Error Envelope Types**
   - Implement `--blur: 0px` fallback toggle shifting translucent cards to solid obsidian (`#0E131B`).
   - Implement standard typed error envelope (`CoreError`: `kind`, `code`, `retryable`, `userMessage`, `details`) in Rust and TypeScript mirroring `API.md §1`.
   - *Verify:* Toggling Reduce Effects eliminates all backdrop-filter overhead instantly.

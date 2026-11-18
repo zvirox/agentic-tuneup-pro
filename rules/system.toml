@@ -1,0 +1,29 @@
+[[rule]]
+id = "system-tmp"
+name = "Temporary Files"
+category = "system"
+description = "Old temporary files in /tmp older than 7 days"
+paths = ["/tmp/*"]
+requires_closed = []
+risk_tier = 2
+explanation = "Temporary files created by system and user processes that are no longer active."
+
+[[rule]]
+id = "system-thumbnails"
+name = "Cached Thumbnails"
+category = "system"
+description = "Cached desktop file and image thumbnails in ~/.cache/thumbnails"
+paths = ["~/.cache/thumbnails/**"]
+requires_closed = []
+risk_tier = 2
+explanation = "File manager preview thumbnails. Regenerated automatically when browsing folders."
+
+[[rule]]
+id = "system-trash"
+name = "User Trash Bin"
+category = "system"
+description = "Deleted files residing in user Trash"
+paths = ["~/.local/share/Trash/**"]
+requires_closed = []
+risk_tier = 2
+explanation = "Files moved to trash by the user. Moving to quarantine allows one last chance of recovery."

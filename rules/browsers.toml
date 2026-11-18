@@ -1,0 +1,29 @@
+[[rule]]
+id = "chrome-cache"
+name = "Google Chrome Cache"
+category = "browser"
+description = "Web page cache, cached images, and temporary media in Google Chrome"
+paths = ["~/.cache/google-chrome/*/Cache/**", "~/.cache/google-chrome/*/Code Cache/**"]
+requires_closed = ["google-chrome", "chrome"]
+risk_tier = 2
+explanation = "Web cache speeds up page visits. Chrome automatically rebuilds it. Passwords and logins are never touched."
+
+[[rule]]
+id = "firefox-cache"
+name = "Mozilla Firefox Cache"
+category = "browser"
+description = "Web cache and startup cache in Mozilla Firefox"
+paths = ["~/.cache/mozilla/firefox/*/cache2/**", "~/.cache/mozilla/firefox/*/startupCache/**"]
+requires_closed = ["firefox", "firefox-bin"]
+risk_tier = 2
+explanation = "Temporary website data. Firefox rebuilds it upon visit. Saved passwords in logins.json are strictly protected."
+
+[[rule]]
+id = "brave-cache"
+name = "Brave Browser Cache"
+category = "browser"
+description = "Web page cache and code cache in Brave Browser"
+paths = ["~/.cache/BraveSoftware/Brave-Browser/*/Cache/**"]
+requires_closed = ["brave"]
+risk_tier = 2
+explanation = "Temporary web cache files. Passwords and wallet keys are strictly protected."

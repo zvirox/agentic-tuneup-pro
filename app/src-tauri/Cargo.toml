@@ -1,0 +1,27 @@
+[package]
+name = "agentic-tuneup-pro"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+build = "build.rs"
+
+[lints]
+workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+atp-cleaner = { path = "../../crates/atp-cleaner" }
+atp-core = { path = "../../crates/atp-core" }
+atp-mcp = { path = "../../crates/atp-mcp" }
+atp-monitor = { path = "../../crates/atp-monitor" }
+atp-pkg = { path = "../../crates/atp-pkg" }
+atp-procs = { path = "../../crates/atp-procs" }
+atp-safety = { path = "../../crates/atp-safety" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tauri = { version = "2", features = ["protocol-asset"] }
+thiserror = "2.0"
+tokio = { version = "1.0", features = ["full"] }

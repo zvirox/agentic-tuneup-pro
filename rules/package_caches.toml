@@ -1,0 +1,29 @@
+[[rule]]
+id = "flatpak-unused-runtimes"
+name = "Unused Flatpak Runtimes"
+category = "package_cache"
+description = "Old GNOME, KDE, and Freedesktop runtimes no longer required by any installed Flatpak application"
+paths = ["/var/lib/flatpak/runtime/**", "~/.local/share/flatpak/runtime/**"]
+requires_closed = []
+risk_tier = 3
+explanation = "Old Flatpak runtime revisions. Safely pruned without affecting any current application."
+
+[[rule]]
+id = "pacman-cache"
+name = "Pacman Package Cache"
+category = "package_cache"
+description = "Old downloaded package tarballs in /var/cache/pacman/pkg/"
+paths = ["/var/cache/pacman/pkg/*.pkg.tar.*"]
+requires_closed = ["pacman"]
+risk_tier = 2
+explanation = "Downloaded Arch Linux package files. Removing keeps latest versions or cleans unneeded ones."
+
+[[rule]]
+id = "apt-archives"
+name = "Apt Package Archives"
+category = "package_cache"
+description = "Cached .deb archives in /var/cache/apt/archives/"
+paths = ["/var/cache/apt/archives/*.deb"]
+requires_closed = ["apt", "apt-get", "dpkg"]
+risk_tier = 2
+explanation = "Downloaded Debian/Ubuntu deb archives that have already been installed."

@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #080B10;
+  --color-raised: #0E131B;
+  --color-surface-solid: #141B26;
+  --color-surface-glass: rgba(255, 255, 255, 0.055);
+  --color-surface-glass-strong: rgba(14, 19, 27, 0.82);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-glass: rgba(255, 255, 255, 0.15);
+  --color-border-focus: #38BDF8;
+
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: rgba(241, 245, 249, 0.68);
+  --color-text-disabled: rgba(241, 245, 249, 0.38);
+
+  --color-accent: #38BDF8;
+  --color-accent-hover: #7DD3FC;
+  --color-accent-active: #0284C7;
+  --color-accent-muted: rgba(56, 189, 248, 0.14);
+  --color-accent-text: #031726;
+
+  --color-signal-thinking: #F59E0B;
+  --color-signal-thinking-bg: rgba(245, 158, 11, 0.12);
+  --color-signal-success: #10B981;
+  --color-signal-success-bg: rgba(16, 185, 129, 0.12);
+  --color-signal-gate: #F43F5E;
+  --color-signal-gate-bg: rgba(244, 63, 94, 0.14);
+  --color-signal-dev: #A855F7;
+
+  --font-sans: "Familjen Grotesk", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+:root {
+  --glass-blur: 24px;
+}
+
+.reduce-effects {
+  --glass-blur: 0px;
+}
+
+.glass-panel {
+  background-color: var(--color-surface-glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border: 1px solid var(--color-border-glass);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.glass-panel-strong {
+  background-color: var(--color-surface-glass-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border: 1px solid var(--color-border-glass);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
