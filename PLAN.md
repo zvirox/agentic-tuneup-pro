@@ -57,35 +57,35 @@
 
 > **Goal:** Build the untrusted-to-trusted boundary: non-destructive quarantine store, atomic undo journal, hard-coded protected path validator, and SQLite audit logging.
 
-- [ ] **1.1 Core Domain Models (`atp-core`)**
+- [x] **1.1 Core Domain Models (`atp-core`)**
   - Implement `Action`, `Plan`, `Step`, and `RiskTier` (`Tier1Safe`, `Tier2Reversible`, `Tier3Destructive`).
   - Implement `AuditEntry` and `ExecutionResult` structs with JSON serialization.
   - *Verify:* Unit tests validate step serialization and risk tier comparisons.
-- [ ] **1.2 Hard Protected Path Boundary (`atp-safety`)**
+- [x] **1.2 Hard Protected Path Boundary (`atp-safety`)**
   - Implement `ProtectedValidator` with hard-coded blacklist patterns:
     - Browser passwords (`Login Data*`, `logins.json`, `key4.db`, `cert9.db`).
     - Identity & crypto keys (`~/.ssh/**`, `~/.gnupg/**`, `keyrings/**`).
     - Root OS hierarchies (`/etc/**`, `/boot/**`, `/usr/**`).
   - Implement directory traversal prevention (`..` resolution and symlink dereference checking).
   - *Verify:* Test suite verifies scanner immediately errors if attempting to touch password or SSH files, even if a rule explicitly targets them.
-- [ ] **1.3 Quarantine Engine & Manifest Store (`atp-safety`)**
+- [x] **1.3 Quarantine Engine & Manifest Store (`atp-safety`)**
   - Implement `QuarantineStore` at `$XDG_DATA_HOME/agentic-tuneup-pro/quarantine/<session_id>/`.
   - Atomically move targeted files into relative quarantine directories while recording original paths, file modes, byte sizes, and SHA-256 hashes in `manifest.json`.
   - *Verify:* Moving test files creates a valid quarantine session and preserves original permissions.
-- [ ] **1.4 Instant Sub-Second Undo Engine (`atp-safety`)**
+- [x] **1.4 Instant Sub-Second Undo Engine (`atp-safety`)**
   - Implement `restore_quarantine(session_id)`:
     - Reads `manifest.json`.
     - Verifies destination paths are clear or prompts for overwrite.
     - Atomically moves files back to their exact original locations.
   - Implement automated purge for sessions older than 7 days (`purge_quarantine`).
   - *Verify:* Quarantined test files are restored to their original paths in < 200 ms with byte parity confirmed via SHA-256.
-- [ ] **1.5 SQLite Audit Log Engine (`atp-safety`)**
+- [x] **1.5 SQLite Audit Log Engine (`atp-safety`)**
   - Setup SQLite connection with WAL mode, `PRAGMA foreign_keys = ON`, busy timeout 5000ms, and `0600` permissions at `$XDG_DATA_HOME/agentic-tuneup-pro/audit.db`.
   - Implement schema migrations: `quarantine_sessions`, `audit_log`, `user_rules`.
   - Implement append-only logging of every user/agent action with cryptographic hashes.
   - *Verify:* Invariant test proves audit entries are persisted and queryable.
 
-**Definition of Done (Phase 1):** ✅ Files can be moved to quarantine and restored with byte-level perfection via instant Undo; protected path validator blocks all credential access; SQLite audit log tracks all operations.
+**Definition of Done (Phase 1):** ✅ Files can be moved to quarantine and restored with byte-level perfection via instant Undo; protected path validator blocks all credential access; SQLite audit log tracks all operations. [COMPLETED]
 
 ---
 

@@ -10,8 +10,12 @@ import {
   ShieldCheck,
   Sparkles,
   Mic,
-  X
+  X,
+  Archive,
 } from "lucide-react";
+import { QuarantineView } from "./components/QuarantineView";
+import { AuditTimeline } from "./components/AuditTimeline";
+import { UndoButton } from "./components/UndoButton";
 
 type Page = "dash" | "clean" | "apps" | "proc" | "set";
 type Workspace = "daily" | "dev" | "server";
@@ -22,6 +26,8 @@ export default function App() {
   const [agentOpen, setAgentOpen] = useState(false);
   const [reduceEffects, setReduceEffects] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [cleanerTab, setCleanerTab] = useState<"scan" | "quarantine">("scan");
+  const [recentSessionId, setRecentSessionId] = useState<string | null>("q_20261122_084500_8f3a");
 
   // Simulated metrics
   const [cpuUsage, setCpuUsage] = useState(24);
@@ -313,66 +319,133 @@ export default function App() {
           )}
 
           {activePage === "clean" && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
+              {/* Cleaner Header */}
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl font-bold tracking-tight">System Cleaner &amp; Quarantine</h1>
-                  <p className="text-xs text-text-secondary mt-0.5">All files are moved to quarantine first. Safe, reversible, and undoable.</p>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    Safe, reversible disk cleaning. Every deletion stages to quarantine with instant Undo.
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => triggerToast("Rescanned 1,280 paths")} className="px-3 py-1.5 rounded-xl border border-border-glass text-xs font-semibold hover:bg-white/5">
+
+                <div className="flex items-center gap-2">
+                  {recentSessionId && (
+                    <UndoButton
+                      sessionId={recentSessionId}
+                      bytesCount={4509715660}
+                      filesCount={1420}
+                      onRestored={() => {
+                        triggerToast("Recent session successfully restored!");
+                        setRecentSessionId(null);
+                      }}
+                    />
+                  )}
+                  <button
+                    onClick={() => triggerToast("Rescanned 1,280 paths")}
+                    className="px-3 py-1.5 rounded-xl border border-border-glass text-xs font-semibold hover:bg-white/5 transition-colors cursor-pointer"
+                  >
                     Rescan
                   </button>
                   <button
-                    onClick={() => triggerToast("Cleaned 4.2 GB to Quarantine! Click Undo to restore.")}
-                    className="px-4 py-1.5 rounded-xl bg-accent text-accent-text text-xs font-bold shadow-[0_0_15px_rgba(56,189,248,0.4)]"
+                    onClick={() => {
+                      setRecentSessionId("q_20261122_091500_new");
+                      triggerToast("Cleaned 4.2 GB to Quarantine! Click Undo to restore.");
+                    }}
+                    className="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-accent-text text-xs font-bold shadow-[0_0_15px_rgba(56,189,248,0.4)] transition-all cursor-pointer"
                   >
                     Clean 4.2 GB to Quarantine
                   </button>
                 </div>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl flex flex-col gap-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
-                  <div>
-                    <div className="text-sm font-semibold">Chrome Cache &amp; Temporary Web Files</div>
-                    <div className="text-xs text-text-secondary">Google Chrome rebuilds cache as needed · Passwords untouched</div>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-accent">794 MB</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
-                  <div>
-                    <div className="text-sm font-semibold">Stale node_modules (6 projects)</div>
-                    <div className="text-xs text-text-secondary">Unmodified for 90+ days · Recreated via npm/pnpm install</div>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-signal-dev">2.10 GB</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
-                  <div>
-                    <div className="text-sm font-semibold">Unused Flatpak Runtimes</div>
-                    <div className="text-xs text-text-secondary">GNOME Platform 44 runtimes no longer required by any app</div>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-accent">780 MB</span>
-                </div>
+              {/* Subtabs: Scan Preview vs Quarantine Vault */}
+              <div className="flex items-center gap-2 border-b border-border-subtle pb-2">
+                <button
+                  onClick={() => setCleanerTab("scan")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
+                    cleanerTab === "scan"
+                      ? "bg-surface-glass-strong text-accent border border-accent/20 shadow-sm"
+                      : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  <Trash2 size={13} />
+                  <span>Scan &amp; Clean Preview</span>
+                </button>
+                <button
+                  onClick={() => setCleanerTab("quarantine")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
+                    cleanerTab === "quarantine"
+                      ? "bg-surface-glass-strong text-accent border border-accent/20 shadow-sm"
+                      : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  <Archive size={13} />
+                  <span>Quarantine Vault &amp; Undo</span>
+                </button>
               </div>
+
+              {cleanerTab === "scan" ? (
+                <div className="glass-panel p-4 rounded-2xl flex flex-col gap-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
+                    <div>
+                      <div className="text-sm font-semibold">Chrome Cache &amp; Temporary Web Files</div>
+                      <div className="text-xs text-text-secondary">
+                        Google Chrome rebuilds cache as needed · Passwords untouched
+                      </div>
+                    </div>
+                    <span className="font-mono text-sm font-bold text-accent">794 MB</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
+                    <div>
+                      <div className="text-sm font-semibold">Stale node_modules (6 projects)</div>
+                      <div className="text-xs text-text-secondary">
+                        Unmodified for 90+ days · Recreated via npm/pnpm install
+                      </div>
+                    </div>
+                    <span className="font-mono text-sm font-bold text-signal-dev">2.10 GB</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
+                    <div>
+                      <div className="text-sm font-semibold">Unused Flatpak Runtimes</div>
+                      <div className="text-xs text-text-secondary">
+                        GNOME Platform 44 runtimes no longer required by any app
+                      </div>
+                    </div>
+                    <span className="font-mono text-sm font-bold text-accent">780 MB</span>
+                  </div>
+                </div>
+              ) : (
+                <QuarantineView onNotify={triggerToast} />
+              )}
             </div>
           )}
 
           {activePage === "set" && (
-            <div className="flex flex-col gap-4 max-w-xl">
-              <h1 className="text-xl font-bold tracking-tight">Settings</h1>
+            <div className="flex flex-col gap-6 max-w-4xl">
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">Settings &amp; Audit Trail</h1>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  App preferences, Starship bridge configuration, and system mutation governance.
+                </p>
+              </div>
+
               <div className="glass-panel p-5 rounded-2xl flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs font-semibold">Reduce Effects</div>
-                    <div className="text-[11px] text-text-secondary">Disables backdrop blur and animations for low-end GPUs or pure X11</div>
+                    <div className="text-[11px] text-text-secondary">
+                      Disables backdrop blur and animations for low-end GPUs or pure X11
+                    </div>
                   </div>
                   <input
                     type="checkbox"
                     checked={reduceEffects}
                     onChange={(e) => {
                       setReduceEffects(e.target.checked);
-                      triggerToast(e.target.checked ? "Reduce Effects Enabled (0px blur)" : "Glass Effects Restored");
+                      triggerToast(
+                        e.target.checked ? "Reduce Effects Enabled (0px blur)" : "Glass Effects Restored"
+                      );
                     }}
                     className="w-5 h-5 accent-accent cursor-pointer"
                   />
@@ -380,12 +453,19 @@ export default function App() {
                 <div className="flex items-center justify-between border-t border-border-subtle pt-3">
                   <div>
                     <div className="text-xs font-semibold">Starship Control Bridge</div>
-                    <div className="text-[11px] text-text-secondary">Listens on $XDG_RUNTIME_DIR/starship/bridges/atp.sock with SO_PEERCRED</div>
+                    <div className="text-[11px] text-text-secondary">
+                      Listens on $XDG_RUNTIME_DIR/starship/bridges/atp.sock with SO_PEERCRED
+                    </div>
                   </div>
                   <span className="text-[10px] font-mono text-signal-success font-bold bg-signal-success-bg px-2 py-0.5 rounded">
                     Active
                   </span>
                 </div>
+              </div>
+
+              {/* Immutable Audit Log Component */}
+              <div className="mt-2">
+                <AuditTimeline />
               </div>
             </div>
           )}

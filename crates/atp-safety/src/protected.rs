@@ -1,38 +1,72 @@
-use std::path::Path;
+use std::path::{Component, Path};
 use atp_core::{CoreError, ErrorKind};
 
 pub struct ProtectedValidator;
 
 impl ProtectedValidator {
+    const PASSWORD_PATTERNS: &'static [&'static str] = &[
+        "Login Data",
+        "Login Data For Account",
+        "logins.json",
+        "key4.db",
+        "cert9.db",
+    ];
+
+    const SECRET_PATH_PATTERNS: &'static [&'static str] = &[
+        "/.ssh",
+        "/.gnupg",
+        "/.local/share/keyrings",
+        "/.pki",
+        "/keyrings/",
+    ];
+
+    const SYSTEM_ROOT_PREFIXES: &'static [&'static str] = &[
+        "/etc",
+        "/boot",
+        "/sys",
+        "/proc",
+        "/dev",
+        "/root",
+        "/usr",
+        "/sbin",
+        "/bin",
+        "/lib",
+        "/lib64",
+    ];
+
     /// Validates whether a given path is safe to inspect or clean.
     ///
     /// # Errors
-    /// Returns `CoreError` if the path matches browser password stores,
+    /// Returns `CoreError` if the path or any symlink target matches browser password stores,
     /// cryptographic keys, keyrings, or protected system root hierarchies.
     pub fn validate(path: &Path) -> Result<(), CoreError> {
+        Self::check_traversal(path)?;
+        
         let path_str = path.to_string_lossy();
+        Self::check_forbidden_patterns(&path_str)?;
+        Self::check_system_roots(&path_str)?;
+        Self::check_symlink_targets(path)?;
 
-        // 1. Check for directory traversal sequences
-        if path_str.contains("..") {
-            return Err(CoreError::new(
-                ErrorKind::Safety,
-                "safety.path_traversal",
-                false,
-                "Path contains invalid directory traversal sequences.",
-                Some(serde_json::json!({ "path": path_str })),
-            ));
+        Ok(())
+    }
+
+    fn check_traversal(path: &Path) -> Result<(), CoreError> {
+        for component in path.components() {
+            if component == Component::ParentDir {
+                return Err(CoreError::new(
+                    ErrorKind::Safety,
+                    "safety.path_traversal",
+                    false,
+                    "Path contains invalid directory traversal sequences ('..').",
+                    Some(serde_json::json!({ "path": path.display().to_string() })),
+                ));
+            }
         }
+        Ok(())
+    }
 
-        // 2. Browser password files and credential databases (Hard Invariant)
-        let password_indicators = [
-            "Login Data",
-            "Login Data For Account",
-            "logins.json",
-            "key4.db",
-            "cert9.db",
-        ];
-
-        for indicator in password_indicators {
+    fn check_forbidden_patterns(path_str: &str) -> Result<(), CoreError> {
+        for indicator in Self::PASSWORD_PATTERNS {
             if path_str.contains(indicator) {
                 return Err(CoreError::new(
                     ErrorKind::Safety,
@@ -44,15 +78,7 @@ impl ProtectedValidator {
             }
         }
 
-        // 3. User secrets and identity stores
-        let secret_indicators = [
-            "/.ssh",
-            "/.gnupg",
-            "/.local/share/keyrings",
-            "/.pki",
-        ];
-
-        for indicator in secret_indicators {
+        for indicator in Self::SECRET_PATH_PATTERNS {
             if path_str.contains(indicator) {
                 return Err(CoreError::new(
                     ErrorKind::Safety,
@@ -64,17 +90,40 @@ impl ProtectedValidator {
             }
         }
 
-        // 4. System root hierarchies (only package managers touch /usr via polkit)
-        if path_str.starts_with("/etc") || path_str.starts_with("/boot") || path_str.starts_with("/sys") || path_str.starts_with("/proc") {
-            return Err(CoreError::new(
-                ErrorKind::Safety,
-                "safety.protected_system_root",
-                false,
-                "Direct mutation of core system operating system trees is forbidden.",
-                Some(serde_json::json!({ "path": path_str })),
-            ));
-        }
+        Ok(())
+    }
 
+    fn check_system_roots(path_str: &str) -> Result<(), CoreError> {
+        for prefix in Self::SYSTEM_ROOT_PREFIXES {
+            if path_str.starts_with(prefix) {
+                return Err(CoreError::new(
+                    ErrorKind::Safety,
+                    "safety.protected_system_root",
+                    false,
+                    "Direct mutation of core system operating system trees is forbidden.",
+                    Some(serde_json::json!({ "path": path_str, "prefix": prefix })),
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    fn check_symlink_targets(path: &Path) -> Result<(), CoreError> {
+        // If file exists and is a symlink, validate the resolved target path
+        if let Ok(metadata) = std::fs::symlink_metadata(path) {
+            if metadata.file_type().is_symlink() {
+                if let Ok(target) = std::fs::read_link(path) {
+                    let target_str = target.to_string_lossy();
+                    Self::check_forbidden_patterns(&target_str)?;
+                    Self::check_system_roots(&target_str)?;
+                }
+                if let Ok(canonical) = std::fs::canonicalize(path) {
+                    let canonical_str = canonical.to_string_lossy();
+                    Self::check_forbidden_patterns(&canonical_str)?;
+                    Self::check_system_roots(&canonical_str)?;
+                }
+            }
+        }
         Ok(())
     }
 }
@@ -103,9 +152,49 @@ mod tests {
     }
 
     #[test]
+    fn test_blocks_gnupg_directory() {
+        let path = PathBuf::from("/home/user/.gnupg/pubring.kbx");
+        assert!(ProtectedValidator::validate(&path).is_err());
+    }
+
+    #[test]
     fn test_blocks_etc_shadow() {
         let path = PathBuf::from("/etc/shadow");
         assert!(ProtectedValidator::validate(&path).is_err());
+    }
+
+    #[test]
+    fn test_blocks_usr_bin() {
+        let path = PathBuf::from("/usr/bin/sudo");
+        assert!(ProtectedValidator::validate(&path).is_err());
+    }
+
+    #[test]
+    fn test_blocks_root_home() {
+        let path = PathBuf::from("/root/.bashrc");
+        assert!(ProtectedValidator::validate(&path).is_err());
+    }
+
+    #[test]
+    fn test_blocks_path_traversal() {
+        let path = PathBuf::from("/home/user/.cache/../../etc/passwd");
+        assert!(ProtectedValidator::validate(&path).is_err());
+    }
+
+    #[test]
+    fn test_blocks_symlink_to_protected_target() {
+        let tmp_dir = std::env::temp_dir().join(format!("atp_test_symlink_{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&tmp_dir);
+        let link_path = tmp_dir.join("sneaky_link");
+
+        #[cfg(unix)]
+        {
+            let _ = std::os::unix::fs::symlink("/etc/shadow", &link_path);
+            let validation = ProtectedValidator::validate(&link_path);
+            let _ = std::fs::remove_file(&link_path);
+            let _ = std::fs::remove_dir(&tmp_dir);
+            assert!(validation.is_err(), "Symlink pointing to /etc/shadow must be blocked");
+        }
     }
 
     #[test]
