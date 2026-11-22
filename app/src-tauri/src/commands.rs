@@ -17,86 +17,118 @@ use atp_voice::{AudioCaptureSession, WhisperEngine, WhisperModelStatus};
 use crate::agent::{AgentConfig, AgentEngine};
 
 #[command]
-pub fn cleaner_scan(categories: Option<Vec<String>>) -> Result<ScanSummary, String> {
-    let engine = RuleEngine::discover_and_load().map_err(|e| e.to_string())?;
-    let rules: Vec<_> = if let Some(cats) = categories {
-        engine
-            .rules()
-            .iter()
-            .filter(|r| cats.contains(&r.category))
-            .cloned()
-            .collect()
-    } else {
-        engine.rules().to_vec()
-    };
-    Ok(ParallelScanner::scan_rules(&rules))
+pub async fn cleaner_scan(categories: Option<Vec<String>>) -> Result<ScanSummary, String> {
+    tokio::task::spawn_blocking(move || {
+        let engine = RuleEngine::discover_and_load().map_err(|e| e.to_string())?;
+        let rules: Vec<_> = if let Some(cats) = categories {
+            engine
+                .rules()
+                .iter()
+                .filter(|r| cats.contains(&r.category))
+                .cloned()
+                .collect()
+        } else {
+            engine.rules().to_vec()
+        };
+        let mut summary = ParallelScanner::scan_rules(&rules);
+        // Optimize IPC serialization: clear exhaustive matched_paths array to avoid multi-megabyte payloads.
+        // Frontend receives sample_paths (first 5 samples) for preview in SamplePathsModal.
+        for cat in &mut summary.categories {
+            for r in &mut cat.rules {
+                r.matched_paths.clear();
+            }
+        }
+        Ok(summary)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
-pub fn cleaner_execute_clean(
+pub async fn cleaner_execute_clean(
     selected_rule_ids: Vec<String>,
 ) -> Result<CleanExecutionOutput, String> {
-    let engine = RuleEngine::discover_and_load().map_err(|e| e.to_string())?;
-    let q_store = QuarantineStore::default_store();
-    let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
+    tokio::task::spawn_blocking(move || {
+        let engine = RuleEngine::discover_and_load().map_err(|e| e.to_string())?;
+        let q_store = QuarantineStore::default_store();
+        let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
 
-    CleanerExecutor::execute_clean(&selected_rule_ids, engine.rules(), &q_store, &audit_store)
-        .map_err(|e| e.to_string())
+        CleanerExecutor::execute_clean(&selected_rule_ids, engine.rules(), &q_store, &audit_store)
+            .map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
-pub fn cleaner_list_quarantine() -> Result<Vec<QuarantineSessionRecord>, String> {
-    let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
-    audit_store.list_quarantine_sessions().map_err(|e| e.to_string())
+pub async fn cleaner_list_quarantine() -> Result<Vec<QuarantineSessionRecord>, String> {
+    tokio::task::spawn_blocking(|| {
+        let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
+        audit_store.list_quarantine_sessions().map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
-pub fn cleaner_restore_quarantine(session_id: String) -> Result<ExecutionResult, String> {
-    let q_store = QuarantineStore::default_store();
-    let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
+pub async fn cleaner_restore_quarantine(session_id: String) -> Result<ExecutionResult, String> {
+    tokio::task::spawn_blocking(move || {
+        let q_store = QuarantineStore::default_store();
+        let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
 
-    let res = q_store.restore_session(&session_id).map_err(|e| e.to_string())?;
-    let _ = audit_store.mark_quarantine_restored(&session_id);
-    let _ = audit_store.record(
-        "user",
-        "cleaner.restore_quarantine",
-        &session_id,
-        2,
-        "success",
-        &format!("{{\"files_restored\": {}}}", res.files_affected),
-    );
+        let res = q_store.restore_session(&session_id).map_err(|e| e.to_string())?;
+        let _ = audit_store.mark_quarantine_restored(&session_id);
+        let _ = audit_store.record(
+            "user",
+            "cleaner.restore_quarantine",
+            &session_id,
+            2,
+            "success",
+            &format!("{{\"files_restored\": {}}}", res.files_affected),
+        );
 
-    Ok(res)
+        Ok(res)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
-pub fn cleaner_purge_quarantine(session_id: String) -> Result<u64, String> {
-    let q_store = QuarantineStore::default_store();
-    let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
+pub async fn cleaner_purge_quarantine(session_id: String) -> Result<u64, String> {
+    tokio::task::spawn_blocking(move || {
+        let q_store = QuarantineStore::default_store();
+        let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
 
-    let bytes = q_store.purge_session(&session_id).map_err(|e| e.to_string())?;
-    let _ = audit_store.mark_quarantine_purged(&session_id);
-    let _ = audit_store.record(
-        "user",
-        "cleaner.purge_quarantine",
-        &session_id,
-        3,
-        "success",
-        &format!("{{\"bytes_purged\": {bytes}}}"),
-    );
+        let bytes = q_store.purge_session(&session_id).map_err(|e| e.to_string())?;
+        let _ = audit_store.mark_quarantine_purged(&session_id);
+        let _ = audit_store.record(
+            "user",
+            "cleaner.purge_quarantine",
+            &session_id,
+            3,
+            "success",
+            &format!("{{\"bytes_purged\": {bytes}}}"),
+        );
 
-    Ok(bytes)
+        Ok(bytes)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
-pub fn safety_get_audit_log(
+pub async fn safety_get_audit_log(
     limit: Option<usize>,
     initiator: Option<String>,
 ) -> Result<Vec<AuditEntry>, String> {
-    let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
-    audit_store
-        .list_filtered(limit.unwrap_or(50), 0, initiator.as_deref())
-        .map_err(|e| e.to_string())
+    tokio::task::spawn_blocking(move || {
+        let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
+        audit_store
+            .list_filtered(limit.unwrap_or(50), 0, initiator.as_deref())
+            .map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
@@ -177,28 +209,40 @@ pub async fn pkg_prepare_action(
 // ======================== Process & Services Commands ========================
 
 #[command]
-pub fn proc_list(sort_by: Option<String>) -> Result<Vec<ProcessEntry>, String> {
-    Ok(ProcessManager::list_processes(sort_by.as_deref().unwrap_or("cpu")))
+pub async fn proc_list(sort_by: Option<String>) -> Result<Vec<ProcessEntry>, String> {
+    tokio::task::spawn_blocking(move || {
+        Ok(ProcessManager::list_processes(sort_by.as_deref().unwrap_or("cpu")))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
-pub fn proc_list_groups(sort_by: Option<String>) -> Result<Vec<AppProcessGroup>, String> {
-    Ok(ProcessManager::list_app_groups(sort_by.as_deref().unwrap_or("cpu")))
+pub async fn proc_list_groups(sort_by: Option<String>) -> Result<Vec<AppProcessGroup>, String> {
+    tokio::task::spawn_blocking(move || {
+        Ok(ProcessManager::list_app_groups(sort_by.as_deref().unwrap_or("cpu")))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
-pub fn proc_kill(
+pub async fn proc_kill(
     pid: u32,
     kill_tree: Option<bool>,
     signal: Option<i32>,
 ) -> Result<Vec<u32>, String> {
-    let sig = signal.unwrap_or(libc::SIGTERM);
-    if kill_tree.unwrap_or(true) {
-        ProcessManager::kill_process_tree(pid, sig).map_err(|e| e.to_string())
-    } else {
-        ProcessManager::send_signal(pid, sig).map_err(|e| e.to_string())?;
-        Ok(vec![pid])
-    }
+    tokio::task::spawn_blocking(move || {
+        let sig = signal.unwrap_or(libc::SIGTERM);
+        if kill_tree.unwrap_or(true) {
+            ProcessManager::kill_process_tree(pid, sig).map_err(|e| e.to_string())
+        } else {
+            ProcessManager::send_signal(pid, sig).map_err(|e| e.to_string())?;
+            Ok(vec![pid])
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]
@@ -380,17 +424,21 @@ pub fn snapshot_detect() -> SnapshotCapability {
 }
 
 #[command]
-pub fn snapshot_create(
+pub async fn snapshot_create(
     description: String,
     provider: Option<String>,
 ) -> Result<SnapshotRecord, String> {
-    let prov = match provider.as_deref() {
-        Some("timeshift") => Some(SnapshotProvider::Timeshift),
-        Some("snapper") => Some(SnapshotProvider::Snapper),
-        Some("btrfs") => Some(SnapshotProvider::Btrfs),
-        _ => None,
-    };
-    SnapshotManager::create_pre_change_snapshot(&description, prov).map_err(|e| e.to_string())
+    tokio::task::spawn_blocking(move || {
+        let prov = match provider.as_deref() {
+            Some("timeshift") => Some(SnapshotProvider::Timeshift),
+            Some("snapper") => Some(SnapshotProvider::Snapper),
+            Some("btrfs") => Some(SnapshotProvider::Btrfs),
+            _ => None,
+        };
+        SnapshotManager::create_pre_change_snapshot(&description, prov).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[command]

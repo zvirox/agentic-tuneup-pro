@@ -53,12 +53,14 @@ cp "${ROOT_DIR}/app/src-tauri/icons/128x128.png" "${STAGE_DIR}/sources/"
 cp "${ROOT_DIR}/app/src-tauri/icons/64x64.png" "${STAGE_DIR}/sources/"
 cp "${ROOT_DIR}/app/src-tauri/icons/32x32.png" "${STAGE_DIR}/sources/"
 cp "${ROOT_DIR}/LICENSE" "${STAGE_DIR}/sources/"
+cp -r "${ROOT_DIR}/rules" "${STAGE_DIR}/sources/"
 
 # 4. Build Debian Package (.deb)
 echo -e "\033[1;34m--> Step 3/6: Generating Debian/Ubuntu Package (.deb)\033[0m"
 DEB_DIR="${STAGE_DIR}/deb-root"
 mkdir -p "${DEB_DIR}/usr/bin" \
          "${DEB_DIR}/usr/libexec" \
+         "${DEB_DIR}/usr/share/agentic-tuneup-pro/rules" \
          "${DEB_DIR}/usr/share/applications" \
          "${DEB_DIR}/usr/share/metainfo" \
          "${DEB_DIR}/usr/share/polkit-1/actions" \
@@ -74,6 +76,7 @@ mkdir -p "${DEB_DIR}/usr/bin" \
 # Copy files into Debian tree
 cp "${BIN_APP}" "${DEB_DIR}/usr/bin/agentic-tuneup-pro"
 cp "${BIN_HELPER}" "${DEB_DIR}/usr/libexec/atpd-helper"
+cp -r "${ROOT_DIR}/rules"/* "${DEB_DIR}/usr/share/agentic-tuneup-pro/rules/"
 cp "${STAGE_DIR}/sources/agentic-tuneup-pro.desktop" "${DEB_DIR}/usr/share/applications/"
 cp "${STAGE_DIR}/sources/in.zvirox.agentictuneuppro.metainfo.xml" "${DEB_DIR}/usr/share/metainfo/"
 cp "${STAGE_DIR}/sources/in.zvirox.agentic_tuneup.policy" "${DEB_DIR}/usr/share/polkit-1/actions/"
@@ -153,7 +156,7 @@ mkdir -p "${AUR_STAGE}"
 sed "s/^pkgver=.*/pkgver=${PKG_VERSION}.alpha/" "${ROOT_DIR}/packaging/aur/PKGBUILD" > "${AUR_STAGE}/PKGBUILD"
 sed "s/pkgver = .*/pkgver = ${PKG_VERSION}.alpha/" "${ROOT_DIR}/packaging/aur/.SRCINFO" > "${AUR_STAGE}/.SRCINFO"
 cp "${ROOT_DIR}/packaging/aur/agentic-tuneup-pro.install" "${AUR_STAGE}/"
-cp "${STAGE_DIR}/sources"/* "${AUR_STAGE}/"
+cp -r "${STAGE_DIR}/sources"/* "${AUR_STAGE}/"
 
 # Build Arch package if makepkg is available
 if command -v makepkg >/dev/null 2>&1; then
@@ -178,6 +181,7 @@ echo -e "\033[1;34m--> Step 7/7: Packaging Portable AppImage & AppDir\033[0m"
 APPDIR="${STAGE_DIR}/AppDir"
 mkdir -p "${APPDIR}/usr/bin" \
          "${APPDIR}/usr/libexec" \
+         "${APPDIR}/usr/share/agentic-tuneup-pro/rules" \
          "${APPDIR}/usr/share/applications" \
          "${APPDIR}/usr/share/metainfo" \
          "${APPDIR}/usr/share/icons/hicolor/scalable/apps" \
@@ -185,6 +189,7 @@ mkdir -p "${APPDIR}/usr/bin" \
 
 cp "${BIN_APP}" "${APPDIR}/usr/bin/agentic-tuneup-pro"
 cp "${BIN_HELPER}" "${APPDIR}/usr/libexec/atpd-helper"
+cp -r "${ROOT_DIR}/rules"/* "${APPDIR}/usr/share/agentic-tuneup-pro/rules/"
 cp "${STAGE_DIR}/sources/agentic-tuneup-pro.desktop" "${APPDIR}/agentic-tuneup-pro.desktop"
 cp "${STAGE_DIR}/sources/agentic-tuneup-pro.desktop" "${APPDIR}/usr/share/applications/"
 cp "${STAGE_DIR}/sources/in.zvirox.agentictuneuppro.metainfo.xml" "${APPDIR}/usr/share/metainfo/"

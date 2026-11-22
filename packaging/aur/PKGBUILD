@@ -42,6 +42,12 @@ package() {
     install -Dm644 "${srcdir}/agentic-tuneup-pro.desktop" "${pkgdir}/usr/share/applications/agentic-tuneup-pro.desktop"
     install -Dm644 "${srcdir}/in.zvirox.agentictuneuppro.metainfo.xml" "${pkgdir}/usr/share/metainfo/in.zvirox.agentictuneuppro.metainfo.xml"
 
+    # Install default cleaner rules
+    install -d "${pkgdir}/usr/share/agentic-tuneup-pro/rules"
+    if [ -d "${srcdir}/rules" ]; then
+        install -m644 "${srcdir}/rules"/*.toml "${pkgdir}/usr/share/agentic-tuneup-pro/rules/"
+    fi
+
     # Install Polkit policy & D-Bus service configuration
     install -Dm644 "${srcdir}/in.zvirox.agentic_tuneup.policy" "${pkgdir}/usr/share/polkit-1/actions/in.zvirox.agentic_tuneup.policy"
     install -Dm644 "${srcdir}/in.zvirox.AgenticTuneupHelper.conf" "${pkgdir}/usr/share/dbus-1/system.d/in.zvirox.AgenticTuneupHelper.conf"

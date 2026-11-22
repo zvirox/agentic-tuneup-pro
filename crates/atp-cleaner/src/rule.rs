@@ -42,6 +42,14 @@ pub struct RuleFile {
     pub rule: Vec<CleanerRule>,
 }
 
+const EMBEDDED_RULES: &[&str] = &[
+    include_str!("../../../rules/app_caches.toml"),
+    include_str!("../../../rules/browsers.toml"),
+    include_str!("../../../rules/dev_artifacts.toml"),
+    include_str!("../../../rules/package_caches.toml"),
+    include_str!("../../../rules/system.toml"),
+];
+
 pub struct RuleEngine {
     rules: Vec<CleanerRule>,
 }
@@ -120,14 +128,24 @@ impl RuleEngine {
         Ok(loaded)
     }
 
-    /// Discovers and loads rules from default search paths:
-    /// 1. `./rules` (bundled repository / application directory)
-    /// 2. `$XDG_CONFIG_HOME/agentic-tuneup-pro/rules`
+    /// Discovers and loads rules from:
+    /// 1. Built-in embedded rules (guarantees core rules are always available)
+    /// 2. `/usr/share/agentic-tuneup-pro/rules` and local `./rules`
+    /// 3. `$XDG_CONFIG_HOME/agentic-tuneup-pro/rules` (user custom overrides)
     pub fn discover_and_load() -> Result<Self, CoreError> {
         let mut all_rules = Vec::new();
 
-        // 1. App-bundled rules
+        // 1. Built-in embedded rules
+        for embedded_toml in EMBEDDED_RULES {
+            if let Ok(mut embedded) = Self::load_from_str(embedded_toml) {
+                all_rules.append(&mut embedded);
+            }
+        }
+
+        // 2. System and app-bundled rules
         let candidate_dirs = [
+            PathBuf::from("/usr/share/agentic-tuneup-pro/rules"),
+            PathBuf::from("/usr/local/share/agentic-tuneup-pro/rules"),
             PathBuf::from("rules"),
             PathBuf::from("../../rules"),
             PathBuf::from("../rules"),

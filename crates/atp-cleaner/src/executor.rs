@@ -42,30 +42,40 @@ impl CleanerExecutor {
         // Scan selected rules
         let summary = ParallelScanner::scan_rules(&active_rules);
 
-        // Check running application locks
-        if summary.blocked_by_running_apps {
-            let mut blocking = Vec::new();
-            for cat in &summary.categories {
-                for r in &cat.rules {
-                    blocking.extend(r.running_apps_blocking.clone());
-                }
-            }
-            blocking.sort();
-            blocking.dedup();
-            return Err(CoreError::new(
-                ErrorKind::Cleaner,
-                "cleaner.browser_running",
-                true,
-                format!("Applications must be closed before cleaning: {}", blocking.join(", ")),
-                Some(serde_json::json!({ "blocking_apps": blocking })),
-            ));
-        }
-
-        // Collect all target paths
+        // Filter out rules blocked by active running applications
         let mut target_paths = Vec::new();
+        let mut unblocked_rule_ids = Vec::new();
+        let mut blocking_apps = Vec::new();
+
         for cat in &summary.categories {
             for r in &cat.rules {
-                target_paths.extend(r.matched_paths.clone());
+                if r.running_apps_blocking.is_empty() {
+                    target_paths.extend(r.matched_paths.clone());
+                    unblocked_rule_ids.push(r.rule_id.clone());
+                } else {
+                    blocking_apps.extend(r.running_apps_blocking.clone());
+                }
+            }
+        }
+        blocking_apps.sort();
+        blocking_apps.dedup();
+
+        if target_paths.is_empty() {
+            if !blocking_apps.is_empty() {
+                return Err(CoreError::new(
+                    ErrorKind::Cleaner,
+                    "cleaner.browser_running",
+                    true,
+                    format!("Applications must be closed before cleaning: {}", blocking_apps.join(", ")),
+                    Some(serde_json::json!({ "blocking_apps": blocking_apps })),
+                ));
+            } else {
+                return Ok(CleanExecutionOutput {
+                    session_id: "none".to_string(),
+                    bytes_freed: 0,
+                    files_count: 0,
+                    quarantine_path: q_store.base_dir().to_path_buf(),
+                });
             }
         }
 
@@ -76,14 +86,14 @@ impl CleanerExecutor {
 
         let session_id = format!("q_{}_{:04x}", now_unix, fastrand::u16(..));
 
-        let manifest = q_store.stage_files(&session_id, selected_rule_ids, &target_paths)?;
+        let manifest = q_store.stage_files(&session_id, &unblocked_rule_ids, &target_paths)?;
 
         let expires_at = (now_unix + 7 * 86400) as i64;
         let _ = audit_store.record_quarantine_session(&manifest, expires_at);
         let _ = audit_store.record(
             "user",
             "cleaner.execute_clean",
-            &selected_rule_ids.join(", "),
+            &unblocked_rule_ids.join(", "),
             2,
             "success",
             &format!(

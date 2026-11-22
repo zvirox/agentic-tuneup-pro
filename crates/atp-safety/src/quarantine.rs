@@ -132,9 +132,18 @@ impl QuarantineStore {
                 continue;
             }
 
-            let file_info = Self::quarantine_single_file(original, idx, &files_dir)?;
-            total_bytes += file_info.size_bytes;
-            quarantined_files.push(file_info);
+            match Self::quarantine_single_file(original, idx, &files_dir) {
+                Ok(file_info) => {
+                    total_bytes += file_info.size_bytes;
+                    quarantined_files.push(file_info);
+                }
+                Err(err) => {
+                    eprintln!(
+                        "[ATP-Quarantine] Notice: skipped locked or inaccessible file {}: {err}",
+                        original.display()
+                    );
+                }
+            }
         }
 
         let now = SystemTime::now()
@@ -322,7 +331,7 @@ impl QuarantineStore {
         })?;
 
         let mut hasher = Sha256::new();
-        let mut buffer = [0u8; 8192];
+        let mut buffer = [0u8; 65536];
 
         loop {
             let bytes_read = file.read(&mut buffer).map_err(|e| {

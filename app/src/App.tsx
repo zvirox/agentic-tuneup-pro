@@ -250,12 +250,14 @@ export default function App() {
   const handleToggleCategory = (cat: CategoryScanResult) => {
     setSelectedRuleIds((prev) => {
       const next = new Set(prev);
-      const catRuleIds = cat.rules.map((r) => r.rule_id);
-      const allChecked = catRuleIds.every((id) => next.has(id));
+      const safeRuleIds = cat.rules
+        .filter((r) => r.running_apps_blocking.length === 0)
+        .map((r) => r.rule_id);
+      const allChecked = safeRuleIds.length > 0 && safeRuleIds.every((id) => next.has(id));
       if (allChecked) {
-        for (const id of catRuleIds) next.delete(id);
+        for (const id of safeRuleIds) next.delete(id);
       } else {
-        for (const id of catRuleIds) next.add(id);
+        for (const id of safeRuleIds) next.add(id);
       }
       return next;
     });
@@ -290,16 +292,21 @@ export default function App() {
     announce("Cleaning selected items to quarantine vault...");
     try {
       const out = await cleanerExecuteClean(Array.from(selectedRuleIds));
-      setRecentSessionId(out.session_id);
-      triggerToast(
-        `Cleaned ${formatBytes(out.bytes_freed)} to Quarantine! Click Undo to restore.`
-      );
-      announce(`Cleaned ${formatBytes(out.bytes_freed)} to quarantine. Instant undo available.`);
+      if (out.session_id === "none" || out.files_count === 0) {
+        triggerToast("Clean notice: No files required cleaning (or selected apps are active).");
+        announce("No files required cleaning.");
+      } else {
+        setRecentSessionId(out.session_id);
+        triggerToast(
+          `Cleaned ${formatBytes(out.bytes_freed)} (${out.files_count} files) to Quarantine! Click Undo to restore.`
+        );
+        announce(`Cleaned ${formatBytes(out.bytes_freed)} to quarantine. Instant undo available.`);
+      }
       await runScan();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      triggerToast(`Clean failed: ${msg}`);
-      announce(`Clean operation failed: ${msg}`);
+      triggerToast(`Clean notice: ${msg}`);
+      announce(`Clean notice: ${msg}`);
     } finally {
       setCleaning(false);
     }
@@ -314,7 +321,7 @@ export default function App() {
           }, 0)
         );
       }, 0)
-    : 4509715660;
+    : 0;
 
   const cpuPercent = telemetry ? Math.round(telemetry.cpu.aggregate_usage_percent) : 24;
   const memUsedGb = telemetry
@@ -532,6 +539,7 @@ export default function App() {
                     onClick={() => {
                       setActivePage("clean");
                       triggerToast("Opening Smart Scan & Clean...");
+                      runScan();
                     }}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover active:bg-accent-active text-accent-text font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-all flex items-center gap-2 cursor-pointer"
                   >
