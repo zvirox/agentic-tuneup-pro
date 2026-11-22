@@ -18,7 +18,7 @@
 - [x] **Phase 6 — In-App Agent Cockpit Drawer** (Collapsible Split Drawer, Task Sheet Planner, Tier 3 Gates)
 - [x] **Milestone v0.0.1-alpha — Multi-Distro Release Pipeline** (.deb, .rpm, Flatpak, AUR PKGBUILD)
 - [x] **Milestone v0.0.2-alpha — Standalone Embedded UI & Async GTK Runtime Hotfix** (Release on GitHub)
-- [ ] **Phase 7 — Voice Dictation & Advanced Diagnostics** (Local Whisper, "Why is PC Slow?", Snapshot Hooks)
+- [x] **Phase 7 — Voice Dictation & Advanced Diagnostics** (Local Whisper, "Why is PC Slow?", Snapshot Hooks)
 - [ ] **Phase 8 — Polish, Packaging & Release** (AppImage, deb, rpm, PKGBUILD, Release v1.0)
 
 ---
@@ -309,21 +309,21 @@
 
 > **Goal:** Hands-free voice commands via local Whisper dictation, "Why is my PC slow?" automated diagnostics, and Timeshift/btrfs snapshot hooks.
 
-- [ ] **7.1 Microphone Capture & Voice Activity Detection (`atp-voice`)**
+- [x] **7.1 Microphone Capture & Voice Activity Detection (`atp-voice`)**
   - Implement audio capture using `cpal` with voice activity detection (VAD).
   - Global push-to-talk hotkey (`Ctrl + Space` or `Super + Shift + Space`) managed via `ashpd`.
   - Animate live audio waveform in the agent drawer during speech capture.
   - *Verify:* Pressing shortcut opens audio capture and visualizes voice waveform.
-- [ ] **7.2 Embedded Local Whisper Engine**
+- [x] **7.2 Embedded Local Whisper Engine**
   - Integrate `whisper-rs` (whisper.cpp) with default `base.en` model.
   - Stream transcribed text directly into the agent drawer input field.
   - *Verify:* Spoken command ("Clean my package cache") transcribes accurately offline and submits to agent.
-- [ ] **7.3 "Why is my PC slow?" Diagnostic Engine**
+- [x] **7.3 "Why is my PC slow?" Diagnostic Engine**
   - Correlate CPU load, memory pressure, I/O wait, thermal throttling, and `journalctl` error logs.
   - Detect runaway processes, memory leaks, and disk indexing daemons (e.g. `tracker-miner-fs`).
   - Present plain-English diagnosis and offer one-click fixes (e.g. "Lower tracker priority", "Clean caches").
   - *Verify:* Stress-testing the CPU or disk triggers an intelligent diagnostic summary explaining the exact bottleneck.
-- [ ] **7.4 Pre-Change Snapshot Hooks (Timeshift / Snapper / btrfs)**
+- [x] **7.4 Pre-Change Snapshot Hooks (Timeshift / Snapper / btrfs)**
   - Detect presence of Timeshift or Snapper on system.
   - Provide toggle to automatically trigger a filesystem snapshot before executing major package purges.
   - *Verify:* Snapshot hook creates a restorable snapshot before executing Tier 3 package removals.

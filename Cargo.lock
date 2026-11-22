@@ -19,6 +19,7 @@ dependencies = [
  "atp-pkg",
  "atp-procs",
  "atp-safety",
+ "atp-voice",
  "fastrand",
  "libc",
  "reqwest 0.12.28",
@@ -226,6 +227,19 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "atp-voice"
+version = "0.1.0"
+dependencies = [
+ "atp-core",
+ "fastrand",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

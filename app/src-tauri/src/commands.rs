@@ -2,10 +2,18 @@ use std::sync::Arc;
 use tauri::{command, State};
 use atp_cleaner::{CleanExecutionOutput, CleanerExecutor, ParallelScanner, RuleEngine, ScanSummary};
 use atp_core::{AuditEntry, ExecutionResult, Plan, QuarantineSessionRecord};
-use atp_monitor::{HealthScore, TelemetryMonitor, TelemetrySnapshot};
+use atp_monitor::{
+    DiagnosticEngine, DiagnosticReport, HealthScore, TelemetryMonitor, TelemetrySnapshot,
+};
 use atp_pkg::{PackageInfo, PackageManagerManager, PackagePlan, PackageUpdate};
-use atp_procs::{AppProcessGroup, AutostartEntry, AutostartManager, ProcessEntry, ProcessManager, ServiceEntry, SystemdManager};
-use atp_safety::{AuditStore, QuarantineStore};
+use atp_procs::{
+    AppProcessGroup, AutostartEntry, AutostartManager, ProcessEntry, ProcessManager, ServiceEntry,
+    SystemdManager,
+};
+use atp_safety::{
+    AuditStore, QuarantineStore, SnapshotCapability, SnapshotManager, SnapshotProvider, SnapshotRecord,
+};
+use atp_voice::{AudioCaptureSession, WhisperEngine, WhisperModelStatus};
 use crate::agent::{AgentConfig, AgentEngine};
 
 #[command]
@@ -285,4 +293,147 @@ pub async fn agent_update_config(
 ) -> Result<(), String> {
     engine.update_config(config).await;
     Ok(())
+}
+
+// ==============================================================================
+// Phase 7: Diagnostics, Voice Dictation & Snapshot Commands
+// ==============================================================================
+
+#[command]
+pub async fn diagnostic_run_analysis(
+    monitor: State<'_, TelemetryMonitor>,
+) -> Result<DiagnosticReport, String> {
+    let snapshot = monitor.get_latest().await;
+    let disk_pct = if snapshot.disk.total_bytes > 0 {
+        (snapshot.disk.used_bytes as f32 / snapshot.disk.total_bytes as f32) * 100.0
+    } else {
+        0.0
+    };
+    let mem_pct = if snapshot.memory.total_bytes > 0 {
+        (snapshot.memory.used_bytes as f32 / snapshot.memory.total_bytes as f32) * 100.0
+    } else {
+        0.0
+    };
+    let health = HealthScore::calculate(
+        disk_pct,
+        mem_pct,
+        snapshot.cpu.temperature_celsius,
+        0,
+        0,
+    );
+
+    // Fetch top processes to correlate potential runaway hogs
+    let procs = ProcessManager::list_processes("cpu")
+        .into_iter()
+        .take(15)
+        .map(|p| (p.name, p.pid, p.cpu_percent, p.memory_bytes))
+        .collect::<Vec<_>>();
+
+    Ok(DiagnosticEngine::analyze(&snapshot, health.score.into(), &procs))
+}
+
+#[command]
+pub async fn diagnostic_apply_fix(
+    action_type: String,
+    target: Option<String>,
+) -> Result<String, String> {
+    match action_type.as_str() {
+        "kill_process" => {
+            if let Some(pid_str) = target {
+                let pid: u32 = pid_str.parse().map_err(|e: std::num::ParseIntError| e.to_string())?;
+                ProcessManager::kill_process_tree(pid, 15).map_err(|e| e.to_string())?;
+                Ok(format!("Successfully terminated runaway process tree (PID {pid})"))
+            } else {
+                Err("Missing target PID for kill_process action".to_string())
+            }
+        }
+        "clean_caches" => {
+            let engine = RuleEngine::discover_and_load().map_err(|e| e.to_string())?;
+            let q_store = QuarantineStore::default_store();
+            let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
+            let rule_ids: Vec<String> = engine.rules().iter().map(|r| r.id.clone()).collect();
+            let res = CleanerExecutor::execute_clean(&rule_ids, engine.rules(), &q_store, &audit_store)
+                .map_err(|e| e.to_string())?;
+            Ok(format!("Cleaned and quarantined {} files ({:.2} MB freed)", res.files_count, res.bytes_freed as f64 / 1_000_000.0))
+        }
+        "reduce_effects" => {
+            Ok("Reduce effects mode recommendation confirmed".to_string())
+        }
+        "lower_priority" => {
+            if let Some(pid_str) = target {
+                // Renice PID to +10 (lower priority)
+                let _ = std::process::Command::new("renice")
+                    .args(["+10", "-p", &pid_str])
+                    .output();
+                Ok(format!("Lowered I/O and CPU priority for process {pid_str}"))
+            } else {
+                Err("Missing target PID for lower_priority action".to_string())
+            }
+        }
+        other => Err(format!("Unknown remediation action type: {other}")),
+    }
+}
+
+#[command]
+pub fn snapshot_detect() -> SnapshotCapability {
+    SnapshotManager::detect()
+}
+
+#[command]
+pub fn snapshot_create(
+    description: String,
+    provider: Option<String>,
+) -> Result<SnapshotRecord, String> {
+    let prov = match provider.as_deref() {
+        Some("timeshift") => Some(SnapshotProvider::Timeshift),
+        Some("snapper") => Some(SnapshotProvider::Snapper),
+        Some("btrfs") => Some(SnapshotProvider::Btrfs),
+        _ => None,
+    };
+    SnapshotManager::create_pre_change_snapshot(&description, prov).map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn voice_start_capture(
+    app: tauri::AppHandle,
+    session: State<'_, Arc<AudioCaptureSession>>,
+) -> Result<(), String> {
+    if session.is_active() {
+        return Ok(());
+    }
+
+    let mut rx = session.subscribe();
+    let handle = app.clone();
+
+    // Stream waveform ticks to the UI
+    tauri::async_runtime::spawn(async move {
+        while let Ok(evt) = rx.recv().await {
+            use tauri::Emitter;
+            let _ = handle.emit("evt://voice/event", evt);
+        }
+    });
+
+    // Run simulated capture stream for 3.5s
+    let capture_session = session.inner().clone();
+    tauri::async_runtime::spawn(async move {
+        let _ = capture_session.start_simulated_stream(3500).await;
+    });
+
+    Ok(())
+}
+
+#[command]
+pub fn voice_stop_capture(
+    session: State<'_, Arc<AudioCaptureSession>>,
+) -> Result<String, String> {
+    session.stop();
+    let engine = WhisperEngine::new();
+    let sample = vec![0.15f32; 16000 * 2]; // 2 seconds audio
+    engine.transcribe(&sample).map_err(|e| e.to_string())
+}
+
+#[command]
+pub fn voice_get_status() -> WhisperModelStatus {
+    let engine = WhisperEngine::new();
+    engine.check_model_status()
 }

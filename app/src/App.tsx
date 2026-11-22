@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import {
   Activity,
   Trash2,
@@ -10,6 +11,7 @@ import {
   ShieldCheck,
   Sparkles,
   Archive,
+  Camera,
 } from "lucide-react";
 import { QuarantineView } from "./components/QuarantineView";
 import { AuditTimeline } from "./components/AuditTimeline";
@@ -22,6 +24,7 @@ import { SamplePathsModal } from "./components/SamplePathsModal";
 import { AppsView } from "./components/AppsView";
 import { ProcessExplorer } from "./components/ProcessExplorer";
 import { AgentDrawer } from "./components/AgentDrawer";
+import { DiagnosticModal } from "./components/DiagnosticModal";
 import {
   cleanerScan,
   cleanerExecuteClean,
@@ -36,6 +39,8 @@ import {
   ScanSummary,
   RuleScanResult,
   CategoryScanResult,
+  SnapshotCapability,
+  SnapshotRecord,
 } from "./types";
 
 type Page = "dash" | "clean" | "apps" | "proc" | "set";
@@ -48,6 +53,9 @@ export default function App() {
   const [reduceEffects, setReduceEffects] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [cleanerTab, setCleanerTab] = useState<"scan" | "quarantine">("scan");
+  const [diagnosticOpen, setDiagnosticOpen] = useState(false);
+  const [snapshotCap, setSnapshotCap] = useState<SnapshotCapability | null>(null);
+  const [creatingSnapshot, setCreatingSnapshot] = useState(false);
   const [recentSessionId, setRecentSessionId] = useState<string | null>("q_20261122_084500_8f3a");
 
   // Cleaner Scan & Rule States
@@ -101,6 +109,7 @@ export default function App() {
     });
 
     getHealthScore().then((h) => setHealth(h));
+    invoke<SnapshotCapability>("snapshot_detect").then(setSnapshotCap).catch(() => {});
     runScan();
 
     // Subscribe to live 1.0 Hz telemetry stream
@@ -203,6 +212,25 @@ export default function App() {
       }
       return next;
     });
+  };
+
+  const handleCreateSnapshot = async () => {
+    setCreatingSnapshot(true);
+    try {
+      const res = await invoke<SnapshotRecord>("snapshot_create", {
+        description: "Manual ATP pre-change snapshot test",
+        provider: null,
+      });
+      if (res.success) {
+        triggerToast(`Snapshot created via ${res.provider}! (ID: ${res.id})`);
+      } else {
+        triggerToast(`Snapshot notice: ${res.output_or_error || "Provider executed"}`);
+      }
+    } catch (err: unknown) {
+      triggerToast(`Snapshot failed: ${err}`);
+    } finally {
+      setCreatingSnapshot(false);
+    }
   };
 
   const handleExecuteClean = async () => {
@@ -434,16 +462,26 @@ export default function App() {
                     Host: Linux (Wayland) · Live 1.0 Hz Push Stream
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setActivePage("clean");
-                    triggerToast("Opening Smart Scan & Clean...");
-                  }}
-                  className="px-4 py-2 bg-accent hover:bg-accent-hover active:bg-accent-active text-accent-text font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <Sparkles size={14} />
-                  <span>Smart Scan &amp; Clean</span>
-                </button>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={() => setDiagnosticOpen(true)}
+                    className="px-3.5 py-2 bg-purple-500/15 hover:bg-purple-500/25 active:bg-purple-500/35 text-purple-300 font-bold text-xs rounded-xl border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all flex items-center gap-1.5 cursor-pointer"
+                    title="Intelligent bottleneck diagnosis"
+                  >
+                    <Activity size={14} className="text-purple-400" />
+                    <span>Why is my PC slow?</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActivePage("clean");
+                      triggerToast("Opening Smart Scan & Clean...");
+                    }}
+                    className="px-4 py-2 bg-accent hover:bg-accent-hover active:bg-accent-active text-accent-text font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <Sparkles size={14} />
+                    <span>Smart Scan &amp; Clean</span>
+                  </button>
+                </div>
               </div>
 
               {/* Row 1: Health Gauge & Metric Sparklines */}
@@ -681,6 +719,32 @@ export default function App() {
                     Active
                   </span>
                 </div>
+
+                <div className="flex items-center justify-between border-t border-border-subtle pt-3">
+                  <div>
+                    <div className="text-xs font-semibold flex items-center gap-2">
+                      <span>Pre-Change Snapshot Hooks</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/10 text-accent">
+                        {snapshotCap?.recommended_provider
+                          ? snapshotCap.recommended_provider.toUpperCase()
+                          : snapshotCap?.btrfs_root_detected
+                          ? "BTRFS ROOT"
+                          : "AUTO-DETECT"}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-text-secondary">
+                      Automatically creates restorable filesystem snapshots before executing Tier 3 package actions.
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCreateSnapshot}
+                    disabled={creatingSnapshot}
+                    className="px-3 py-1.5 rounded-lg bg-surface-glass hover:bg-white/10 text-[11px] font-medium text-text-primary border border-border-subtle transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <Camera size={13} className={creatingSnapshot ? "animate-spin" : ""} />
+                    <span>{creatingSnapshot ? "Snapshotting..." : "Create Snapshot"}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Immutable Audit Log Component */}
@@ -696,6 +760,16 @@ export default function App() {
           isOpen={agentOpen}
           onClose={() => setAgentOpen(false)}
           onTriggerToast={triggerToast}
+        />
+
+        {/* Diagnostic Modal ("Why is my PC slow?") */}
+        <DiagnosticModal
+          isOpen={diagnosticOpen}
+          onClose={() => setDiagnosticOpen(false)}
+          onRefreshTelemetry={() => {
+            getTelemetrySnapshot().then(setTelemetry);
+            getHealthScore().then(setHealth);
+          }}
         />
       </div>
 

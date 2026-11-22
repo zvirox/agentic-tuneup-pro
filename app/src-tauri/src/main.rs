@@ -10,6 +10,7 @@ use atp_mcp::{
     McpDispatcher, UnixSocketServer,
 };
 use atp_monitor::TelemetryMonitor;
+use atp_voice::AudioCaptureSession;
 use tauri::Emitter;
 use tokio_util::sync::CancellationToken;
 
@@ -59,10 +60,12 @@ fn main() {
 
     let dispatcher = Arc::new(McpDispatcher::new());
     let agent_engine = Arc::new(AgentEngine::new(dispatcher.clone()));
+    let voice_session = Arc::new(AudioCaptureSession::new());
 
     tauri::Builder::default()
         .manage(monitor)
         .manage(agent_engine)
+        .manage(voice_session)
         .setup(move |app| {
             let monitor_sampling = monitor_for_setup.clone();
             tauri::async_runtime::spawn(async move {
@@ -120,6 +123,13 @@ fn main() {
             commands::agent_abort,
             commands::agent_get_config,
             commands::agent_update_config,
+            commands::diagnostic_run_analysis,
+            commands::diagnostic_apply_fix,
+            commands::snapshot_detect,
+            commands::snapshot_create,
+            commands::voice_start_capture,
+            commands::voice_stop_capture,
+            commands::voice_get_status,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

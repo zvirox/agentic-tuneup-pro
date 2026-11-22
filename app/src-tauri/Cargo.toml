@@ -20,6 +20,7 @@ atp-monitor = { path = "../../crates/atp-monitor" }
 atp-pkg = { path = "../../crates/atp-pkg" }
 atp-procs = { path = "../../crates/atp-procs" }
 atp-safety = { path = "../../crates/atp-safety" }
+atp-voice = { path = "../../crates/atp-voice" }
 libc = "0.2"
 fastrand = "2.3"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }

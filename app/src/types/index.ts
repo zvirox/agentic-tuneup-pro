@@ -219,3 +219,65 @@ export interface AgentConfig {
   model: string;
   apiKey?: string | null;
 }
+
+// ================= Phase 7: Diagnostics, Voice & Snapshot Types =================
+
+export type BottleneckCategory =
+  | "none"
+  | "cpu_saturation"
+  | "memory_pressure"
+  | "disk_pressure"
+  | "thermal_throttling"
+  | "background_indexer";
+
+export type DiagnosticSeverity = "info" | "warning" | "critical";
+
+export interface RemediationAction {
+  action_type: string;
+  label: string;
+  description: string;
+  target?: string | null;
+}
+
+export interface DiagnosticIssue {
+  id: string;
+  severity: DiagnosticSeverity;
+  title: string;
+  description: string;
+  metric: string;
+  remediation?: RemediationAction | null;
+}
+
+export interface DiagnosticReport {
+  timestamp: number;
+  health_score: number;
+  primary_bottleneck: BottleneckCategory;
+  headline: string;
+  issues: DiagnosticIssue[];
+  recommendations: string[];
+}
+
+export type SnapshotProvider = "timeshift" | "snapper" | "btrfs";
+
+export interface SnapshotCapability {
+  available_providers: SnapshotProvider[];
+  recommended_provider?: SnapshotProvider | null;
+  auto_snapshot_enabled: boolean;
+  btrfs_root_detected: boolean;
+}
+
+export interface SnapshotRecord {
+  id: string;
+  provider: SnapshotProvider;
+  timestamp: number;
+  description: string;
+  success: boolean;
+  output_or_error: string;
+}
+
+export interface WhisperModelStatus {
+  model_name: string;
+  is_downloaded: boolean;
+  model_path: string;
+  expected_size_bytes: number;
+}
