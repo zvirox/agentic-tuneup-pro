@@ -182,3 +182,40 @@ export interface AutostartEntry {
   enabled: boolean;
   path: string;
 }
+
+// ================= Agent Cockpit Types =================
+
+export type StepExecutionStatus =
+  | "pending"
+  | "waiting_approval"
+  | "executing"
+  | "completed"
+  | "failed"
+  | "rejected";
+
+export interface PlanStep {
+  step_id: string;
+  step_index: number;
+  tool_name: string;
+  risk_tier: 1 | 2 | 3;
+  description: string;
+  arguments: Record<string, unknown>;
+  status: StepExecutionStatus;
+  diff_summary?: string | null;
+}
+
+export interface TaskPlan {
+  plan_id: string;
+  user_intent: string;
+  steps: PlanStep[];
+  total_disk_delta_bytes: number;
+}
+
+export type LlmProviderType = "sovereign_offline" | "ollama" | "claude" | "openai";
+
+export interface AgentConfig {
+  provider: LlmProviderType;
+  endpoint?: string | null;
+  model: string;
+  apiKey?: string | null;
+}

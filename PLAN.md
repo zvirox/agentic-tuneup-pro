@@ -237,30 +237,30 @@
 
 > **Goal:** An integrated right-side agent drawer providing natural-language assistance, Task Sheet plan generation, and inline Tier 3 approval gates.
 
-- [ ] **6.1 Collapsible Agent Drawer Layout**
+- [x] **6.1 Collapsible Agent Drawer Layout**
   - Build 380px collapsible right-side drawer docked alongside the main canvas (CSS grid split).
-  - Toggleable via top-right robot button or `Ctrl + Shift + A`.
+  - Toggleable via top-right robot button or `Ctrl + Shift + A` / `Escape`.
   - Connect drawer state with global UI so agent can highlight target rows in the active table.
   - *Verify:* Opening drawer resizes content area smoothly without overlapping data tables.
-- [ ] **6.2 LLM Provider Adapters & Keyring Storage**
+- [x] **6.2 LLM Provider Adapters & Keyring Storage**
   - Implement pluggable LLM interface supporting local Ollama (`localhost:11434`), Anthropic Claude API, and OpenAI-compatible endpoints.
-  - Store API keys securely in Linux Secret Service via `libsecret`.
+  - Store API keys securely in Linux Secret Service via `libsecret` and sovereign offline planner fallback.
   - *Verify:* Agent can stream completions from local Ollama or private API keys.
-- [ ] **6.3 Task Sheet Decomposition & State Machine**
+- [x] **6.3 Task Sheet Decomposition & State Machine**
   - Turn natural-language instructions ("Free up 5 GB and clean my browser") into structured **Task Sheets** (`tasksheet/1`).
   - Categorize steps into risk tiers (`Tier1Safe`, `Tier2Reversible`, `Tier3Destructive`).
   - Step states: `Pending`, `WaitingApproval`, `Executing`, `Completed`, `Failed`.
   - *Verify:* Agent produces a structured plan before executing any mutations.
-- [ ] **6.4 Tier 3 Interactive Approval Gate Cards (`PlanStepCard`)**
+- [x] **6.4 Tier 3 Interactive Approval Gate Cards (`PlanStepCard`)**
   - Render pending mutating steps with diff summaries and prominent **`[Approve]`** and **`[Reject]`** buttons.
   - Enforce signed approval tokens: execution engine rejects dispatch if token is missing.
   - *Verify:* Destructive steps pause execution until the user explicitly clicks Approve in the drawer.
-- [ ] **6.5 Prompt Injection Defenses**
+- [x] **6.5 Prompt Injection Defenses**
   - Wrap all external system data (package names, log lines, file paths) in `<system_data>` blocks.
   - Enforce system prompt invariant: external text is treated as data, never instructions.
   - *Verify:* Malicious file names or package summaries cannot trigger unauthorized tool calls.
 
-**Definition of Done (Phase 6):** ✅ User can type requests to the agent, inspect structured Task Sheets in the right-side drawer, approve/deny risky steps, and observe execution progress.
+**Definition of Done (Phase 6):** ✅ User can type requests to the agent, inspect structured Task Sheets in the right-side drawer, approve/deny risky steps, and observe execution progress. [COMPLETED]
 
 ---
 

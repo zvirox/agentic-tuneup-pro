@@ -1,10 +1,12 @@
+use std::sync::Arc;
 use tauri::{command, State};
 use atp_cleaner::{CleanExecutionOutput, CleanerExecutor, ParallelScanner, RuleEngine, ScanSummary};
-use atp_core::{AuditEntry, ExecutionResult, QuarantineSessionRecord};
+use atp_core::{AuditEntry, ExecutionResult, Plan, QuarantineSessionRecord};
 use atp_monitor::{HealthScore, TelemetryMonitor, TelemetrySnapshot};
 use atp_pkg::{PackageInfo, PackageManagerManager, PackagePlan, PackageUpdate};
 use atp_procs::{AppProcessGroup, AutostartEntry, AutostartManager, ProcessEntry, ProcessManager, ServiceEntry, SystemdManager};
 use atp_safety::{AuditStore, QuarantineStore};
+use crate::agent::{AgentConfig, AgentEngine};
 
 #[command]
 pub fn cleaner_scan(categories: Option<Vec<String>>) -> Result<ScanSummary, String> {
@@ -217,4 +219,70 @@ pub fn autostart_list() -> Result<Vec<AutostartEntry>, String> {
 #[command]
 pub fn autostart_toggle(file_name: String, enabled: bool) -> Result<(), String> {
     AutostartManager::toggle_entry(&file_name, enabled).map_err(|e| e.to_string())
+}
+
+// ================= In-App Agent Cockpit Commands =================
+
+#[command]
+pub async fn agent_send_prompt(
+    prompt: String,
+    engine: State<'_, Arc<AgentEngine>>,
+) -> Result<Plan, String> {
+    engine.plan_from_prompt(&prompt).await.map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn agent_get_active_plan(
+    engine: State<'_, Arc<AgentEngine>>,
+) -> Result<Option<Plan>, String> {
+    Ok(engine.get_active_plan().await)
+}
+
+#[command]
+pub async fn agent_approve_step(
+    plan_id: String,
+    step_index: usize,
+    signature_token: String,
+    engine: State<'_, Arc<AgentEngine>>,
+) -> Result<serde_json::Value, String> {
+    engine
+        .approve_step(&plan_id, step_index, &signature_token)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn agent_reject_step(
+    plan_id: String,
+    step_index: usize,
+    engine: State<'_, Arc<AgentEngine>>,
+) -> Result<(), String> {
+    engine
+        .reject_step(&plan_id, step_index)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn agent_abort(
+    engine: State<'_, Arc<AgentEngine>>,
+) -> Result<(), String> {
+    engine.abort_plan().await;
+    Ok(())
+}
+
+#[command]
+pub async fn agent_get_config(
+    engine: State<'_, Arc<AgentEngine>>,
+) -> Result<AgentConfig, String> {
+    Ok(engine.get_config().await)
+}
+
+#[command]
+pub async fn agent_update_config(
+    config: AgentConfig,
+    engine: State<'_, Arc<AgentEngine>>,
+) -> Result<(), String> {
+    engine.update_config(config).await;
+    Ok(())
 }

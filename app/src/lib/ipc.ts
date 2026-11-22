@@ -15,6 +15,8 @@ import {
   AppProcessGroup,
   ServiceEntry,
   AutostartEntry,
+  TaskPlan,
+  AgentConfig,
 } from "../types";
 
 export async function safeInvoke<T>(
@@ -572,4 +574,79 @@ export async function autostartList(): Promise<AutostartEntry[]> {
 
 export async function autostartToggle(fileName: string, enabled: boolean): Promise<void> {
   return safeInvoke<void>("autostart_toggle", { fileName, enabled });
+}
+
+// ================= In-App Agent IPC =================
+
+export async function agentSendPrompt(prompt: string): Promise<TaskPlan> {
+  const mockFallback: TaskPlan = {
+    plan_id: `req_${Math.floor(Date.now() / 1000)}`,
+    user_intent: prompt,
+    steps: [
+      {
+        step_id: "s0",
+        step_index: 0,
+        tool_name: "tuneup.scan_junk",
+        risk_tier: 1,
+        description: "Scan system, browser, and package caches for reclaimable files",
+        arguments: { categories: ["system", "browser", "package_cache", "dev"] },
+        status: "completed",
+        diff_summary: null,
+      },
+      {
+        step_id: "s1",
+        step_index: 1,
+        tool_name: "tuneup.clean_junk",
+        risk_tier: 2,
+        description: "Move safe cache and temporary file targets into atomic quarantine store",
+        arguments: { ruleIds: ["system-tmp", "chrome-cache"] },
+        status: "waiting_approval",
+        diff_summary: "Reclaims ~4.2 GB of storage with instant 1-click Undo",
+      },
+    ],
+    total_disk_delta_bytes: -4509715660,
+  };
+
+  return safeInvoke<TaskPlan>("agent_send_prompt", { prompt }, mockFallback);
+}
+
+export async function agentGetActivePlan(): Promise<TaskPlan | null> {
+  return safeInvoke<TaskPlan | null>("agent_get_active_plan", undefined, null);
+}
+
+export async function agentApproveStep(
+  planId: string,
+  stepIndex: number,
+  signatureToken: string
+): Promise<unknown> {
+  return safeInvoke<unknown>("agent_approve_step", {
+    planId,
+    stepIndex,
+    signatureToken,
+  });
+}
+
+export async function agentRejectStep(
+  planId: string,
+  stepIndex: number
+): Promise<void> {
+  return safeInvoke<void>("agent_reject_step", { planId, stepIndex });
+}
+
+export async function agentAbort(): Promise<void> {
+  return safeInvoke<void>("agent_abort", undefined);
+}
+
+export async function agentGetConfig(): Promise<AgentConfig> {
+  const mockFallback: AgentConfig = {
+    provider: "sovereign_offline",
+    endpoint: "http://localhost:11434",
+    model: "llama3.1:latest",
+    apiKey: null,
+  };
+  return safeInvoke<AgentConfig>("agent_get_config", undefined, mockFallback);
+}
+
+export async function agentUpdateConfig(config: AgentConfig): Promise<void> {
+  return safeInvoke<void>("agent_update_config", { config });
 }

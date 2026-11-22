@@ -9,8 +9,6 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
-  Mic,
-  X,
   Archive,
 } from "lucide-react";
 import { QuarantineView } from "./components/QuarantineView";
@@ -23,6 +21,7 @@ import { CategoryTree } from "./components/CategoryTree";
 import { SamplePathsModal } from "./components/SamplePathsModal";
 import { AppsView } from "./components/AppsView";
 import { ProcessExplorer } from "./components/ProcessExplorer";
+import { AgentDrawer } from "./components/AgentDrawer";
 import {
   cleanerScan,
   cleanerExecuteClean,
@@ -126,6 +125,25 @@ export default function App() {
       if (unlistenFn) unlistenFn();
     };
   }, []);
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle Agent Drawer: Ctrl + Shift + A or Cmd + Shift + A
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "a" || e.key === "A")) {
+        e.preventDefault();
+        setAgentOpen((prev) => !prev);
+      }
+      // Close Agent Drawer: Escape
+      if (e.key === "Escape" && agentOpen) {
+        e.preventDefault();
+        setAgentOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [agentOpen]);
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -314,6 +332,7 @@ export default function App() {
         {/* Agent Toggle */}
         <button
           onClick={() => setAgentOpen(!agentOpen)}
+          title="Toggle Starship Agent (Ctrl+Shift+A)"
           className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
             agentOpen
               ? "bg-accent text-accent-text border-transparent shadow-[0_0_12px_rgba(56,189,248,0.5)]"
@@ -322,6 +341,9 @@ export default function App() {
         >
           <Bot size={15} />
           <span>Agent</span>
+          <kbd className="hidden sm:inline-block font-mono text-[9px] bg-black/30 border border-border-subtle px-1.5 py-0.5 rounded text-text-muted">
+            ⌃⇧A
+          </kbd>
         </button>
       </header>
 
@@ -667,90 +689,12 @@ export default function App() {
           )}
         </main>
 
-        {/* Collapsible Right-Side Agent Drawer */}
-        {agentOpen && (
-          <aside className="w-96 border-l border-border-subtle bg-raised/70 flex flex-col select-none">
-            {/* Drawer Header */}
-            <div className="h-14 border-b border-border-subtle px-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-signal-success animate-pulse" />
-                <span className="text-xs font-bold">Starship Agent</span>
-                <span className="text-[10px] font-mono text-text-secondary">local · llama3.1</span>
-              </div>
-              <button
-                onClick={() => setAgentOpen(false)}
-                className="text-text-secondary hover:text-text-primary cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Messages / Task Sheet Content */}
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-              <div className="p-3 rounded-xl bg-white/5 border border-border-subtle text-xs leading-relaxed">
-                Hi! Tell me what you want to clean, optimize, or diagnose. I will generate a preview plan first.
-              </div>
-
-              {/* Sample Task Sheet Card */}
-              <div className="glass-panel-strong p-3.5 rounded-xl border border-accent/30 flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-accent uppercase tracking-wider">
-                    Plan: Clean 4.8 GB
-                  </span>
-                  <span className="text-[10px] font-mono bg-signal-gate-bg text-signal-gate px-1.5 py-0.5 rounded font-bold">
-                    Tier 3 Gate
-                  </span>
-                </div>
-                <div className="text-xs text-text-secondary flex flex-col gap-1 font-mono text-[11px]">
-                  <div>
-                    1. scan_junk <span className="text-signal-success">✓ safe</span>
-                  </div>
-                  <div>
-                    2. clean_junk (caches) <span className="text-accent">reversible</span>
-                  </div>
-                  <div>
-                    3. purge_orphans (4 packages) <span className="text-signal-gate">destructive</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-1">
-                  <button
-                    onClick={() => triggerToast("Step Approved: Purging 4 packages")}
-                    className="flex-1 py-1.5 bg-accent hover:bg-accent-hover text-accent-text font-bold text-xs rounded-lg shadow-sm cursor-pointer"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => triggerToast("Step Rejected")}
-                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-xs font-semibold rounded-lg cursor-pointer"
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Input Bar */}
-            <div className="p-3 border-t border-border-subtle flex items-center gap-2 bg-black/40">
-              <button
-                onClick={() => triggerToast("Voice dictation active (Whisper base.en)")}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-text-primary transition-colors cursor-pointer"
-                title="Push to talk"
-              >
-                <Mic size={15} />
-              </button>
-              <input
-                placeholder="Ask agent to clean or optimize..."
-                className="flex-1 bg-transparent border border-border-subtle rounded-xl px-3 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-              />
-              <button
-                onClick={() => triggerToast("Prompt sent to agent planner")}
-                className="px-3 py-1.5 rounded-xl bg-accent text-accent-text text-xs font-bold cursor-pointer"
-              >
-                Send
-              </button>
-            </div>
-          </aside>
-        )}
+        {/* Starship Cockpit Agent Drawer */}
+        <AgentDrawer
+          isOpen={agentOpen}
+          onClose={() => setAgentOpen(false)}
+          onTriggerToast={triggerToast}
+        />
       </div>
 
       {/* Toast Notification */}

@@ -1,8 +1,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod agent;
 mod commands;
 
 use std::sync::Arc;
+use agent::AgentEngine;
 use atp_mcp::{
     default_socket_path, register_starship_manifest, unregister_starship_manifest,
     McpDispatcher, UnixSocketServer,
@@ -57,8 +59,12 @@ fn main() {
     let cleanup_manifest = manifest_path.clone();
     let cleanup_socket = socket_path.clone();
 
+    let dispatcher = Arc::new(McpDispatcher::new());
+    let agent_engine = Arc::new(AgentEngine::new(dispatcher.clone()));
+
     tauri::Builder::default()
         .manage(monitor)
+        .manage(agent_engine)
         .setup(move |app| {
             let handle = app.handle().clone();
             let mut rx = monitor_for_setup.subscribe();
@@ -69,7 +75,6 @@ fn main() {
             });
 
             // Start Starship Unix Domain Socket listener in background
-            let dispatcher = Arc::new(McpDispatcher::new());
             let bridge_server = UnixSocketServer::new(
                 bridge_socket_path,
                 dispatcher,
@@ -106,6 +111,13 @@ fn main() {
             commands::service_control,
             commands::autostart_list,
             commands::autostart_toggle,
+            commands::agent_send_prompt,
+            commands::agent_get_active_plan,
+            commands::agent_approve_step,
+            commands::agent_reject_step,
+            commands::agent_abort,
+            commands::agent_get_config,
+            commands::agent_update_config,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

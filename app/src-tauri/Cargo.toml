@@ -21,6 +21,8 @@ atp-pkg = { path = "../../crates/atp-pkg" }
 atp-procs = { path = "../../crates/atp-procs" }
 atp-safety = { path = "../../crates/atp-safety" }
 libc = "0.2"
+fastrand = "2.3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tauri = { version = "2", features = ["protocol-asset"] }
