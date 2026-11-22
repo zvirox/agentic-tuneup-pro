@@ -95,7 +95,8 @@ impl ProtectedValidator {
 
     fn check_system_roots(path_str: &str) -> Result<(), CoreError> {
         for prefix in Self::SYSTEM_ROOT_PREFIXES {
-            if path_str.starts_with(prefix) {
+            // Match whole path components: "/dev" blocks "/dev/sda" but not "/developer".
+            if path_str == *prefix || path_str.starts_with(&format!("{prefix}/")) {
                 return Err(CoreError::new(
                     ErrorKind::Safety,
                     "safety.protected_system_root",
@@ -201,5 +202,13 @@ mod tests {
     fn test_allows_safe_cache_path() {
         let path = PathBuf::from("/home/user/.cache/google-chrome/Default/Cache/data_0");
         assert!(ProtectedValidator::validate(&path).is_ok());
+    }
+
+    #[test]
+    fn test_system_root_check_is_component_aware() {
+        assert!(ProtectedValidator::validate(&PathBuf::from("/dev/sda")).is_err());
+        assert!(ProtectedValidator::validate(&PathBuf::from("/etc")).is_err());
+        assert!(ProtectedValidator::validate(&PathBuf::from("/developer/cache/x")).is_ok());
+        assert!(ProtectedValidator::validate(&PathBuf::from("/binaries/tmp")).is_ok());
     }
 }

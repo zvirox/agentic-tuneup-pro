@@ -12,6 +12,7 @@ workspace = true
 atp-core = { path = "../atp-core" }
 atp-cleaner = { path = "../atp-cleaner" }
 atp-monitor = { path = "../atp-monitor" }
+atp-procs = { path = "../atp-procs" }
 atp-safety = { path = "../atp-safety" }
 fastrand = "2.3"
 libc = "0.2"

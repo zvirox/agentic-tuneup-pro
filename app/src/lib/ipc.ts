@@ -27,7 +27,10 @@ export async function safeInvoke<T>(
   try {
     return await invoke<T>(cmd, args);
   } catch (err) {
-    if (fallback !== undefined) {
+    // Mock data is only for plain-browser UI development. Inside the real Tauri app
+    // a failed command must surface as an error, never as fabricated success.
+    const inTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    if (!inTauri && fallback !== undefined) {
       return fallback;
     }
     throw err;

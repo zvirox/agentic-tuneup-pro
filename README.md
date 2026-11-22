@@ -11,7 +11,7 @@ Sovereign AI-orchestrated Linux cleaner, package manager, and performance suite.
 </p>
 
 <p align="center">
-  <a href="https://github.com/zvirox/agentic-tuneup-pro/releases"><img src="https://img.shields.io/badge/release-v0.0.2--alpha-38BDF8?style=flat-square" alt="Release v0.0.2-alpha"></a>
+  <a href="https://github.com/zvirox/agentic-tuneup-pro/releases"><img src="https://img.shields.io/badge/release-v0.0.3--alpha-38BDF8?style=flat-square" alt="Release v0.0.3-alpha"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License Apache-2.0"></a>
   <img src="https://img.shields.io/badge/platform-Linux%20(Wayland%20%7C%20X11)-22C55E?style=flat-square" alt="Platform Linux">
   <img src="https://img.shields.io/badge/arch-x86__64-A855F7?style=flat-square" alt="Architecture x86_64">
@@ -79,7 +79,7 @@ Most Linux cleaning tools rely on brittle shell scripts, delete files destructiv
 
 - **Universal Command Palette (`Ctrl + K`)** — Lightning-fast keyboard-first navigation, fuzzy search across all application tools, and instant system actions.
 - **"Why is my PC slow?" Diagnostic Engine** — Multi-variable bottleneck correlation across CPU saturation, memory pressure, thermal throttling, runaway processes, and desktop file indexers (`tracker-miner-fs`, `baloo_file`).
-- **Offline Voice Dictation & Waveform** — Push-to-talk (<kbd>Ctrl + Space</kbd>) voice transcription powered by local offline Whisper (`ggml-base.en`) with 16-band real-time audio spectrum visualization.
+- **Offline Voice Dictation & Waveform (Preview)** — Push-to-talk (<kbd>Ctrl + Space</kbd>) simulated voice capture interface with 16-band audio spectrum visualization (native CPAL + whisper-rs engine in active development in Phase 7).
 - **Pre-Change Snapshot Hooks** — Native detection and triggers for Timeshift, Snapper, and Btrfs root filesystem snapshots before major package mutations.
 - **WCAG AA Keyboard & Screen Reader Accessibility** — High-contrast Electric Cyan focus rings, keyboard traversal across all interactive views, and screen reader live status announcements (`aria-live="polite"`).
 
@@ -503,16 +503,17 @@ To balance system-level optimization with uncompromised user safety, ATP enforce
 - [x] **Phase 0:** Workspace scaffolding, Tauri 2 + React 19 + Tailwind v4 setup, architecture and API documentation.
 - [x] **Phase 1:** Core Safety Engine, zero-loss quarantine store, SHA-256 byte parity, and SQLite audit ledger.
 - [x] **Phase 2:** Privileged Polkit helper (`atpd-helper`), D-Bus IPC (`zbus`), and 1 Hz system monitor.
-- [x] **Phase 3:** Declarative TOML cleaning rules and parallel multi-threaded disk scanner.
+- [x] **Phase 3:** Declarative TOML cleaning rules, embedded defaults, and parallel multi-threaded disk scanner.
 - [x] **Phase 4:** Starship MCP server bridge, Unix domain socket with `SO_PEERCRED`, and headless `--mcp` loop.
-- [x] **Phase 5:** Unified package manager (Flatpak/Native/AppImage) and process tree explorer.
-- [x] **Phase 6:** In-app Starship Agent cockpit drawer, Task Sheet decomposition, and signed Tier 3 consent gates.
+- [ ] **Phase 5:** Unified package manager & process tree explorer (Querying operational; real D-Bus execution bridge in progress).
+- [ ] **Phase 6:** In-app Starship Agent cockpit drawer (Drawer & prompt safety active; backend nonce & tool-calling in progress).
 - [x] **Milestone v0.0.1-alpha:** Multi-distro release packaging (.deb, .rpm, Flatpak, AUR PKGBUILD).
 - [x] **Milestone v0.0.2-alpha:** Production webview asset embedding and GTK async loop runtime hotfix.
+- [x] **Milestone v0.0.3-alpha:** UI non-blocking async IPC, embedded rules, and resilient quarantine staging.
 - [ ] **Phase 7:** Hands-free voice dictation via local Whisper (`base.en`), "Why is my PC slow?" automated diagnostics engine, and Timeshift / Snapper / btrfs pre-change filesystem snapshot hooks.
 - [ ] **Phase 8:** Full WCAG AA keyboard accessibility pass, automated cross-distro container test matrix, and production v1.0.0 stable release.
 
-Track detailed progress and sprint items in [PLAN.md](PLAN.md).
+Track detailed progress, P0/P1/P2 remediation items, and sprint checklists in [PLAN.md](PLAN.md).
 
 ---
 

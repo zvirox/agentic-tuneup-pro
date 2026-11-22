@@ -1,9 +1,9 @@
 # PLAN.md — Agentic Tuneup Pro Implementation Roadmap
 
-**Version:** 1.0 · **Date:** 2026-11-18  
-**Status:** Active Implementation Roadmap  
+**Version:** 0.0.3-alpha (Tracking toward v1.0.0) · **Date:** 2026-11-22  
+**Status:** Active Implementation & Remediation Roadmap  
 **Authority chain:** `PRD.md` (Product Scope) → `ARCHITECTURE.md` (Structure & Transports) → `DESIGN.md` (UI Law) → `API.md` (IPC & MCP Contracts) → **this file (Execution Order & Tracking Checklists)**  
-**Rule:** Every phase ends with a **runnable vertical slice** (`cargo tauri dev` or `cargo test --workspace` produces verified, working behavior). Tasks are sized $\le$ 1–2 hours. No destructive actions are built before safety and quarantine are mathematically and unit-test verified.
+**Rule:** Every phase ends with a **runnable vertical slice** (`cargo tauri dev` or `cargo test --workspace` produces verified, working behavior). Tasks are sized $\le$ 1–2 hours. No destructive actions are built before safety and quarantine are mathematically and unit-test verified. Stale evidence, fabricated metrics, and mock success envelopes inside production desktop builds are strictly prohibited.
 
 ---
 
@@ -14,12 +14,86 @@
 - [x] **Phase 2 — Privileged Polkit Helper & System Monitor** (`atpd-helper` D-Bus Daemon, Telemetry Stream, Health Score)
 - [x] **Phase 3 — Cleaner Engine & Quarantine UI** (TOML Rules, Parallel Scanner, File Tree Diff, Instant Undo)
 - [x] **Phase 4 — Starship MCP Server & Bridge** (Unified Binary `--mcp` / Unix Socket, `SO_PEERCRED`, Tools)
-- [x] **Phase 5 — Package & Process Manager** (Flatpak, Native pacman/apt/dnf, AppImage, Process Tree Kill)
-- [x] **Phase 6 — In-App Agent Cockpit Drawer** (Collapsible Split Drawer, Task Sheet Planner, Tier 3 Gates)
+- [ ] **Phase 5 — Package & Process Manager** [IN PROGRESS — P0-4, P1-A: Real D-Bus package execution pending]
+- [ ] **Phase 6 — In-App Agent Cockpit Drawer** [IN PROGRESS — P0-5, P0-7, P1-D: Backend nonce tokens & real LLM tool-calling pending]
 - [x] **Milestone v0.0.1-alpha — Multi-Distro Release Pipeline** (.deb, .rpm, Flatpak, AUR PKGBUILD)
 - [x] **Milestone v0.0.2-alpha — Standalone Embedded UI & Async GTK Runtime Hotfix** (Release on GitHub)
-- [x] **Phase 7 — Voice Dictation & Advanced Diagnostics** (Local Whisper, "Why is PC Slow?", Snapshot Hooks)
-- [x] **Phase 8 — Polish, Packaging & Release** (AppImage, deb, rpm, PKGBUILD, Release v1.0)
+- [x] **Milestone v0.0.3-alpha — UI Non-Blocking Async IPC & Resilient Staging** (Release on GitHub)
+- [ ] **Phase 7 — Voice Dictation & Advanced Diagnostics** [IN PROGRESS — P0-6, P0-8, P1-C, P1-D: Real Whisper/CPAL & diagnostic scoping]
+- [ ] **Phase 8 — Polish, Packaging & Release v1.0** [PLANNED — P2 Hygiene, P3 Advanced Features]
+
+---
+
+## Critical Fix List & Gap Remediation Plan (from review of commit `fcc66c1`)
+
+Legend: ✅ Patched in `atp-critical-fixes.patch` · ⬜ Pending Implementation
+
+Test status: 90 Rust tests pass across all workspace crates (`cargo test --workspace`). Frontend builds cleanly with zero errors (`tsc --noEmit && vite build`).
+
+### P0 — Safety and Honesty Bugs (Do First)
+
+| # | Status | Problem | Location | Root Cause & Remediation Plan |
+|---|---|---|---|---|
+| **1** | ✅ | UI turns real failures into fake successes (e.g. "4.5 GB freed, 1,420 files") | `app/src/lib/ipc.ts` `safeInvoke` | **Root Cause:** `safeInvoke` returned fallback mock data whenever an IPC command threw an error, masking backend failures. <br>**Fix:** Check `__TAURI_INTERNALS__ in window`. Inside Tauri, errors strictly rethrow to the UI so users see real failures. Mock data only allowed in plain browser dev. |
+| **2** | ✅ | MCP `tuneup.kill_process` calls `libc::kill` directly without bounds or audit: `pid = 4294967295` wraps to `-1`, signaling every process owned by user | `crates/atp-mcp/src/dispatcher.rs` | **Root Cause:** Direct unchecked cast of `u32` to `i32` in `libc::kill(pid as i32, SIGTERM)`. <br>**Fix:** Added `atp-procs` dependency. Reject `pid <= 1 \|\| pid > i32::MAX as u32`. Route through guarded `ProcessManager::send_signal`. Record operation in SQLite `AuditStore`. Unit test verified. |
+| **3** | ✅ | Protected system roots matched by string prefix (`/dev` also blocked `/developer`) | `crates/atp-safety/src/protected.rs` | **Root Cause:** `path_str.starts_with(prefix)` treated `/developer` as beginning with `/dev`. <br>**Fix:** Component-aware boundary check: `path_str == *prefix \|\| path_str.starts_with(&format!("{prefix}/"))`. Unit test verified. |
+| **4** | ⬜ | Package install/remove never executes. `AppsView.tsx` confirm is an 800 ms timer then "completed successfully". MCP `remove_packages` / `purge_orphans` only return `"prepared"` | `app/src/components/AppsView.tsx`, `crates/atp-mcp/src/dispatcher.rs` | **Root Cause:** Missing D-Bus client in app for `in.zvirox.AgenticTuneupHelper`. <br>**Remediation:** 1. Implement D-Bus client in `atp-pkg` calling `AgenticTuneupHelper.ExecutePackageAction`. 2. Add Tauri command `pkg_execute_plan`. 3. Wire `AppsView.tsx` and MCP to call real execution. 4. Until D-Bus client is merged, display clear "Not implemented yet" badge instead of false success. |
+| **5** | ⬜ | "Approval" is a `usr_sig_` prefix check, and the frontend generates the token | `app/src-tauri/src/agent.rs` (`approve_step`), `app/src/components/AgentDrawer.tsx` | **Root Cause:** Frontend creates `usr_sig_ag_step_${stepIndex}_${timestamp}`; backend only validates `signature_token.starts_with("usr_sig_")`. Any caller can bypass approval. <br>**Remediation:** Backend must generate a cryptographically random per-plan nonce (`fastrand::alphanumeric(32)`) when a plan is created, store it with a 5-minute expiry in `active_plan`, require exact match on single-use, and invalidate upon execution. |
+| **6** | ⬜ | Voice is simulated. No `cpal` or `whisper-rs` dependency; `voice_stop_capture` transcribes a dummy buffer and returns hardcoded phrases. README claims offline Whisper | `crates/atp-voice/Cargo.toml`, `engine.rs`, `commands.rs` | **Root Cause:** `engine.rs` returns 4 static strings based on slice duration; `commands.rs` passes `vec![0.15; 32000]`. <br>**Remediation:** Either implement real `cpal` capture + `whisper-rs` (ggml-base.en) or label the voice feature "Preview / Simulated Audio" in the UI and README until native audio dependencies are linked. |
+| **7** | ⬜ | Plan savings and diffs are hardcoded (e.g. "~4.2 GB"). Claude/OpenAI paths fall back to keyword planner; Ollama's reply is discarded | `app/src-tauri/src/agent.rs` (`decompose_with_ollama`, `decompose_heuristic`) | **Root Cause:** `decompose_with_ollama` calls Ollama, ignores response body, and returns `decompose_heuristic` which hardcodes `total_disk_delta_bytes = -4_509_715_660`. <br>**Remediation:** 1. Calculate savings from actual `cleaner_scan` / `pkg_list_orphans` calls. 2. Parse structured tool-call JSON from Ollama/Claude/OpenAI responses with schema validation. |
+| **8** | ⬜ | `diagnostic_apply_fix("clean_caches")` runs **every** rule (including dev artifacts and trash) with no preview; `reduce_effects` is a no-op string | `app/src-tauri/src/commands.rs` | **Root Cause:** `clean_caches` collects all discovered rules and executes clean immediately without user preview. `reduce_effects` returns a static string without toggling window settings. <br>**Remediation:** 1. Limit `clean_caches` remediation strictly to category `caches`. 2. Provide preview before execution. 3. Persist and apply `reduce_effects` to frontend and compositor config. |
+
+---
+
+### P1 — Features the Plan Promised But Are Missing
+
+#### A. Real Package Operations
+1. **D-Bus Client for Privileged Helper**: Implement zbus client in `atp-pkg` / `app-tauri` connecting to system bus `in.zvirox.AgenticTuneupHelper`.
+2. **`pkg_execute` IPC Command**: Add Tauri commands `pkg_execute_plan` and `pkg_cancel_plan` supporting install, remove, upgrade, and purge-orphans with live progress streaming and SQLite audit rows.
+3. **Helper Validator Expansion**: Validate package actions across flatpak, pacman, apt, and dnf.
+4. **Additional Backends Roadmap**: Expand backend support to Snap, zypper, Homebrew on Linux, npm global, cargo, pipx, and manual `.deb`/`.rpm` drop.
+
+#### B. Cleaner Rule Coverage & Expiry
+1. **Browser Deep Clean**: Add declarative rules for browser cookies, browsing history, session data, IndexedDB / local storage, and download history.
+2. **Expanded Browser Matrix**: Add profile paths for Chromium, Microsoft Edge, Opera, Vivaldi, and Flatpak/Snap browser containers (currently Chrome, Firefox, Brave caches only).
+3. **Cookie Keep-List**: Implement cookie domain allow-list (e.g. preserve logins for `github.com`, `google.com`) during cookie cleaning.
+4. **Credential Protection Invariants**: Ensure bookmarks, extensions, and passwords remain strictly protected by default unless explicitly opted in.
+5. **Automated Quarantine Expiry**: Enforce 7-day retention limit by running `QuarantineStore::purge_expired_sessions` on application startup and periodic daily timer.
+
+#### C. Safety Wiring
+1. **Automated Pre-Change Snapshots**: Automatically invoke `SnapshotManager::create_snapshot` before executing Tier 3 destructive package operations (currently only a manual button).
+2. **Accurate Telemetry Health Score**: Feed real scanned junk bytes and real pending package update counts into `HealthScore::calculate(&snapshot, junk_bytes, pending_updates)` (currently passed as `0, 0`).
+
+#### D. Sovereign Agent & Voice Dictation
+1. **Structured LLM Tool-Calling**: Implement schema-validated function calling for Ollama, Anthropic Claude, and OpenAI-compatible endpoints with bounded step iteration (max 5 steps).
+2. **Secure Keyring Storage**: Store LLM API keys in Linux Secret Service / Keyring via `keyring` crate rather than plain JSON files.
+3. **Real Offline Whisper Pipeline**: Integrate `cpal` for native ALSA/PulseAudio/PipeWire capture + `whisper-rs` running `ggml-base.en`, hooked to global push-to-talk hotkey with strict approval gates.
+
+---
+
+### P2 — Engineering Hygiene & Verification
+
+- [ ] **Continuous Integration (CI)**: Add `.github/workflows/ci.yml` running `cargo fmt --check`, `cargo clippy --workspace -D warnings`, `cargo test --workspace`, and `npm --prefix app run build`.
+- [ ] **Frontend IPC Tests (Vitest)**: Add unit tests for `app/src/lib/ipc.ts` verifying that backend errors strictly propagate to UI outside dev mode.
+- [ ] **MCP Security Integration Tests**: Add automated tests ensuring every Tier 3 tool rejects execution without a valid backend-issued nonce token.
+- [ ] **Agent Safety Evaluation Set**: Create a test suite of 50+ adversarial and operational prompts, including refusal verification for credential directories ("clean my ssh keys", "delete passwords").
+- [ ] **Dependency Pruning**: Audit and either utilize or remove `@ui-sdk/core` and `@ui-sdk/react` in `app/package.json`.
+- [ ] **Module Architecture Documentation**: Author `docs/<crate>.md` for each of the 9 workspace crates explaining responsibilities, contracts, and safety invariants.
+- [ ] **Performance Benchmarks**: Add reproducible benchmark scripts validating the "<1.0% idle CPU and 60 FPS" claims on Wayland and X11.
+- [ ] **Roadmap & Reality Synchronization**: Keep `PLAN.md`, `README.md`, and release tags in strict agreement regarding alpha vs stable feature status.
+
+---
+
+### P3 — Phase 8 Advanced Features (Post P0–P2 Hardening)
+
+- **Interactive Disk Treemap**: Visual radial / squarified treemap of disk consumption with inline quarantine staging.
+- **Security & Privacy Audit**: System configuration auditor scanning for open debug ports, unconfined executables, and world-writable paths.
+- **Natural-Language Maintenance Scheduling**: Starship agent timer allowing requests like "Clean package caches every Sunday at midnight".
+- **Config-Leftover Finder**: Scanner for residual configuration files belonging to uninstalled packages.
+- **Duplicate & Large File Finder**: Hard-link-aware SHA-256 duplicate file detector.
+- **Startup Time Analysis**: `systemd-analyze blame` visualization with one-click service disabling.
+- **Update Intelligence**: Automated changelog summarizer for pending distribution updates.
+- **System Report Export**: Redacted diagnostic markdown/HTML system reports for support requests.
 
 ---
 
@@ -51,7 +125,7 @@
   - Implement standard typed error envelope (`CoreError`: `kind`, `code`, `retryable`, `userMessage`, `details`) in Rust and TypeScript mirroring `API.md §1`.
   - *Verify:* Toggling Reduce Effects eliminates all backdrop-filter overhead instantly.
 
-**Definition of Done (Phase 0):** ✅ Tauri 2 desktop shell compiles, renders Mother Ship design tokens on Linux Wayland/X11, passes WebKitGTK performance gate (<1.0% idle CPU), and establishes shared error types.
+**Definition of Done (Phase 0):** ✅ Tauri 2 desktop shell compiles, renders Mother Ship design tokens on Linux Wayland/X11, passes WebKitGTK performance gate (<1.0% idle CPU), and establishes shared error types. [COMPLETED]
 
 ---
 
@@ -64,10 +138,10 @@
   - Implement `AuditEntry` and `ExecutionResult` structs with JSON serialization.
   - *Verify:* Unit tests validate step serialization and risk tier comparisons.
 - [x] **1.2 Hard Protected Path Boundary (`atp-safety`)**
-  - Implement `ProtectedValidator` with hard-coded blacklist patterns:
+  - Implement `ProtectedValidator` with component-aware path checking:
     - Browser passwords (`Login Data*`, `logins.json`, `key4.db`, `cert9.db`).
     - Identity & crypto keys (`~/.ssh/**`, `~/.gnupg/**`, `keyrings/**`).
-    - Root OS hierarchies (`/etc/**`, `/boot/**`, `/usr/**`).
+    - Root OS hierarchies (`/etc/**`, `/boot/**`, `/usr/**`, whole-component `/dev/`, etc.).
   - Implement directory traversal prevention (`..` resolution and symlink dereference checking).
   - *Verify:* Test suite verifies scanner immediately errors if attempting to touch password or SSH files, even if a rule explicitly targets them.
 - [x] **1.3 Quarantine Engine & Manifest Store (`atp-safety`)**
@@ -128,19 +202,20 @@
 > **Goal:** Declarative TOML cleaner rule engine, multi-threaded disk scanner, transparent file tree diff preview, and one-click clean with instant Undo.
 
 - [x] **3.1 TOML Rule Engine & Discovery (`atp-cleaner`)**
-  - Implement TOML rule parser for files in `rules/` and `$XDG_CONFIG_HOME/agentic-tuneup-pro/rules/`.
+  - Implement TOML rule parser with embedded fallback rules (`include_str!`) and discovery across `rules/`, `/usr/share/agentic-tuneup-pro/rules/`, and `$XDG_CONFIG_HOME/agentic-tuneup-pro/rules/`.
   - Ship core rule packs: `system.toml`, `browsers.toml`, `package_caches.toml`, `dev_artifacts.toml`, `app_caches.toml`.
-  - *Verify:* Parser correctly loads rule definitions, globs, risk tiers, and closed-app requirements.
+  - *Verify:* Parser correctly loads rule definitions, globs, risk tiers, and closed-app requirements in both dev and packaged modes.
 - [x] **3.2 Multi-Threaded Parallel Disk Scanner (`atp-cleaner`)**
   - Author parallel file tree scanner using Rayon / Tokio file walkers.
   - Expand path globs, calculate byte sizes, and filter matched paths through `ProtectedValidator`.
-  - Emit real-time scanning progress (`evt://cleaner/scan_progress`).
-  - *Verify:* Scanning standard system caches (>20,000 files) completes in under 2.5 seconds.
-- [x] **3.3 Running App Detector & Browser Safety**
+  - Offload execution to `tokio::task::spawn_blocking` to avoid blocking WebKitGTK event loop.
+  - Compress IPC response payload (strip raw path arrays, keep sample previews) to prevent UI thread stutter.
+  - *Verify:* Scanning standard system caches completes in < 2.5s without freezing UI buttons or animations.
+- [x] **3.3 Running App Detector & Resilient Cleaning**
   - Probe active process list for applications targeted by rules (e.g. `chrome`, `firefox`).
-  - Warn users and block execution if a browser is actively running.
-  - Implement cookie keep-list for user-specified domains (e.g. `github.com`, `google.com`).
-  - *Verify:* Cleaner refuses to clean Chrome cache while Chrome is running, offering clean termination.
+  - Filter out running-app-locked rules automatically rather than aborting the entire batch.
+  - Skip locked or inaccessible files during quarantine staging with audit warnings.
+  - *Verify:* Cleaner cleans unblocked targets seamlessly even if one application or file is busy.
 - [x] **3.4 Cleaner Category Tree UI (`CleanCategoryCard`)**
   - Build category list with itemized checkboxes, subtotal sizes (`mono-md`), and category badges.
   - Implement expandable tree view showing exact file paths, sizes, and "Why is this safe?" tooltips.
@@ -151,7 +226,7 @@
   - Emit completion toast with high-visibility **`[Undo]`** link.
   - *Verify:* Clicking "Clean" frees disk space immediately; clicking "Undo" restores all files in < 500 ms.
 
-**Definition of Done (Phase 3):** ✅ Scans 1,000+ cache locations in seconds, previews exact file trees, moves gigabytes to quarantine safely, and restores them on demand via Undo. [COMPLETED]
+**Definition of Done (Phase 3):** ✅ Scans cache locations in seconds without UI freeze, previews exact file trees, moves gigabytes to quarantine safely, and restores them on demand via Undo. [COMPLETED]
 
 ---
 
@@ -184,7 +259,7 @@
     - `tuneup.remove_packages` (Tier 3)
     - `tuneup.purge_orphans` (Tier 3)
     - `tuneup.list_processes` (Tier 1)
-    - `tuneup.kill_process` (Tier 3)
+    - `tuneup.kill_process` (Tier 3 — validated bounds & audit logged)
     - `tuneup.purge_quarantine` (Tier 3)
   - *Verify:* MCP client can inspect and discover all registered tools and JSON schemas.
 - [x] **4.5 MCP Tool Invocation (`tools/call`) & Cancellation (`tools/cancel`)**
@@ -214,13 +289,19 @@
   - Implement Debian/Ubuntu backend (`apt autoremove --dry-run`).
   - Implement Fedora backend (`dnf autoremove`).
   - Calculate dependency diffs before execution (`PackagePlan`).
-  - Route mutating uninstalls through `atpd-helper` with Polkit prompt.
   - *Verify:* Orphan packages are audited and displayed with zero reverse dependency proof.
+- [ ] **5.3.1 Real D-Bus Package Execution Bridge (P0-4 & P1-A Remediation)**
+  - Implement zbus client in `atp-pkg` calling `in.zvirox.AgenticTuneupHelper.ExecutePackageAction`.
+  - Add Tauri IPC command `pkg_execute_plan(plan_id, signature_token)` with Polkit elevation and live progress streaming.
+  - Replace timer simulation in `AppsView.tsx` with real execution call; show "Not implemented yet" badge for unhandled backends.
+  - Wire MCP `tuneup.remove_packages` and `tuneup.purge_orphans` to execute real plans after approval.
+  - *Verify:* Uninstalling a Flatpak or native package executes real removal and updates package list.
 - [x] **5.4 Process Tree Explorer & Signals (`atp-procs`)**
-  - Implement process list grouped by application (e.g. Chrome parent + 20 helper workers).
+  - Implement process list grouped by application (e.g. Chrome parent + helper workers).
   - Implement signals: `SIGTERM` (clean close), `SIGKILL` (force kill), `nice` priority shift.
   - Implement tree-kill: traverse child PIDs recursively and terminate the full tree.
-  - *Verify:* Terminating a multi-process browser closes all child processes cleanly without orphaned workers.
+  - Guard PID bounds (`pid > 1 && pid <= i32::MAX`) and protect critical system processes.
+  - *Verify:* Terminating an app closes child processes cleanly without orphaned workers.
 - [x] **5.5 Systemd Services & Startup Manager (`atp-procs`)**
   - Connect to systemd user and system buses via `zbus`.
   - List services, start, stop, restart, enable, disable.
@@ -229,9 +310,9 @@
 - [x] **5.6 Apps & Processes UI**
   - Build **Apps** screen with source filters (All, Flatpak, Native, AppImage), updates counter, and "Update All" button.
   - Build **Processes** screen with sortable tables, CPU/Memory progress bars, and kill confirmation modals.
-  - *Verify:* User can update an app and kill a runaway process with interactive confirmation.
+  - *Verify:* User can filter apps and kill runaway processes with interactive confirmation.
 
-**Definition of Done (Phase 5):** ✅ Unified package management across native and containerized formats; orphan packages audited and pruned; processes and systemd services managed safely. [COMPLETED]
+**Definition of Done (Phase 5):** ⚠️ Partial — Process tree and service management complete and verified; package execution bridge requires D-Bus client implementation (P0-4 / P1-A).
 
 ---
 
@@ -244,64 +325,49 @@
   - Toggleable via top-right robot button or `Ctrl + Shift + A` / `Escape`.
   - Connect drawer state with global UI so agent can highlight target rows in the active table.
   - *Verify:* Opening drawer resizes content area smoothly without overlapping data tables.
-- [x] **6.2 LLM Provider Adapters & Keyring Storage**
-  - Implement pluggable LLM interface supporting local Ollama (`localhost:11434`), Anthropic Claude API, and OpenAI-compatible endpoints.
-  - Store API keys securely in Linux Secret Service via `libsecret` and sovereign offline planner fallback.
-  - *Verify:* Agent can stream completions from local Ollama or private API keys.
-- [x] **6.3 Task Sheet Decomposition & State Machine**
-  - Turn natural-language instructions ("Free up 5 GB and clean my browser") into structured **Task Sheets** (`tasksheet/1`).
+- [ ] **6.2 LLM Provider Adapters & Keyring Storage (P1-D Remediation)**
+  - Pluggable LLM interface supporting local Ollama (`localhost:11434`), Anthropic Claude API, and OpenAI endpoints.
+  - Store API keys securely in Linux Secret Service via system keyring (not plain text config).
+  - Implement real structured JSON tool-calling; stop discarding Ollama replies.
+  - *Verify:* Agent streams real completions from Ollama or Anthropic API without fallback to keyword heuristics.
+- [ ] **6.3 Dynamic Task Sheet Plan Generation (P0-7 Remediation)**
+  - Decompose natural language requests into structured **Task Sheets** (`tasksheet/1`).
+  - Calculate real disk savings from actual scanner / orphan queries (eliminate hardcoded ~4.2 GB placeholder).
   - Categorize steps into risk tiers (`Tier1Safe`, `Tier2Reversible`, `Tier3Destructive`).
-  - Step states: `Pending`, `WaitingApproval`, `Executing`, `Completed`, `Failed`.
-  - *Verify:* Agent produces a structured plan before executing any mutations.
-- [x] **6.4 Tier 3 Interactive Approval Gate Cards (`PlanStepCard`)**
+  - *Verify:* Agent outputs plan with accurate byte totals based on actual system state.
+- [ ] **6.4 Backend Cryptographic Approval Nonce (P0-5 Remediation)**
+  - Backend issues random single-use nonce (`fastrand::alphanumeric(32)`) upon plan creation with 5-minute expiry.
+  - Invalidate token immediately upon step execution; reject arbitrary client-generated `usr_sig_` prefixes.
   - Render pending mutating steps with diff summaries and prominent **`[Approve]`** and **`[Reject]`** buttons.
-  - Enforce signed approval tokens: execution engine rejects dispatch if token is missing.
-  - *Verify:* Destructive steps pause execution until the user explicitly clicks Approve in the drawer.
+  - *Verify:* Steps strictly refuse execution if nonce does not match backend-issued plan token.
 - [x] **6.5 Prompt Injection Defenses**
   - Wrap all external system data (package names, log lines, file paths) in `<system_data>` blocks.
   - Enforce system prompt invariant: external text is treated as data, never instructions.
   - *Verify:* Malicious file names or package summaries cannot trigger unauthorized tool calls.
 
-**Definition of Done (Phase 6):** ✅ User can type requests to the agent, inspect structured Task Sheets in the right-side drawer, approve/deny risky steps, and observe execution progress. [COMPLETED]
+**Definition of Done (Phase 6):** ⚠️ Partial — Drawer UI and prompt injection boundaries verified; backend nonce approval and real dynamic plan decomposition pending (P0-5, P0-7).
 
 ---
 
-## Milestone: v0.0.1-alpha Pre-Release Packaging & Multi-Distro Distribution
+## Milestones & Release History
 
-> **Goal:** Release the first public alpha (`v0.0.1-alpha`) across all primary Linux distribution channels (.deb, .rpm, Flatpak, and AUR PKGBUILD) with full privileged helper, desktop integration, and D-Bus/Polkit policies.
+### Milestone v0.0.1-alpha — Multi-Distro Release Pipeline
+- [x] System integration metadata: `.desktop`, AppStream XML, Polkit policy, D-Bus config, hicolor icons.
+- [x] Standalone package generators: `.deb` (Debian/Ubuntu), `.rpm` (Fedora), Flatpak manifest, AUR `PKGBUILD`.
+- [x] Unified build script `scripts/build-packages.sh` producing release archives with `SHA256SUMS`.
 
-- [x] **M.1 System Integration & Metadata Assets**
-  - Desktop Entry: `packaging/agentic-tuneup-pro.desktop` adhering to FreeDesktop standard.
-  - AppStream Metadata: `packaging/in.zvirox.agentictuneuppro.metainfo.xml` for GNOME Software and KDE Discover.
-  - Systemd Service: `packaging/atpd-helper.service` managing the privileged helper daemon.
-  - Icon theme assets: multi-resolution icons (`hicolor` 32x32, 64x64, 128x128, 256x256, 512x512, scalable SVG).
-  - *Verify:* Desktop entry validates cleanly via `desktop-file-validate` and AppStream validates via `appstreamcli`.
-- [x] **M.2 Debian / Ubuntu Package (`.deb`)**
-  - Standalone Debian package generator and Tauri bundle configuration.
-  - Install scripts (`postinst`, `prerm`, `postrm`) for D-Bus and systemd daemon reloading.
-  - Multi-arch amd64 support with dependencies (`libwebkit2gtk-4.1-0`, `libgtk-3-0`, `libayatana-appindicator3-1`).
-  - *Verify:* Package builds and installs cleanly on Debian/Ubuntu systems with full Polkit registration.
-- [x] **M.3 Fedora / RHEL / openSUSE Package (`.rpm`)**
-  - RPM specification file: `packaging/rpm/agentic-tuneup-pro.spec`.
-  - Configured dependencies (`webkit2gtk4.1`, `gtk3`, `libappindicator-gtk3`, `polkit`).
-  - Integrated `rpmbuild` workflow producing `agentic-tuneup-pro-0.0.1-alpha.1.x86_64.rpm`.
-  - *Verify:* `rpmbuild -bb` succeeds and package query confirms all files and scripts.
-- [x] **M.4 Flatpak Manifest (`in.zvirox.AgenticTuneupPro.yaml`)**
-  - Author Flatpak manifest targeting `org.freedesktop.Platform//24.08`.
-  - Grant permissions for filesystem cleanup (`filesystem=host:ro`, `filesystem=home`, `filesystem=xdg-cache`).
-  - Configure system bus talk to `in.zvirox.AgenticTuneupHelper`.
-  - *Verify:* Manifest conforms to Flatpak 1.x builder specifications.
-- [x] **M.5 Arch Linux AUR Package (`PKGBUILD` & `.SRCINFO`)**
-  - Author standard Arch Linux `PKGBUILD` for `agentic-tuneup-pro-bin` / `agentic-tuneup-pro`.
-  - Author `packaging/aur/agentic-tuneup-pro.install` pacman hooks.
-  - Generate canonical `.SRCINFO` for AUR repository synchronization.
-  - *Verify:* `makepkg -od` or pacman verification parses and validates the package recipe.
-- [x] **M.6 Automated Release Orchestration Script (`scripts/build-packages.sh`)**
-  - Single-command orchestration script that builds optimized release binaries and generates `.deb`, `.rpm`, `flatpak` manifest bundle, and `AUR` tarball.
-  - Direct output to `dist/v0.0.1-alpha/` with checksums (`SHA256SUMS`).
-  - *Verify:* Running `./scripts/build-packages.sh` compiles and packages all targets reproducibly.
+### Milestone v0.0.2-alpha — Standalone Embedded UI & GTK Async Loop
+- [x] Embedded production Vite assets inside release binary (`tauri build --no-bundle`).
+- [x] Fixed blank screen on launch when running outside dev server.
+- [x] Tagged and released on GitHub with package binaries.
 
-**Definition of Done (v0.0.1-alpha Milestone):** ✅ `.deb`, `.rpm`, `Flatpak`, and `AUR PKGBUILD` packages produced and validated for public alpha testing ahead of Phase 7 and the final v1.0 stable release. [COMPLETED]
+### Milestone v0.0.3-alpha — UI Non-Blocking Async IPC & Resilient Staging
+- [x] Converted all blocking Tauri commands to `pub async fn` using `tokio::task::spawn_blocking` to prevent WebKitGTK event loop freezing.
+- [x] Stripped massive `matched_paths` array from IPC JSON payload to eliminate UI stuttering.
+- [x] Embedded default TOML rules directly into `atp-cleaner` binary with `/usr/share/agentic-tuneup-pro/rules` fallback.
+- [x] Made quarantine staging resilient: skip busy/locked files with audit log instead of aborting batch.
+- [x] Fixed dashboard "Smart Scan & Clean" button direct trigger.
+- [x] Tagged and released on GitHub with package binaries.
 
 ---
 
@@ -309,55 +375,56 @@
 
 > **Goal:** Hands-free voice commands via local Whisper dictation, "Why is my PC slow?" automated diagnostics, and Timeshift/btrfs snapshot hooks.
 
-- [x] **7.1 Microphone Capture & Voice Activity Detection (`atp-voice`)**
-  - Implement audio capture using `cpal` with voice activity detection (VAD).
+- [ ] **7.1 Microphone Capture & Voice Activity Detection (P0-6 & P1-D Remediation)**
+  - Integrate real audio capture using `cpal` with voice activity detection (VAD).
   - Global push-to-talk hotkey (`Ctrl + Space` or `Super + Shift + Space`) managed via `ashpd`.
   - Animate live audio waveform in the agent drawer during speech capture.
-  - *Verify:* Pressing shortcut opens audio capture and visualizes voice waveform.
-- [x] **7.2 Embedded Local Whisper Engine**
-  - Integrate `whisper-rs` (whisper.cpp) with default `base.en` model.
-  - Stream transcribed text directly into the agent drawer input field.
-  - *Verify:* Spoken command ("Clean my package cache") transcribes accurately offline and submits to agent.
-- [x] **7.3 "Why is my PC slow?" Diagnostic Engine**
+  - *Until native audio is integrated:* Label voice feature "Preview / Simulated Audio" in UI and README.
+  - *Verify:* Audio capture records microphone samples into PCM float buffer.
+- [ ] **7.2 Embedded Local Whisper Engine (P0-6 & P1-D Remediation)**
+  - Integrate `whisper-rs` (whisper.cpp bindings) with default `base.en` model.
+  - Download model to `~/.local/share/atp/models/ggml-base.en.bin` on first setup.
+  - Transcribe audio buffer offline and stream text into agent drawer.
+  - *Verify:* Spoken command transcribes offline accurately into agent input without dummy string fallbacks.
+- [ ] **7.3 "Why is my PC slow?" Diagnostic Engine (P0-8 Remediation)**
   - Correlate CPU load, memory pressure, I/O wait, thermal throttling, and `journalctl` error logs.
-  - Detect runaway processes, memory leaks, and disk indexing daemons (e.g. `tracker-miner-fs`).
-  - Present plain-English diagnosis and offer one-click fixes (e.g. "Lower tracker priority", "Clean caches").
-  - *Verify:* Stress-testing the CPU or disk triggers an intelligent diagnostic summary explaining the exact bottleneck.
+  - Scope `clean_caches` remediation strictly to category `caches` with user preview before execution.
+  - Make `reduce_effects` toggle real window and compositor settings.
+  - Feed real scanned junk bytes and pending update counts into `HealthScore::calculate`.
+  - *Verify:* Remediations are category-scoped, previewed, and reduce effects toggles visual settings.
 - [x] **7.4 Pre-Change Snapshot Hooks (Timeshift / Snapper / btrfs)**
-  - Detect presence of Timeshift or Snapper on system.
-  - Provide toggle to automatically trigger a filesystem snapshot before executing major package purges.
+  - Detect presence of Timeshift, Snapper, or Btrfs on system.
+  - Provide automatic snapshot trigger before executing Tier 3 package purges (P1-C).
   - *Verify:* Snapshot hook creates a restorable snapshot before executing Tier 3 package removals.
 
-**Definition of Done (Phase 7):** ✅ Offline voice dictation operates seamlessly via hotkey; system diagnosis explains performance bottlenecks with one-click fixes; snapshot integration protects system state.
+**Definition of Done (Phase 7):** ⚠️ Partial — Snapshot detection and diagnostic analysis implemented; voice is simulated (requires CPAL + whisper-rs or preview labeling), diagnostic remediations require category scoping.
 
 ---
 
-## Phase 8 — Polish, Packaging & Release
+## Phase 8 — Polish, Packaging & Release v1.0
 
 > **Goal:** Production-grade quality hardening, full keyboard accessibility, multi-distro packaging, and public v1.0 release.
 
-- [x] **8.1 Keyboard Navigation & Accessibility Pass (WCAG AA)**
-  - Implement full keyboard navigation across every surface (`Tab`, `Ctrl+K` command palette, `Esc` dismiss).
-  - Verify 4.5:1 color contrast floor across all text tokens against obsidian glass.
-  - Ensure all toggles, gauges, and tables announce correctly to screen readers.
+- [ ] **8.1 Keyboard Navigation & Accessibility Pass (WCAG AA)**
+  - Full keyboard navigation across every surface (`Tab`, `Ctrl+K` command palette, `Esc` dismiss).
+  - 4.5:1 color contrast floor across all text tokens against obsidian glass.
+  - Screen reader live status announcements (`aria-live="polite"`).
   - *Verify:* Entire cleanup and package update workflow can be completed using keyboard alone.
-- [x] **8.2 Cross-Distro Container Test Matrix**
-  - Setup automated test scripts and verification matrix (`scripts/test-distro-matrix.sh`) for:
-    - Arch Linux (pacman, ALPM, systemd).
-    - Fedora 41 (dnf5, Flatpak, systemd).
-    - Ubuntu 24.04 LTS (apt, dpkg, systemd).
-  - *Verify:* All package backends, polkit rules, dbus configs, and cleaner rules pass automated integration tests.
-- [x] **8.3 Linux Distro Packaging**
-  - Build standalone **AppImage** and portable AppDir bundle (`packaging/appimage/AppRun`).
-  - Author Debian/Ubuntu `.deb` package with systemd helper unit and Polkit policy.
-  - Author Fedora `.rpm` package and Arch Linux `PKGBUILD`.
+- [ ] **8.2 Cross-Distro Container Test Matrix & CI (P2 Remediation)**
+  - Implement GitHub Actions CI running `cargo test --workspace`, `clippy`, and `npm run build`.
+  - Automated distro matrix verification (`scripts/test-distro-matrix.sh`) across Arch, Fedora, and Ubuntu.
+  - *Verify:* All package backends, polkit rules, dbus configs, and cleaner rules pass automated integration tests in CI.
+- [x] **8.3 Linux Distro Packaging Pipeline**
+  - Standalone **AppImage** and portable AppDir bundle (`packaging/appimage/AppRun`).
+  - Debian/Ubuntu `.deb` package with systemd helper unit and Polkit policy.
+  - Fedora `.rpm` package and Arch Linux `PKGBUILD`.
   - *Verify:* AppImage, .deb, .rpm, Flatpak, and AUR packages generate cleanly via `build-packages.sh`.
-- [x] **8.4 Documentation, Assets & Release v1.0**
-  - Update `README.md` with final screenshots, architecture diagrams, and quickstart commands.
-  - Author `docs/USER_GUIDE.md`, `docs/SAFETY.md`, and `docs/RULE_AUTHORING.md`.
-  - Tag milestone `v1.0.0` and publish release artifacts.
+- [ ] **8.4 Documentation, Assets & Stable Release v1.0**
+  - Author `docs/<crate>.md` architecture docs for all 9 workspace crates.
+  - Benchmark idle CPU (<1.0%) and frame rates (60 fps) across Wayland and X11 with reproducible scripts.
+  - Tag milestone `v1.0.0` when P0, P1, and P2 are fully green.
 
-**Definition of Done (Phase 8):** ✅ Fully tested across Arch, Fedora, and Ubuntu; packaged in AppImage, deb, and rpm; documented and ready for sovereign desktop use. [COMPLETED]
+**Definition of Done (Phase 8):** ⚠️ In Progress — Distro packaging pipelines operational (v0.0.1–v0.0.3); CI, crate docs, accessibility audit, and stable v1.0 release pending.
 
 ---
 

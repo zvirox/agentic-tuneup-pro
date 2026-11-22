@@ -166,6 +166,7 @@ dependencies = [
  "atp-cleaner",
  "atp-core",
  "atp-monitor",
+ "atp-procs",
  "atp-safety",
  "fastrand",
  "libc",

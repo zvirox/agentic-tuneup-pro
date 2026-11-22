@@ -440,22 +440,36 @@ impl McpDispatcher {
                 )
             })? as u32;
 
-        let res = unsafe { libc::kill(pid as i32, libc::SIGTERM) };
-        if res == 0 {
-            Ok(serde_json::json!({
-                "status": "terminated",
-                "pid": pid,
-                "signal": "SIGTERM",
-            }))
-        } else {
-            Err(CoreError::new(
+        // Reject values that would wrap to pid 0 / -1 (process group / every process) after
+        // the i32 cast, and PID 1; then go through the guarded ProcessManager path.
+        if pid <= 1 || pid > i32::MAX as u32 {
+            return Err(CoreError::new(
                 ErrorKind::Safety,
-                "safety.kill_failed",
+                "safety.invalid_pid",
                 false,
-                format!("Failed to send SIGTERM to PID {pid} (errno: {})", std::io::Error::last_os_error()),
+                format!("Refusing to signal PID {pid}: out of the allowed range."),
                 Some(serde_json::json!({ "pid": pid })),
-            ))
+            ));
         }
+
+        atp_procs::ProcessManager::send_signal(pid, libc::SIGTERM)?;
+
+        if let Ok(audit_store) = AuditStore::default_store() {
+            let _ = audit_store.record(
+                "mcp",
+                "procs.kill_process",
+                &pid.to_string(),
+                3,
+                "success",
+                r#"{"signal":"SIGTERM","via":"mcp"}"#,
+            );
+        }
+
+        Ok(serde_json::json!({
+            "status": "terminated",
+            "pid": pid,
+            "signal": "SIGTERM",
+        }))
     }
 
     async fn tool_get_audit_log(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
@@ -714,5 +728,16 @@ mod tests {
         assert!(resp.result.is_none());
         let err = resp.error.expect("error");
         assert_eq!(err.code, -32601);
+    }
+
+    #[tokio::test]
+    async fn test_kill_process_rejects_wrapping_and_init_pids() {
+        let dispatcher = McpDispatcher::new();
+        for bad in [0u64, 1, 4_294_967_295, 2_147_483_648] {
+            let res = dispatcher
+                .tool_kill_process(&serde_json::json!({ "pid": bad }))
+                .await;
+            assert!(res.is_err(), "pid {bad} must be rejected");
+        }
     }
 }
