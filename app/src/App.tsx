@@ -258,12 +258,14 @@ export default function App() {
       <header className="h-14 border-b border-border-subtle flex items-center px-4 gap-4 bg-raised/70 select-none">
         {/* Brand */}
         <div className="flex items-center gap-2.5 font-bold tracking-tight">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent to-accent-active flex items-center justify-center text-accent-text font-bold text-sm shadow-[0_0_15px_rgba(56,189,248,0.4)]">
-            ⚡
-          </div>
+          <img
+            src="/logo.png"
+            alt="Agentic Tuneup Pro Logo"
+            className="w-8 h-8 rounded-lg object-contain shadow-[0_0_15px_rgba(56,189,248,0.3)]"
+          />
           <span className="text-sm font-semibold tracking-wide">Agentic Tuneup Pro</span>
           <span className="text-[10px] font-mono uppercase bg-accent-muted text-accent px-1.5 py-0.5 rounded border border-accent/20">
-            v0.1.0
+            v0.0.1-alpha
           </span>
         </div>
 
