@@ -125,31 +125,31 @@
 
 > **Goal:** Declarative TOML cleaner rule engine, multi-threaded disk scanner, transparent file tree diff preview, and one-click clean with instant Undo.
 
-- [ ] **3.1 TOML Rule Engine & Discovery (`atp-cleaner`)**
+- [x] **3.1 TOML Rule Engine & Discovery (`atp-cleaner`)**
   - Implement TOML rule parser for files in `rules/` and `$XDG_CONFIG_HOME/agentic-tuneup-pro/rules/`.
   - Ship core rule packs: `system.toml`, `browsers.toml`, `package_caches.toml`, `dev_artifacts.toml`, `app_caches.toml`.
   - *Verify:* Parser correctly loads rule definitions, globs, risk tiers, and closed-app requirements.
-- [ ] **3.2 Multi-Threaded Parallel Disk Scanner (`atp-cleaner`)**
+- [x] **3.2 Multi-Threaded Parallel Disk Scanner (`atp-cleaner`)**
   - Author parallel file tree scanner using Rayon / Tokio file walkers.
   - Expand path globs, calculate byte sizes, and filter matched paths through `ProtectedValidator`.
   - Emit real-time scanning progress (`evt://cleaner/scan_progress`).
   - *Verify:* Scanning standard system caches (>20,000 files) completes in under 2.5 seconds.
-- [ ] **3.3 Running App Detector & Browser Safety**
+- [x] **3.3 Running App Detector & Browser Safety**
   - Probe active process list for applications targeted by rules (e.g. `chrome`, `firefox`).
   - Warn users and block execution if a browser is actively running.
   - Implement cookie keep-list for user-specified domains (e.g. `github.com`, `google.com`).
   - *Verify:* Cleaner refuses to clean Chrome cache while Chrome is running, offering clean termination.
-- [ ] **3.4 Cleaner Category Tree UI (`CleanCategoryCard`)**
+- [x] **3.4 Cleaner Category Tree UI (`CleanCategoryCard`)**
   - Build category list with itemized checkboxes, subtotal sizes (`mono-md`), and category badges.
   - Implement expandable tree view showing exact file paths, sizes, and "Why is this safe?" tooltips.
   - *Verify:* User can drill down into any category and inspect exact paths before cleaning.
-- [ ] **3.5 Clean Execution & Instant Undo Flow**
+- [x] **3.5 Clean Execution & Instant Undo Flow**
   - Wire `cmd://cleaner_execute_clean` to floating CTA button (`Clean X.X GB to Quarantine`).
   - Display progress ring animation during quarantine move.
   - Emit completion toast with high-visibility **`[Undo]`** link.
   - *Verify:* Clicking "Clean" frees disk space immediately; clicking "Undo" restores all files in < 500 ms.
 
-**Definition of Done (Phase 3):** ✅ Scans 1,000+ cache locations in seconds, previews exact file trees, moves gigabytes to quarantine safely, and restores them on demand via Undo.
+**Definition of Done (Phase 3):** ✅ Scans 1,000+ cache locations in seconds, previews exact file trees, moves gigabytes to quarantine safely, and restores them on demand via Undo. [COMPLETED]
 
 ---
 

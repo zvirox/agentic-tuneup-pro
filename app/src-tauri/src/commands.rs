@@ -1,7 +1,36 @@
 use tauri::{command, State};
+use atp_cleaner::{CleanExecutionOutput, CleanerExecutor, ParallelScanner, RuleEngine, ScanSummary};
 use atp_core::{AuditEntry, ExecutionResult, QuarantineSessionRecord};
 use atp_monitor::{HealthScore, TelemetryMonitor, TelemetrySnapshot};
 use atp_safety::{AuditStore, QuarantineStore};
+
+#[command]
+pub fn cleaner_scan(categories: Option<Vec<String>>) -> Result<ScanSummary, String> {
+    let engine = RuleEngine::discover_and_load().map_err(|e| e.to_string())?;
+    let rules: Vec<_> = if let Some(cats) = categories {
+        engine
+            .rules()
+            .iter()
+            .filter(|r| cats.contains(&r.category))
+            .cloned()
+            .collect()
+    } else {
+        engine.rules().to_vec()
+    };
+    Ok(ParallelScanner::scan_rules(&rules))
+}
+
+#[command]
+pub fn cleaner_execute_clean(
+    selected_rule_ids: Vec<String>,
+) -> Result<CleanExecutionOutput, String> {
+    let engine = RuleEngine::discover_and_load().map_err(|e| e.to_string())?;
+    let q_store = QuarantineStore::default_store();
+    let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
+
+    CleanerExecutor::execute_clean(&selected_rule_ids, engine.rules(), &q_store, &audit_store)
+        .map_err(|e| e.to_string())
+}
 
 #[command]
 pub fn cleaner_list_quarantine() -> Result<Vec<QuarantineSessionRecord>, String> {

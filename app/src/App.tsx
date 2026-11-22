@@ -19,13 +19,23 @@ import { UndoButton } from "./components/UndoButton";
 import { HealthGauge } from "./components/HealthGauge";
 import { TelemetrySparkline } from "./components/TelemetrySparkline";
 import { TopConsumersCard } from "./components/TopConsumersCard";
+import { CategoryTree } from "./components/CategoryTree";
+import { SamplePathsModal } from "./components/SamplePathsModal";
 import {
+  cleanerScan,
+  cleanerExecuteClean,
   getHealthScore,
   getTelemetrySnapshot,
   getTelemetryHistory,
   subscribeTelemetry,
 } from "./lib/ipc";
-import { HealthScore, TelemetrySnapshot } from "./types";
+import {
+  HealthScore,
+  TelemetrySnapshot,
+  ScanSummary,
+  RuleScanResult,
+  CategoryScanResult,
+} from "./types";
 
 type Page = "dash" | "clean" | "apps" | "proc" | "set";
 type Workspace = "daily" | "dev" | "server";
@@ -38,6 +48,13 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [cleanerTab, setCleanerTab] = useState<"scan" | "quarantine">("scan");
   const [recentSessionId, setRecentSessionId] = useState<string | null>("q_20261122_084500_8f3a");
+
+  // Cleaner Scan & Rule States
+  const [scanSummary, setScanSummary] = useState<ScanSummary | null>(null);
+  const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(new Set());
+  const [scanning, setScanning] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
+  const [inspectingRule, setInspectingRule] = useState<RuleScanResult | null>(null);
 
   // Real-time Telemetry & Health States
   const [telemetry, setTelemetry] = useState<TelemetrySnapshot | null>(null);
@@ -83,6 +100,7 @@ export default function App() {
     });
 
     getHealthScore().then((h) => setHealth(h));
+    runScan();
 
     // Subscribe to live 1.0 Hz telemetry stream
     let unlistenFn: (() => void) | null = null;
@@ -111,6 +129,90 @@ export default function App() {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3500);
   };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  };
+
+  const runScan = async () => {
+    setScanning(true);
+    try {
+      const summary = await cleanerScan();
+      setScanSummary(summary);
+      const active = new Set<string>();
+      for (const cat of summary.categories) {
+        for (const r of cat.rules) {
+          if (r.running_apps_blocking.length === 0) {
+            active.add(r.rule_id);
+          }
+        }
+      }
+      setSelectedRuleIds(active);
+    } catch (err) {
+      console.error("Scan failed", err);
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleToggleRule = (ruleId: string) => {
+    setSelectedRuleIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(ruleId)) {
+        next.delete(ruleId);
+      } else {
+        next.add(ruleId);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleCategory = (cat: CategoryScanResult) => {
+    setSelectedRuleIds((prev) => {
+      const next = new Set(prev);
+      const catRuleIds = cat.rules.map((r) => r.rule_id);
+      const allChecked = catRuleIds.every((id) => next.has(id));
+      if (allChecked) {
+        for (const id of catRuleIds) next.delete(id);
+      } else {
+        for (const id of catRuleIds) next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleExecuteClean = async () => {
+    if (selectedRuleIds.size === 0 || cleaning) return;
+    setCleaning(true);
+    try {
+      const out = await cleanerExecuteClean(Array.from(selectedRuleIds));
+      setRecentSessionId(out.session_id);
+      triggerToast(
+        `Cleaned ${formatBytes(out.bytes_freed)} to Quarantine! Click Undo to restore.`
+      );
+      await runScan();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      triggerToast(`Clean failed: ${msg}`);
+    } finally {
+      setCleaning(false);
+    }
+  };
+
+  const selectedBytes = scanSummary
+    ? scanSummary.categories.reduce((acc, cat) => {
+        return (
+          acc +
+          cat.rules.reduce((rAcc, r) => {
+            return selectedRuleIds.has(r.rule_id) ? rAcc + r.reclaimable_bytes : rAcc;
+          }, 0)
+        );
+      }, 0)
+    : 4509715660;
 
   const cpuPercent = telemetry ? Math.round(telemetry.cpu.aggregate_usage_percent) : 24;
   const memUsedGb = telemetry
@@ -408,28 +510,29 @@ export default function App() {
                   {recentSessionId && (
                     <UndoButton
                       sessionId={recentSessionId}
-                      bytesCount={4509715660}
-                      filesCount={1420}
+                      bytesCount={selectedBytes}
                       onRestored={() => {
                         triggerToast("Recent session successfully restored!");
                         setRecentSessionId(null);
+                        runScan();
                       }}
                     />
                   )}
                   <button
-                    onClick={() => triggerToast("Rescanned 1,280 paths")}
-                    className="px-3 py-1.5 rounded-xl border border-border-glass text-xs font-semibold hover:bg-white/5 transition-colors cursor-pointer"
+                    onClick={runScan}
+                    disabled={scanning}
+                    className="px-3.5 py-1.5 rounded-xl border border-border-glass text-xs font-semibold hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    Rescan
+                    {scanning ? "Scanning..." : "Rescan"}
                   </button>
                   <button
-                    onClick={() => {
-                      setRecentSessionId("q_20261122_091500_new");
-                      triggerToast("Cleaned 4.2 GB to Quarantine! Click Undo to restore.");
-                    }}
-                    className="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-accent-text text-xs font-bold shadow-[0_0_15px_rgba(56,189,248,0.4)] transition-all cursor-pointer"
+                    onClick={handleExecuteClean}
+                    disabled={selectedRuleIds.size === 0 || cleaning || scanning}
+                    className="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-accent-text text-xs font-bold shadow-[0_0_15px_rgba(56,189,248,0.4)] transition-all cursor-pointer disabled:opacity-50"
                   >
-                    Clean 4.2 GB to Quarantine
+                    {cleaning
+                      ? "Cleaning..."
+                      : `Clean ${formatBytes(selectedBytes)} to Quarantine`}
                   </button>
                 </div>
               </div>
@@ -446,6 +549,11 @@ export default function App() {
                 >
                   <Trash2 size={13} />
                   <span>Scan &amp; Clean Preview</span>
+                  {scanSummary && (
+                    <span className="text-[10px] font-mono text-accent bg-accent-muted px-1.5 py-0.2 rounded">
+                      {formatBytes(selectedBytes)}
+                    </span>
+                  )}
                 </button>
                 <button
                   onClick={() => setCleanerTab("quarantine")}
@@ -461,37 +569,31 @@ export default function App() {
               </div>
 
               {cleanerTab === "scan" ? (
-                <div className="glass-panel p-4 rounded-2xl flex flex-col gap-3">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
-                    <div>
-                      <div className="text-sm font-semibold">Chrome Cache &amp; Temporary Web Files</div>
-                      <div className="text-xs text-text-secondary">
-                        Google Chrome rebuilds cache as needed · Passwords untouched
-                      </div>
-                    </div>
-                    <span className="font-mono text-sm font-bold text-accent">794 MB</span>
+                scanSummary ? (
+                  <CategoryTree
+                    summary={scanSummary}
+                    selectedRuleIds={selectedRuleIds}
+                    onToggleRule={handleToggleRule}
+                    onToggleCategory={handleToggleCategory}
+                    onInspectRule={setInspectingRule}
+                  />
+                ) : (
+                  <div className="glass-panel p-8 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
+                    <span className="text-xs text-text-secondary">
+                      {scanning ? "Scanning system caches..." : "Click Rescan to discover junk"}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
-                    <div>
-                      <div className="text-sm font-semibold">Stale node_modules (6 projects)</div>
-                      <div className="text-xs text-text-secondary">
-                        Unmodified for 90+ days · Recreated via npm/pnpm install
-                      </div>
-                    </div>
-                    <span className="font-mono text-sm font-bold text-signal-dev">2.10 GB</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-border-subtle">
-                    <div>
-                      <div className="text-sm font-semibold">Unused Flatpak Runtimes</div>
-                      <div className="text-xs text-text-secondary">
-                        GNOME Platform 44 runtimes no longer required by any app
-                      </div>
-                    </div>
-                    <span className="font-mono text-sm font-bold text-accent">780 MB</span>
-                  </div>
-                </div>
+                )
               ) : (
                 <QuarantineView onNotify={triggerToast} />
+              )}
+
+              {/* Sample Paths Transparency Modal */}
+              {inspectingRule && (
+                <SamplePathsModal
+                  rule={inspectingRule}
+                  onClose={() => setInspectingRule(null)}
+                />
               )}
             </div>
           )}

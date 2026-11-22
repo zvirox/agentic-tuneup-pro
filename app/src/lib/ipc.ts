@@ -6,6 +6,8 @@ import {
   ExecutionResult,
   TelemetrySnapshot,
   HealthScore,
+  ScanSummary,
+  CleanExecutionOutput,
 } from "../types";
 
 export async function safeInvoke<T>(
@@ -203,4 +205,110 @@ export async function subscribeTelemetry(
     }, 1000);
     return () => clearInterval(interval);
   }
+}
+
+export async function cleanerScan(categories?: string[]): Promise<ScanSummary> {
+  const mockFallback: ScanSummary = {
+    total_reclaimable_bytes: 4509715660,
+    total_file_count: 1420,
+    blocked_by_running_apps: false,
+    categories: [
+      {
+        category_id: "browser",
+        display_name: "Web Browsers",
+        reclaimable_bytes: 1415577600,
+        file_count: 890,
+        rules: [
+          {
+            rule_id: "chrome-cache",
+            name: "Chrome Cache",
+            category: "browser",
+            risk_tier: 2,
+            reclaimable_bytes: 794820608,
+            file_count: 540,
+            sample_paths: [
+              "/home/user/.cache/google-chrome/Default/Cache/data_0",
+              "/home/user/.cache/google-chrome/Default/Cache/data_1",
+            ],
+            matched_paths: [],
+            running_apps_blocking: [],
+          },
+          {
+            rule_id: "firefox-cache",
+            name: "Firefox Cache",
+            category: "browser",
+            risk_tier: 2,
+            reclaimable_bytes: 620756992,
+            file_count: 350,
+            sample_paths: [
+              "/home/user/.cache/mozilla/firefox/profile.default/cache2/entries",
+            ],
+            matched_paths: [],
+            running_apps_blocking: [],
+          },
+        ],
+      },
+      {
+        category_id: "dev",
+        display_name: "Development Artifacts",
+        reclaimable_bytes: 2314138060,
+        file_count: 420,
+        rules: [
+          {
+            rule_id: "stale-node-modules",
+            name: "Stale node_modules",
+            category: "dev",
+            risk_tier: 2,
+            reclaimable_bytes: 2254857830,
+            file_count: 380,
+            sample_paths: [
+              "/home/user/Projects/old-web-app/node_modules",
+            ],
+            matched_paths: [],
+            running_apps_blocking: [],
+          },
+        ],
+      },
+      {
+        category_id: "system",
+        display_name: "System Caches & Logs",
+        reclaimable_bytes: 780000000,
+        file_count: 110,
+        rules: [
+          {
+            rule_id: "system-thumbnails",
+            name: "Cached Thumbnails",
+            category: "system",
+            risk_tier: 2,
+            reclaimable_bytes: 780000000,
+            file_count: 110,
+            sample_paths: [
+              "/home/user/.cache/thumbnails/normal/preview.png",
+            ],
+            matched_paths: [],
+            running_apps_blocking: [],
+          },
+        ],
+      },
+    ],
+  };
+
+  return safeInvoke<ScanSummary>("cleaner_scan", { categories }, mockFallback);
+}
+
+export async function cleanerExecuteClean(
+  selectedRuleIds: string[]
+): Promise<CleanExecutionOutput> {
+  const mockFallback: CleanExecutionOutput = {
+    session_id: `q_${Math.floor(Date.now() / 1000)}_8f3a`,
+    bytes_freed: 4509715660,
+    files_count: 1420,
+    quarantine_path: "/home/user/.local/share/agentic-tuneup-pro/quarantine/q_mock",
+  };
+
+  return safeInvoke<CleanExecutionOutput>(
+    "cleaner_execute_clean",
+    { selectedRuleIds },
+    mockFallback
+  );
 }

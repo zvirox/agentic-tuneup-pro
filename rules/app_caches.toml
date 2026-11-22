@@ -1,0 +1,39 @@
+[[rule]]
+id = "discord-cache"
+name = "Discord App Cache"
+category = "app_cache"
+description = "Cached images, voice clips, and code cache in Discord"
+paths = ["~/.config/discord/Cache/**", "~/.config/discord/Code Cache/**"]
+requires_closed = ["Discord", "discord"]
+risk_tier = 2
+explanation = "Temporary media and asset cache used by Discord Electron client. Recreated upon viewing."
+
+[[rule]]
+id = "slack-cache"
+name = "Slack Desktop Cache"
+category = "app_cache"
+description = "Cached channels, attachments, and service worker cache in Slack"
+paths = ["~/.config/Slack/Cache/**", "~/.config/Slack/Service Worker/CacheStorage/**"]
+requires_closed = ["slack", "Slack"]
+risk_tier = 2
+explanation = "Cached messages and attachment previews. Passwords and session tokens are strictly untouched."
+
+[[rule]]
+id = "spotify-cache"
+name = "Spotify Music Cache"
+category = "app_cache"
+description = "Locally cached music streams and album art in Spotify"
+paths = ["~/.cache/spotify/Data/**", "~/.cache/spotify/Storage/**"]
+requires_closed = ["spotify"]
+risk_tier = 2
+explanation = "Streaming audio cache to save network bandwidth. Spotify streams fresh copies as songs play."
+
+[[rule]]
+id = "vscode-cache"
+name = "VS Code Cache & Logs"
+category = "app_cache"
+description = "Editor cache, language server caches, and diagnostic log sessions in VS Code"
+paths = ["~/.config/Code/Cache/**", "~/.config/Code/CachedData/**", "~/.config/Code/logs/**"]
+requires_closed = ["code"]
+risk_tier = 2
+explanation = "Intermediate editor caches and old session log files. Rebuilt on editor launch."

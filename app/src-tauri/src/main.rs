@@ -34,6 +34,8 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::cleaner_scan,
+            commands::cleaner_execute_clean,
             commands::cleaner_list_quarantine,
             commands::cleaner_restore_quarantine,
             commands::cleaner_purge_quarantine,

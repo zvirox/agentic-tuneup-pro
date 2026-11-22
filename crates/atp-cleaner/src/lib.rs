@@ -1,5 +1,7 @@
+pub mod executor;
 pub mod rule;
 pub mod scanner;
 
-pub use rule::CleanerRule;
-pub use scanner::{CategoryScanResult, RuleScanResult, ScanSummary};
+pub use executor::{CleanExecutionOutput, CleanerExecutor};
+pub use rule::{CleanerRule, RuleEngine, RuleFile};
+pub use scanner::{CategoryScanResult, ParallelScanner, RuleScanResult, ScanSummary};
