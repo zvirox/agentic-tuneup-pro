@@ -21,13 +21,12 @@ echo -e "\033[1;36m==> Building Agentic Tuneup Pro v${VERSION} Release Packages\
 rm -rf "${OUTPUT_DIR}" "${STAGE_DIR}"
 mkdir -p "${OUTPUT_DIR}" "${STAGE_DIR}/sources" "${STAGE_DIR}/deb-root"
 
-# 2. Build Frontend Distribution Assets
-echo -e "\033[1;34m--> Step 1/6: Building Frontend UI (Vite + React 19)\033[0m"
-npm --prefix "${ROOT_DIR}/app" run build
+# 2. Build Release Binaries via Tauri CLI (embeds frontend assets into binary) and Cargo
+echo -e "\033[1;34m--> Step 1/6: Compiling Production Tauri Application (Embedding Assets)\033[0m"
+npx --prefix "${ROOT_DIR}/app" tauri build --no-bundle
 
-# 3. Build Cargo Release Binaries
-echo -e "\033[1;34m--> Step 2/6: Compiling Release Binaries via Cargo\033[0m"
-cargo build --release -p atpd-helper -p agentic-tuneup-pro
+echo -e "\033[1;34m--> Step 2/6: Compiling Privileged Helper Daemon\033[0m"
+cargo build --release -p atpd-helper
 
 BIN_APP="${ROOT_DIR}/target/release/agentic-tuneup-pro"
 BIN_HELPER="${ROOT_DIR}/target/release/atpd-helper"
