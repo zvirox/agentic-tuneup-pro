@@ -1,5 +1,5 @@
 Name:           agentic-tuneup-pro
-Version:        0.0.1
+Version:        0.0.2
 Release:        alpha.1%{?dist}
 Summary:        Sovereign AI-orchestrated Linux cleaner and performance suite
 License:        Apache-2.0

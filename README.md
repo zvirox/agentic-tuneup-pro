@@ -11,7 +11,7 @@ Sovereign AI-orchestrated Linux cleaner, package manager, and performance suite.
 </p>
 
 <p align="center">
-  <a href="https://github.com/zvirox/agentic-tuneup-pro/releases"><img src="https://img.shields.io/badge/release-v0.0.1--alpha-38BDF8?style=flat-square" alt="Release v0.0.1-alpha"></a>
+  <a href="https://github.com/zvirox/agentic-tuneup-pro/releases"><img src="https://img.shields.io/badge/release-v0.0.2--alpha-38BDF8?style=flat-square" alt="Release v0.0.2-alpha"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License Apache-2.0"></a>
   <img src="https://img.shields.io/badge/platform-Linux%20(Wayland%20%7C%20X11)-22C55E?style=flat-square" alt="Platform Linux">
   <img src="https://img.shields.io/badge/arch-x86__64-A855F7?style=flat-square" alt="Architecture x86_64">
@@ -115,25 +115,26 @@ For comprehensive technical specifications, consult [ARCHITECTURE.md](ARCHITECTU
 
 ## Installation
 
-Pre-compiled production packages for **v0.0.1-alpha** are available in the repository under `dist/v0.0.1-alpha/` and on the [GitHub Releases page](https://github.com/zvirox/agentic-tuneup-pro/releases).
+Pre-compiled production packages for **v0.0.2-alpha** are available in the repository under `dist/v0.0.2-alpha/` and on the [GitHub Releases page](https://github.com/zvirox/agentic-tuneup-pro/releases).
 
 ### Arch Linux / AUR
 
-ATP is packaged for Arch Linux, Manjaro, and EndeavourOS via the Arch User Repository:
+ATP is packaged for Arch Linux, Manjaro, EndeavourOS, and CachyOS via pacman and AUR:
 
 ```sh
-# Using paru
-paru -S agentic-tuneup-pro-bin
+# Direct installation via pacman (built package):
+sudo pacman -U dist/v0.0.2-alpha/agentic-tuneup-pro-bin-0.0.2.alpha-1-x86_64.pkg.tar.zst
 
-# Or using yay
+# Or using paru / yay from AUR
+paru -S agentic-tuneup-pro-bin
 yay -S agentic-tuneup-pro-bin
 ```
 
 To install manually from the AUR source archive:
 
 ```sh
-tar -xzf agentic-tuneup-pro-aur-0.0.1-alpha.tar.gz
-cd agentic-tuneup-pro-aur-0.0.1-alpha
+tar -xzf agentic-tuneup-pro-aur-0.0.2-alpha.tar.gz
+cd agentic-tuneup-pro-aur-0.0.2-alpha
 makepkg -si
 ```
 
@@ -151,13 +152,13 @@ Download the `.deb` package and install via `apt`:
 
 ```sh
 sudo apt update
-sudo apt install ./dist/v0.0.1-alpha/agentic-tuneup-pro_0.0.1-alpha_amd64.deb
+sudo apt install ./dist/v0.0.2-alpha/agentic-tuneup-pro_0.0.2-alpha_amd64.deb
 ```
 
 Or using `dpkg`:
 
 ```sh
-sudo dpkg -i ./dist/v0.0.1-alpha/agentic-tuneup-pro_0.0.1-alpha_amd64.deb
+sudo dpkg -i ./dist/v0.0.2-alpha/agentic-tuneup-pro_0.0.2-alpha_amd64.deb
 sudo apt-get install -f
 ```
 
@@ -170,7 +171,7 @@ The package automatically configures D-Bus permissions, installs desktop icons, 
 Install the RPM package via `dnf`:
 
 ```sh
-sudo dnf install ./dist/v0.0.1-alpha/agentic-tuneup-pro-0.0.1-alpha.1.x86_64.rpm
+sudo dnf install ./dist/v0.0.2-alpha/agentic-tuneup-pro-0.0.2-alpha.1.x86_64.rpm
 ```
 
 Enable the privileged helper:
@@ -186,7 +187,7 @@ sudo systemctl enable --now atpd-helper.service
 For sandboxed installations, unpack the Flatpak manifest bundle:
 
 ```sh
-tar -xzf dist/v0.0.1-alpha/agentic-tuneup-pro-flatpak-0.0.1-alpha.tar.gz
+tar -xzf dist/v0.0.2-alpha/agentic-tuneup-pro-flatpak-0.0.2-alpha.tar.gz
 flatpak-builder --user --install --force-clean build-dir packaging/flatpak/in.zvirox.AgenticTuneupPro.yaml
 ```
 
@@ -401,7 +402,7 @@ To balance system-level optimization with uncompromised user safety, ATP enforce
 | **Universal Linux** | Any Linux kernel >= 5.15 | `Flatpak` / Standalone Bin | `flatpak` + Container |
 
 - **Display Protocols**: Wayland (native) and X11 supported.
-- **Hardware Architectures**: `x86_64` (fully supported in v0.0.1-alpha); `aarch64` (packaging targets ready).
+- **Hardware Architectures**: `x86_64` (fully supported in v0.0.2-alpha); `aarch64` (packaging targets ready).
 
 ---
 
@@ -415,6 +416,7 @@ To balance system-level optimization with uncompromised user safety, ATP enforce
 - [x] **Phase 5:** Unified package manager (Flatpak/Native/AppImage) and process tree explorer.
 - [x] **Phase 6:** In-app Starship Agent cockpit drawer, Task Sheet decomposition, and signed Tier 3 consent gates.
 - [x] **Milestone v0.0.1-alpha:** Multi-distro release packaging (.deb, .rpm, Flatpak, AUR PKGBUILD).
+- [x] **Milestone v0.0.2-alpha:** Production webview asset embedding and GTK async loop runtime hotfix.
 - [ ] **Phase 7:** Hands-free voice dictation via local Whisper (`base.en`), "Why is my PC slow?" automated diagnostics engine, and Timeshift / Snapper / btrfs pre-change filesystem snapshot hooks.
 - [ ] **Phase 8:** Full WCAG AA keyboard accessibility pass, automated cross-distro container test matrix, and production v1.0.0 stable release.
 

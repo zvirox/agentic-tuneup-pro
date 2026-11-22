@@ -7,8 +7,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="0.0.1-alpha"
-PKG_VERSION="0.0.1"
+VERSION="${1:-0.0.2-alpha}"
+VERSION="${VERSION#v}"
+PKG_VERSION="${VERSION%%-*}"
 RELEASE_TAG="alpha.1"
 ARCH="x86_64"
 DEB_ARCH="amd64"
@@ -85,7 +86,7 @@ cp "${STAGE_DIR}/sources/32x32.png" "${DEB_DIR}/usr/share/icons/hicolor/32x32/ap
 cp "${STAGE_DIR}/sources/LICENSE" "${DEB_DIR}/usr/share/doc/agentic-tuneup-pro/copyright"
 
 # Debian control files
-cp "${ROOT_DIR}/packaging/deb/control" "${DEB_DIR}/DEBIAN/control"
+sed "s/^Version:.*/Version: ${VERSION}/" "${ROOT_DIR}/packaging/deb/control" > "${DEB_DIR}/DEBIAN/control"
 cp "${ROOT_DIR}/packaging/deb/postinst" "${DEB_DIR}/DEBIAN/postinst"
 cp "${ROOT_DIR}/packaging/deb/prerm" "${DEB_DIR}/DEBIAN/prerm"
 cp "${ROOT_DIR}/packaging/deb/postrm" "${DEB_DIR}/DEBIAN/postrm"
@@ -115,7 +116,7 @@ RPM_PACKAGE_NAME="agentic-tuneup-pro-${PKG_VERSION}-${RELEASE_TAG}.${ARCH}.rpm"
 if command -v rpmbuild >/dev/null 2>&1; then
     mkdir -p "${STAGE_DIR}/rpmbuild"/{BUILD,RPMS,SOURCES,SPECS,SRPMS,rpmdb}
     cp "${STAGE_DIR}/sources"/* "${STAGE_DIR}/rpmbuild/SOURCES/"
-    cp "${ROOT_DIR}/packaging/rpm/agentic-tuneup-pro.spec" "${STAGE_DIR}/rpmbuild/SPECS/"
+    sed "s/^Version:.*/Version:        ${PKG_VERSION}/" "${ROOT_DIR}/packaging/rpm/agentic-tuneup-pro.spec" > "${STAGE_DIR}/rpmbuild/SPECS/agentic-tuneup-pro.spec"
 
     rpmbuild --define "_topdir ${STAGE_DIR}/rpmbuild" \
              --define "_sourcedir ${STAGE_DIR}/sources" \
@@ -149,8 +150,8 @@ echo -e "    \033[1;32m✓ Flatpak manifest bundle created:\033[0m ${FLATPAK_BUN
 echo -e "\033[1;34m--> Step 6/6: Packaging Arch Linux AUR (PKGBUILD & .SRCINFO)\033[0m"
 AUR_STAGE="${STAGE_DIR}/aur-pkg"
 mkdir -p "${AUR_STAGE}"
-cp "${ROOT_DIR}/packaging/aur/PKGBUILD" "${AUR_STAGE}/"
-cp "${ROOT_DIR}/packaging/aur/.SRCINFO" "${AUR_STAGE}/"
+sed "s/^pkgver=.*/pkgver=${PKG_VERSION}.alpha/" "${ROOT_DIR}/packaging/aur/PKGBUILD" > "${AUR_STAGE}/PKGBUILD"
+sed "s/pkgver = .*/pkgver = ${PKG_VERSION}.alpha/" "${ROOT_DIR}/packaging/aur/.SRCINFO" > "${AUR_STAGE}/.SRCINFO"
 cp "${ROOT_DIR}/packaging/aur/agentic-tuneup-pro.install" "${AUR_STAGE}/"
 cp "${STAGE_DIR}/sources"/* "${AUR_STAGE}/"
 

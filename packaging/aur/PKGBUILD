@@ -1,6 +1,6 @@
 # Maintainer: Zvirox <cyber@zvirox.in>
 pkgname=agentic-tuneup-pro-bin
-pkgver=0.0.1.alpha
+pkgver=0.0.2.alpha
 pkgrel=1
 pkgdesc="Sovereign AI-orchestrated Linux cleaner, package manager, and performance suite"
 arch=('x86_64' 'aarch64')

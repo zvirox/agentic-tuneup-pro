@@ -31,6 +31,16 @@
     <binary>atpd-helper</binary>
   </provides>
   <releases>
+    <release version="0.0.2-alpha" date="2026-11-22">
+      <description>
+        <p>Second public alpha release hotfixing production webview initialization:</p>
+        <ul>
+          <li>Freezes and embeds production React 19 UI assets directly into binary via Tauri CLI</li>
+          <li>Eliminates fallback devUrl connections to localhost:1420</li>
+          <li>Hardens async telemetry sampling initialization on Linux GTK main loop</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.0.1-alpha" date="2026-11-22">
       <description>
         <p>First public alpha release featuring:</p>
