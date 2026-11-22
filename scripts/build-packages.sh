@@ -173,6 +173,39 @@ AUR_TARBALL="agentic-tuneup-pro-aur-${VERSION}.tar.gz"
 tar -czf "${OUTPUT_DIR}/${AUR_TARBALL}" -C "${ROOT_DIR}/packaging/aur" PKGBUILD .SRCINFO agentic-tuneup-pro.install
 echo -e "    \033[1;32m✓ AUR package tarball created:\033[0m ${AUR_TARBALL} ($(du -h "${OUTPUT_DIR}/${AUR_TARBALL}" | cut -f1))"
 
+# 7. Build Portable AppImage Package
+echo -e "\033[1;34m--> Step 7/7: Packaging Portable AppImage & AppDir\033[0m"
+APPDIR="${STAGE_DIR}/AppDir"
+mkdir -p "${APPDIR}/usr/bin" \
+         "${APPDIR}/usr/libexec" \
+         "${APPDIR}/usr/share/applications" \
+         "${APPDIR}/usr/share/metainfo" \
+         "${APPDIR}/usr/share/icons/hicolor/scalable/apps" \
+         "${APPDIR}/usr/share/icons/hicolor/128x128/apps"
+
+cp "${BIN_APP}" "${APPDIR}/usr/bin/agentic-tuneup-pro"
+cp "${BIN_HELPER}" "${APPDIR}/usr/libexec/atpd-helper"
+cp "${STAGE_DIR}/sources/agentic-tuneup-pro.desktop" "${APPDIR}/agentic-tuneup-pro.desktop"
+cp "${STAGE_DIR}/sources/agentic-tuneup-pro.desktop" "${APPDIR}/usr/share/applications/"
+cp "${STAGE_DIR}/sources/in.zvirox.agentictuneuppro.metainfo.xml" "${APPDIR}/usr/share/metainfo/"
+cp "${STAGE_DIR}/sources/in.zvirox.agentictuneuppro.svg" "${APPDIR}/in.zvirox.agentictuneuppro.svg"
+cp "${STAGE_DIR}/sources/in.zvirox.agentictuneuppro.svg" "${APPDIR}/.DirIcon"
+cp "${STAGE_DIR}/sources/128x128.png" "${APPDIR}/usr/share/icons/hicolor/128x128/apps/in.zvirox.agentictuneuppro.png"
+cp "${ROOT_DIR}/packaging/appimage/AppRun" "${APPDIR}/AppRun"
+chmod 0755 "${APPDIR}/AppRun"
+
+APPIMAGE_TARBALL="agentic-tuneup-pro-${VERSION}-x86_64.AppDir.tar.gz"
+tar -czf "${OUTPUT_DIR}/${APPIMAGE_TARBALL}" -C "${STAGE_DIR}" AppDir
+echo -e "    \033[1;32m✓ Portable AppDir bundle created:\033[0m ${APPIMAGE_TARBALL} ($(du -h "${OUTPUT_DIR}/${APPIMAGE_TARBALL}" | cut -f1))"
+
+if command -v appimagetool >/dev/null 2>&1; then
+    APPIMAGE_BIN="agentic-tuneup-pro-${VERSION}-x86_64.AppImage"
+    ARCH=x86_64 appimagetool "${APPDIR}" "${OUTPUT_DIR}/${APPIMAGE_BIN}" >/dev/null 2>&1 || true
+    if [[ -f "${OUTPUT_DIR}/${APPIMAGE_BIN}" ]]; then
+        echo -e "    \033[1;32m✓ AppImage binary created:\033[0m ${APPIMAGE_BIN} ($(du -h "${OUTPUT_DIR}/${APPIMAGE_BIN}" | cut -f1))"
+    fi
+fi
+
 # 8. Generate SHA256 Checksums
 echo -e "\033[1;34m--> Generating Checksums (SHA256SUMS)\033[0m"
 (

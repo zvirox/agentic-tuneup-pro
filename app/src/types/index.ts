@@ -1,3 +1,5 @@
+export type Page = "dash" | "clean" | "apps" | "proc" | "set";
+
 export interface QuarantineSessionRecord {
   session_id: string;
   created_at: number;

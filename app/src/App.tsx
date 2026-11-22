@@ -25,6 +25,8 @@ import { AppsView } from "./components/AppsView";
 import { ProcessExplorer } from "./components/ProcessExplorer";
 import { AgentDrawer } from "./components/AgentDrawer";
 import { DiagnosticModal } from "./components/DiagnosticModal";
+import { CommandPalette } from "./components/CommandPalette";
+import { AriaAnnouncer } from "./components/AriaAnnouncer";
 import {
   cleanerScan,
   cleanerExecuteClean,
@@ -54,6 +56,8 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [cleanerTab, setCleanerTab] = useState<"scan" | "quarantine">("scan");
   const [diagnosticOpen, setDiagnosticOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [ariaAnnouncement, setAriaAnnouncement] = useState<string | null>(null);
   const [snapshotCap, setSnapshotCap] = useState<SnapshotCapability | null>(null);
   const [creatingSnapshot, setCreatingSnapshot] = useState(false);
   const [recentSessionId, setRecentSessionId] = useState<string | null>("q_20261122_084500_8f3a");
@@ -135,24 +139,64 @@ export default function App() {
     };
   }, []);
 
-  // Global Keyboard Shortcuts
+  const announce = (msg: string) => {
+    setAriaAnnouncement(msg);
+  };
+
+  // Global Keyboard Shortcuts (WCAG AA Compliant)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle Command Palette: Ctrl + K or Cmd + K
+      if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+        return;
+      }
+
       // Toggle Agent Drawer: Ctrl + Shift + A or Cmd + Shift + A
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "a" || e.key === "A")) {
         e.preventDefault();
         setAgentOpen((prev) => !prev);
+        return;
       }
-      // Close Agent Drawer: Escape
-      if (e.key === "Escape" && agentOpen) {
-        e.preventDefault();
-        setAgentOpen(false);
+
+      // Quick Tab Switching: Alt + 1..5
+      if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+        if (e.key === "1") { e.preventDefault(); setActivePage("dash"); announce("Navigated to Dashboard"); }
+        if (e.key === "2") { e.preventDefault(); setActivePage("clean"); announce("Navigated to Cleaner"); }
+        if (e.key === "3") { e.preventDefault(); setActivePage("apps"); announce("Navigated to Applications"); }
+        if (e.key === "4") { e.preventDefault(); setActivePage("proc"); announce("Navigated to Processes"); }
+        if (e.key === "5") { e.preventDefault(); setActivePage("set"); announce("Navigated to Settings"); }
+      }
+
+      // Escape key handles topmost overlay dismiss
+      if (e.key === "Escape") {
+        if (commandPaletteOpen) {
+          e.preventDefault();
+          setCommandPaletteOpen(false);
+          return;
+        }
+        if (diagnosticOpen) {
+          e.preventDefault();
+          setDiagnosticOpen(false);
+          return;
+        }
+        if (inspectingRule) {
+          e.preventDefault();
+          setInspectingRule(null);
+          return;
+        }
+        if (agentOpen) {
+          e.preventDefault();
+          setAgentOpen(false);
+          return;
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [agentOpen]);
+  }, [agentOpen, commandPaletteOpen, diagnosticOpen, inspectingRule]);
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -169,6 +213,7 @@ export default function App() {
 
   const runScan = async () => {
     setScanning(true);
+    announce("Scanning system caches, package orphans, and stale artifacts...");
     try {
       const summary = await cleanerScan();
       setScanSummary(summary);
@@ -181,8 +226,10 @@ export default function App() {
         }
       }
       setSelectedRuleIds(active);
+      announce(`System scan complete. Found ${formatBytes(summary.total_reclaimable_bytes)} reclaimable.`);
     } catch (err) {
       console.error("Scan failed", err);
+      announce("System scan failed.");
     } finally {
       setScanning(false);
     }
@@ -216,6 +263,7 @@ export default function App() {
 
   const handleCreateSnapshot = async () => {
     setCreatingSnapshot(true);
+    announce("Creating filesystem snapshot...");
     try {
       const res = await invoke<SnapshotRecord>("snapshot_create", {
         description: "Manual ATP pre-change snapshot test",
@@ -223,11 +271,14 @@ export default function App() {
       });
       if (res.success) {
         triggerToast(`Snapshot created via ${res.provider}! (ID: ${res.id})`);
+        announce(`Filesystem snapshot created successfully via ${res.provider}.`);
       } else {
         triggerToast(`Snapshot notice: ${res.output_or_error || "Provider executed"}`);
+        announce("Snapshot completed.");
       }
     } catch (err: unknown) {
       triggerToast(`Snapshot failed: ${err}`);
+      announce("Filesystem snapshot creation failed.");
     } finally {
       setCreatingSnapshot(false);
     }
@@ -236,16 +287,19 @@ export default function App() {
   const handleExecuteClean = async () => {
     if (selectedRuleIds.size === 0 || cleaning) return;
     setCleaning(true);
+    announce("Cleaning selected items to quarantine vault...");
     try {
       const out = await cleanerExecuteClean(Array.from(selectedRuleIds));
       setRecentSessionId(out.session_id);
       triggerToast(
         `Cleaned ${formatBytes(out.bytes_freed)} to Quarantine! Click Undo to restore.`
       );
+      announce(`Cleaned ${formatBytes(out.bytes_freed)} to quarantine. Instant undo available.`);
       await runScan();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       triggerToast(`Clean failed: ${msg}`);
+      announce(`Clean operation failed: ${msg}`);
     } finally {
       setCleaning(false);
     }
@@ -347,17 +401,20 @@ export default function App() {
           <span className="text-accent font-semibold">atp.sock</span>
         </div>
 
-        {/* Universal Search Bar */}
-        <div className="ml-auto flex items-center gap-2 bg-black/30 border border-border-subtle rounded-xl px-3 py-1.5 w-72 text-xs text-text-secondary focus-within:border-accent">
-          <Search size={14} />
-          <input
-            placeholder="Search apps, caches, or ask agent..."
-            className="bg-transparent border-0 outline-none text-text-primary placeholder:text-text-disabled w-full"
-          />
-          <kbd className="font-mono text-[10px] border border-border-subtle px-1.5 py-0.5 rounded text-text-disabled">
+        {/* Universal Search Bar / Command Palette Trigger */}
+        <button
+          onClick={() => setCommandPaletteOpen(true)}
+          className="ml-auto flex items-center gap-2 bg-black/30 hover:bg-black/50 border border-border-subtle hover:border-accent/40 rounded-xl px-3 py-1.5 w-72 text-xs text-text-secondary transition-all cursor-pointer text-left focus-visible:border-accent"
+          aria-label="Open command palette (Ctrl+K)"
+        >
+          <Search size={14} className="text-accent" />
+          <span className="text-text-disabled truncate flex-1">
+            Search apps, caches, or ask agent...
+          </span>
+          <kbd className="font-mono text-[10px] border border-border-subtle px-1.5 py-0.5 rounded text-text-disabled bg-white/5">
             Ctrl K
           </kbd>
-        </div>
+        </button>
 
         {/* Agent Toggle */}
         <button
@@ -771,7 +828,30 @@ export default function App() {
             getHealthScore().then(setHealth);
           }}
         />
+
+        {/* Universal Command Palette (Ctrl+K) */}
+        <CommandPalette
+          isOpen={commandPaletteOpen}
+          onClose={() => setCommandPaletteOpen(false)}
+          onNavigate={(page) => {
+            setActivePage(page);
+            announce(`Navigated to ${page}`);
+          }}
+          onTriggerScan={() => runScan()}
+          onTriggerUndo={() => {
+            setActivePage("clean");
+            setCleanerTab("quarantine");
+          }}
+          onOpenDiagnostics={() => setDiagnosticOpen(true)}
+          onToggleAgent={() => setAgentOpen((prev) => !prev)}
+          onCreateSnapshot={() => handleCreateSnapshot()}
+          onToggleReduceEffects={() => setReduceEffects((prev) => !prev)}
+          reduceEffects={reduceEffects}
+        />
       </div>
+
+      {/* Screen Reader Live Announcements */}
+      <AriaAnnouncer message={ariaAnnouncement} />
 
       {/* Toast Notification */}
       {toastMsg && (

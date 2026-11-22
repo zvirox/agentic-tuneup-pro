@@ -29,16 +29,21 @@ Most Linux cleaning tools rely on brittle shell scripts, delete files destructiv
 - [Core Principles](#core-principles)
 - [Key Features](#key-features)
 - [Visual Tour & Interface](#visual-tour--interface)
+- [Documentation & Guides](#documentation--guides)
 - [Architecture](#architecture)
 - [Installation](#installation)
   - [Arch Linux / AUR](#arch-linux--aur)
   - [Debian / Ubuntu / Pop!_OS (`.deb`)](#debian--ubuntu--pop_os-deb)
   - [Fedora / RHEL / openSUSE (`.rpm`)](#fedora--rhel--opensuse-rpm)
+  - [Standalone / Portable AppImage](#standalone--portable-appimage)
   - [Flatpak](#flatpak)
   - [Building from Source](#building-from-source)
 - [Common Usage Guide](#common-usage-guide)
+  - [Universal Command Palette (Ctrl+K)](#universal-command-palette-ctrlk)
+  - [Global Keyboard Shortcuts](#global-keyboard-shortcuts)
   - [Desktop GUI Cockpit](#desktop-gui-cockpit)
   - [In-App Starship Agent Drawer](#in-app-starship-agent-drawer)
+  - [Voice Dictation & Diagnostics](#voice-dictation--diagnostics)
   - [Headless MCP Server Mode](#headless-mcp-server-mode)
   - [Starship Control Bridge](#starship-control-bridge)
   - [Undoing Cleanup Sessions](#undoing-cleanup-sessions)
@@ -71,6 +76,12 @@ Most Linux cleaning tools rely on brittle shell scripts, delete files destructiv
 - **Headless MCP Server Surface (`atp-mcp`)** — Standalone stdio JSON-RPC 2.0 loop (`agentic-tuneup-pro --mcp`) exposing 12 native tune-up tools to Starship Control, Claude Desktop, or any standard MCP client.
 - **Sub-Millisecond Unix Socket Bridge** — High-speed local IPC socket at `$XDG_RUNTIME_DIR/starship/bridges/atp.sock` validated via Linux `SO_PEERCRED` UID checks.
 - **1 Hz Real-Time Telemetry Monitor (`atp-monitor`)** — Non-blocking background resource sampler providing aggregate CPU usage, memory pressure metrics, network throughput, and an adaptive 100-point system health score.
+
+- **Universal Command Palette (`Ctrl + K`)** — Lightning-fast keyboard-first navigation, fuzzy search across all application tools, and instant system actions.
+- **"Why is my PC slow?" Diagnostic Engine** — Multi-variable bottleneck correlation across CPU saturation, memory pressure, thermal throttling, runaway processes, and desktop file indexers (`tracker-miner-fs`, `baloo_file`).
+- **Offline Voice Dictation & Waveform** — Push-to-talk (<kbd>Ctrl + Space</kbd>) voice transcription powered by local offline Whisper (`ggml-base.en`) with 16-band real-time audio spectrum visualization.
+- **Pre-Change Snapshot Hooks** — Native detection and triggers for Timeshift, Snapper, and Btrfs root filesystem snapshots before major package mutations.
+- **WCAG AA Keyboard & Screen Reader Accessibility** — High-contrast Electric Cyan focus rings, keyboard traversal across all interactive views, and screen reader live status announcements (`aria-live="polite"`).
 
 ---
 
@@ -105,6 +116,18 @@ Most Linux cleaning tools rely on brittle shell scripts, delete files destructiv
     </td>
   </tr>
 </table>
+
+---
+
+## Documentation & Guides
+
+Detailed architectural, security, and authoring specifications are maintained in the [`docs/`](docs/) directory:
+
+- 📖 **[User Guide](docs/USER_GUIDE.md)** — Comprehensive user manual covering Dashboard, Cleaner, Apps, Processes, Starship Cockpit, Voice Dictation, Diagnostic Engine, and Command Palette.
+- 🛡️ **[Safety & Security Manifesto](docs/SAFETY.md)** — In-depth analysis of the 3-Tier Risk Model, hard protected path validator, immutable quarantine store, and Polkit privilege separation.
+- 📝 **[Cleaner Rule Authoring Guide](docs/RULE_AUTHORING.md)** — Specification for writing custom declarative TOML cleaner rules, glob patterns, and variable expansions.
+- 📐 **[API Specification](API.md)** — Complete schema for Tauri IPC commands, Model Context Protocol (MCP) tool schemas, and Starship Unix socket contracts.
+- 🏛️ **[Architecture Reference](ARCHITECTURE.md)** — High-level process topologies, isolation models, and transport layers.
 
 ---
 
@@ -217,6 +240,18 @@ sudo systemctl enable --now atpd-helper.service
 
 ---
 
+### Standalone / Portable AppImage
+
+For zero-installation portable execution on any Linux distro:
+
+```sh
+# Unpack the portable AppDir bundle or run the AppImage
+tar -xzf dist/v0.0.2-alpha/agentic-tuneup-pro-0.0.2-alpha-x86_64.AppDir.tar.gz
+./AppDir/AppRun
+```
+
+---
+
 ### Flatpak
 
 For sandboxed installations, unpack the Flatpak manifest bundle:
@@ -258,6 +293,28 @@ Compiled standalone binaries will be placed in `target/release/agentic-tuneup-pr
 ---
 
 ## Common Usage Guide
+
+### Universal Command Palette (`Ctrl + K`)
+
+Press <kbd>Ctrl</kbd> + <kbd>K</kbd> (or <kbd>Cmd</kbd> + <kbd>K</kbd>) anywhere in the application to summon the Command Palette:
+- **Instant Search**: Type keywords to navigate between views or trigger actions without reaching for the mouse.
+- **Fast Execution**: Navigate with <kbd>↑</kbd> / <kbd>↓</kbd> arrows and press <kbd>Enter</kbd> to execute. Press <kbd>Esc</kbd> to dismiss.
+
+### Global Keyboard Shortcuts
+
+| Shortcut | Description |
+| :--- | :--- |
+| <kbd>Ctrl</kbd> + <kbd>K</kbd> | Open Universal Command Palette |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd> | Toggle Starship Agent Drawer |
+| <kbd>Ctrl</kbd> + <kbd>Space</kbd> | Push-to-Talk Voice Dictation |
+| <kbd>Alt</kbd> + <kbd>1</kbd> | Navigate to Dashboard |
+| <kbd>Alt</kbd> + <kbd>2</kbd> | Navigate to System Cleaner & Quarantine |
+| <kbd>Alt</kbd> + <kbd>3</kbd> | Navigate to Application Manager |
+| <kbd>Alt</kbd> + <kbd>4</kbd> | Navigate to Process Explorer |
+| <kbd>Alt</kbd> + <kbd>5</kbd> | Navigate to Settings & Audit Trail |
+| <kbd>Esc</kbd> | Dismiss active modal, drawer, or palette |
+
+---
 
 ### Desktop GUI Cockpit
 
