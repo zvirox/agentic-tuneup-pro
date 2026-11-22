@@ -28,6 +28,7 @@ Most Linux cleaning tools rely on brittle shell scripts, delete files destructiv
 
 - [Core Principles](#core-principles)
 - [Key Features](#key-features)
+- [Visual Tour & Interface](#visual-tour--interface)
 - [Architecture](#architecture)
 - [Installation](#installation)
   - [Arch Linux / AUR](#arch-linux--aur)
@@ -70,6 +71,40 @@ Most Linux cleaning tools rely on brittle shell scripts, delete files destructiv
 - **Headless MCP Server Surface (`atp-mcp`)** — Standalone stdio JSON-RPC 2.0 loop (`agentic-tuneup-pro --mcp`) exposing 12 native tune-up tools to Starship Control, Claude Desktop, or any standard MCP client.
 - **Sub-Millisecond Unix Socket Bridge** — High-speed local IPC socket at `$XDG_RUNTIME_DIR/starship/bridges/atp.sock` validated via Linux `SO_PEERCRED` UID checks.
 - **1 Hz Real-Time Telemetry Monitor (`atp-monitor`)** — Non-blocking background resource sampler providing aggregate CPU usage, memory pressure metrics, network throughput, and an adaptive 100-point system health score.
+
+---
+
+## Visual Tour & Interface
+
+<p align="center">
+  <img src=".github/assets/screenshot-dashboard.png" alt="Agentic Tuneup Pro - System Telemetry and Live Health Dashboard" width="100%">
+</p>
+<p align="center">
+  <em>System Telemetry & Live 100-Point Health Score Dashboard on Linux (Wayland)</em>
+</p>
+
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <strong>Declarative Cleaner & Quarantine</strong><br><br>
+      <img src=".github/assets/screenshot-cleaner.png" alt="System Cleaner and Quarantine View" width="100%">
+    </td>
+    <td width="50%" align="center">
+      <strong>Unified Package Ecosystem</strong><br><br>
+      <img src=".github/assets/screenshot-apps.png" alt="Applications and Packages View" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <strong>Process Tree & Systemd Explorer</strong><br><br>
+      <img src=".github/assets/screenshot-processes.png" alt="Processes and Systemd Services View" width="100%">
+    </td>
+    <td width="50%" align="center">
+      <strong>Settings & Cryptographic Audit Trail</strong><br><br>
+      <img src=".github/assets/screenshot-settings.png" alt="Settings and Audit Trail View" width="100%">
+    </td>
+  </tr>
+</table>
 
 ---
 
