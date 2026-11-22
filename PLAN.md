@@ -93,31 +93,31 @@
 
 > **Goal:** Deploy the minimal root D-Bus helper daemon with Polkit policies, stream live hardware telemetry via sysinfo, and calculate the System Health Score.
 
-- [ ] **2.1 Hardened Polkit Helper Daemon (`atpd-helper`)**
+- [x] **2.1 Hardened Polkit Helper Daemon (`atpd-helper`)**
   - Implement standalone binary `atpd-helper` with system D-Bus interface `in.zvirox.AgenticTuneupHelper`.
   - Author Polkit policy file `packaging/in.zvirox.agentic_tuneup.policy` defining granular actions (`pkg-manage`, `journal-vacuum`, `process-kill`, `systemd-control`).
   - Implement strict whitelist regex argument validation (package names must match `^[a-zA-Z0-9_\-\.\+]+$`; no shell operators).
   - *Verify:* D-Bus test call executes permitted action upon Polkit authentication; invalid/injected arguments are rejected.
-- [ ] **2.2 Telemetry Sampling Loop (`atp-monitor`)**
+- [x] **2.2 Telemetry Sampling Loop (`atp-monitor`)**
   - Implement background Tokio sampling loop using `sysinfo` and `/proc`/`/sys` at 1.0 Hz (throttling to 0.2 Hz when window is minimized).
   - Collect CPU usage (total & per-core), temperatures, memory/swap breakdown, disk read/write throughput (MB/s), and network upload/download (MB/s).
   - *Verify:* Telemetry ticks produce accurate hardware metrics matching `htop` / `btop`.
-- [ ] **2.3 In-Memory Ring Buffer & Push Event Stream**
+- [x] **2.3 In-Memory Ring Buffer & Push Event Stream**
   - Implement fixed-capacity ring buffer (last 300 samples / 5 minutes) for time-series sparklines.
   - Broadcast telemetry to Tauri webview via `evt://telemetry/tick`.
   - Implement `cmd://telemetry_get_snapshot` and `cmd://telemetry_get_history`.
   - *Verify:* Frontend receives 1.0 Hz telemetry frames with zero IPC latency.
-- [ ] **2.4 System Health Score Calculator (0–100)**
+- [x] **2.4 System Health Score Calculator (0–100)**
   - Implement deterministic health score algorithm evaluating disk pressure, memory starvation, high sustained temperatures, pending updates, and junk bloat.
   - Return itemized deduction list with actionable remediation links (`cmd://health_get_score`).
   - *Verify:* Artificially filling disk or consuming RAM dynamically reduces score with clear explanatory reasons.
-- [ ] **2.5 Dashboard UI (`HealthGauge` & Telemetry Sparklines)**
+- [x] **2.5 Dashboard UI (`HealthGauge` & Telemetry Sparklines)**
   - Author SVG Health Gauge Ring with smooth spring transitions and color thresholding (Emerald >85, Amber 65–84, Rose <65).
   - Author canvas-based streaming sparklines (`uPlot`) for CPU, Memory, and Network.
   - Build top-resource consumers card with CPU/Memory percentage bars.
   - *Verify:* Dashboard renders live hardware telemetry smoothly with < 1.0% CPU overhead.
 
-**Definition of Done (Phase 2):** ✅ Polkit helper securely processes privileged tasks via D-Bus; dashboard displays real-time telemetry and animated Health Gauge ring matching DESIGN.md.
+**Definition of Done (Phase 2):** ✅ Polkit helper securely processes privileged tasks via D-Bus; dashboard displays real-time telemetry and animated Health Gauge ring matching DESIGN.md. [COMPLETED]
 
 ---
 

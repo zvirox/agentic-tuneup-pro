@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+  <vendor>Agentic Tuneup Pro</vendor>
+  <vendor_url>https://github.com/zvirox/agentic-tuneup-pro</vendor_url>
+
+  <action id="in.zvirox.agentic_tuneup.pkg-manage">
+    <description>Manage system packages and perform updates</description>
+    <message>Authentication is required to install, remove, or update system software packages.</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+  <action id="in.zvirox.agentic_tuneup.journal-vacuum">
+    <description>Vacuum systemd journal logs</description>
+    <message>Authentication is required to reclaim space from system journal logs.</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="in.zvirox.agentic_tuneup.process-kill">
+    <description>Terminate privileged system processes</description>
+    <message>Authentication is required to terminate system processes owned by other users.</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+  <action id="in.zvirox.agentic_tuneup.systemd-control">
+    <description>Control system systemd services</description>
+    <message>Authentication is required to start, stop, restart, or enable system services.</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+</policyconfig>

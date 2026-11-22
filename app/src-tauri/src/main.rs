@@ -2,6 +2,9 @@
 
 mod commands;
 
+use atp_monitor::TelemetryMonitor;
+use tauri::Emitter;
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -11,8 +14,22 @@ fn main() {
         return;
     }
 
+    let monitor = TelemetryMonitor::new();
+    monitor.start_sampling_loop(1000);
+
+    let monitor_for_setup = monitor.clone();
+
     tauri::Builder::default()
-        .setup(|_app| {
+        .manage(monitor)
+        .setup(move |app| {
+            let handle = app.handle().clone();
+            let mut rx = monitor_for_setup.subscribe();
+            tauri::async_runtime::spawn(async move {
+                while let Ok(tick) = rx.recv().await {
+                    let _ = handle.emit("evt://telemetry/tick", tick);
+                }
+            });
+
             println!("Agentic Tuneup Pro GUI initializing on Linux...");
             Ok(())
         })
@@ -21,6 +38,9 @@ fn main() {
             commands::cleaner_restore_quarantine,
             commands::cleaner_purge_quarantine,
             commands::safety_get_audit_log,
+            commands::telemetry_get_snapshot,
+            commands::telemetry_get_history,
+            commands::health_get_score,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -16,6 +16,16 @@ import {
 import { QuarantineView } from "./components/QuarantineView";
 import { AuditTimeline } from "./components/AuditTimeline";
 import { UndoButton } from "./components/UndoButton";
+import { HealthGauge } from "./components/HealthGauge";
+import { TelemetrySparkline } from "./components/TelemetrySparkline";
+import { TopConsumersCard } from "./components/TopConsumersCard";
+import {
+  getHealthScore,
+  getTelemetrySnapshot,
+  getTelemetryHistory,
+  subscribeTelemetry,
+} from "./lib/ipc";
+import { HealthScore, TelemetrySnapshot } from "./types";
 
 type Page = "dash" | "clean" | "apps" | "proc" | "set";
 type Workspace = "daily" | "dev" | "server";
@@ -29,16 +39,72 @@ export default function App() {
   const [cleanerTab, setCleanerTab] = useState<"scan" | "quarantine">("scan");
   const [recentSessionId, setRecentSessionId] = useState<string | null>("q_20261122_084500_8f3a");
 
-  // Simulated metrics
-  const [cpuUsage, setCpuUsage] = useState(24);
-  const [memUsed] = useState(6.2);
-  const [healthScore] = useState(86);
+  // Real-time Telemetry & Health States
+  const [telemetry, setTelemetry] = useState<TelemetrySnapshot | null>(null);
+  const [cpuHistory, setCpuHistory] = useState<number[]>([20, 22, 25, 24, 26, 23, 24]);
+  const [memHistory, setMemHistory] = useState<number[]>([38, 38, 39, 39, 38, 39, 39]);
+  const [netHistory, setNetHistory] = useState<number[]>([120, 340, 850, 420, 150, 600, 280]);
+  const [health, setHealth] = useState<HealthScore>({
+    score: 86,
+    rating: "good",
+    deductions: [
+      {
+        category: "junk",
+        points: 8,
+        reason: "4.2 GB of reclaimable junk detected in system and browser caches",
+        action_label: "Clean Junk",
+        target_page: "clean",
+      },
+      {
+        category: "updates",
+        points: 6,
+        reason: "12 package updates pending across Flatpak and native",
+        action_label: "View Updates",
+        target_page: "apps",
+      },
+    ],
+  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCpuUsage((prev) => Math.max(8, Math.min(92, Math.round(prev + (Math.random() - 0.5) * 6))));
-    }, 1500);
-    return () => clearInterval(interval);
+    // Initial fetch of snapshot and history
+    getTelemetrySnapshot().then((snap) => setTelemetry(snap));
+    getTelemetryHistory(30).then((history) => {
+      if (history.length > 0) {
+        setCpuHistory(history.map((h) => h.cpu.aggregate_usage_percent));
+        setMemHistory(
+          history.map((h) =>
+            h.memory.total_bytes > 0
+              ? (h.memory.used_bytes / h.memory.total_bytes) * 100
+              : 0
+          )
+        );
+        setNetHistory(history.map((h) => h.network.download_bytes_per_sec / 1024));
+      }
+    });
+
+    getHealthScore().then((h) => setHealth(h));
+
+    // Subscribe to live 1.0 Hz telemetry stream
+    let unlistenFn: (() => void) | null = null;
+    subscribeTelemetry((snapshot) => {
+      setTelemetry(snapshot);
+      setCpuHistory((prev) => [...prev.slice(-29), snapshot.cpu.aggregate_usage_percent]);
+      const memPct =
+        snapshot.memory.total_bytes > 0
+          ? (snapshot.memory.used_bytes / snapshot.memory.total_bytes) * 100
+          : 0;
+      setMemHistory((prev) => [...prev.slice(-29), memPct]);
+      setNetHistory((prev) => [
+        ...prev.slice(-29),
+        snapshot.network.download_bytes_per_sec / 1024,
+      ]);
+    }).then((unlisten) => {
+      unlistenFn = unlisten;
+    });
+
+    return () => {
+      if (unlistenFn) unlistenFn();
+    };
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -46,8 +112,26 @@ export default function App() {
     setTimeout(() => setToastMsg(null), 3500);
   };
 
+  const cpuPercent = telemetry ? Math.round(telemetry.cpu.aggregate_usage_percent) : 24;
+  const memUsedGb = telemetry
+    ? (telemetry.memory.used_bytes / (1024 * 1024 * 1024)).toFixed(1)
+    : "6.2";
+  const memTotalGb = telemetry
+    ? Math.round(telemetry.memory.total_bytes / (1024 * 1024 * 1024))
+    : 16;
+  const tempC = telemetry?.cpu.temperature_celsius
+    ? `${Math.round(telemetry.cpu.temperature_celsius)}°C`
+    : "48°C";
+  const netDownKb = telemetry
+    ? `${Math.round(telemetry.network.download_bytes_per_sec / 1024)} KB/s`
+    : "4.2 MB/s";
+
   return (
-    <div className={`h-screen w-screen flex flex-col font-sans bg-canvas text-text-primary ${reduceEffects ? "reduce-effects" : ""}`}>
+    <div
+      className={`h-screen w-screen flex flex-col font-sans bg-canvas text-text-primary ${
+        reduceEffects ? "reduce-effects" : ""
+      }`}
+    >
       {/* Top Titlebar */}
       <header className="h-14 border-b border-border-subtle flex items-center px-4 gap-4 bg-raised/70 select-none">
         {/* Brand */}
@@ -64,20 +148,41 @@ export default function App() {
         {/* Workspace Presets */}
         <div className="flex items-center bg-black/40 p-1 rounded-xl border border-border-subtle text-xs font-medium ml-4">
           <button
-            onClick={() => { setWorkspace("daily"); triggerToast("Workspace: Daily Profile Active"); }}
-            className={`px-3 py-1 rounded-lg transition-colors ${workspace === "daily" ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass" : "text-text-secondary hover:text-text-primary"}`}
+            onClick={() => {
+              setWorkspace("daily");
+              triggerToast("Workspace: Daily Profile Active");
+            }}
+            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+              workspace === "daily"
+                ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
           >
             🏠 Daily
           </button>
           <button
-            onClick={() => { setWorkspace("dev"); triggerToast("Workspace: Dev Profile (Scanning node_modules & targets)"); }}
-            className={`px-3 py-1 rounded-lg transition-colors ${workspace === "dev" ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass" : "text-text-secondary hover:text-text-primary"}`}
+            onClick={() => {
+              setWorkspace("dev");
+              triggerToast("Workspace: Dev Profile (Scanning node_modules & targets)");
+            }}
+            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+              workspace === "dev"
+                ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
           >
             💻 Dev
           </button>
           <button
-            onClick={() => { setWorkspace("server"); triggerToast("Workspace: Server Profile (Services & Kernel)"); }}
-            className={`px-3 py-1 rounded-lg transition-colors ${workspace === "server" ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass" : "text-text-secondary hover:text-text-primary"}`}
+            onClick={() => {
+              setWorkspace("server");
+              triggerToast("Workspace: Server Profile (Services & Kernel)");
+            }}
+            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+              workspace === "server"
+                ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
           >
             🛡️ Server
           </button>
@@ -98,7 +203,11 @@ export default function App() {
         {/* Agent Toggle */}
         <button
           onClick={() => setAgentOpen(!agentOpen)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${agentOpen ? "bg-accent text-accent-text border-transparent shadow-[0_0_12px_rgba(56,189,248,0.5)]" : "bg-surface-glass border-border-glass hover:bg-white/10 text-text-primary"}`}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+            agentOpen
+              ? "bg-accent text-accent-text border-transparent shadow-[0_0_12px_rgba(56,189,248,0.5)]"
+              : "bg-surface-glass border-border-glass hover:bg-white/10 text-text-primary"
+          }`}
         >
           <Bot size={15} />
           <span>Agent</span>
@@ -111,14 +220,22 @@ export default function App() {
         <aside className="w-52 border-r border-border-subtle p-3 flex flex-col gap-1 select-none bg-raised/30">
           <button
             onClick={() => setActivePage("dash")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all ${activePage === "dash" ? "bg-accent-muted text-accent border border-accent/20" : "text-text-secondary hover:text-text-primary hover:bg-white/5"}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+              activePage === "dash"
+                ? "bg-accent-muted text-accent border border-accent/20"
+                : "text-text-secondary hover:text-text-primary hover:bg-white/5"
+            }`}
           >
             <Activity size={16} />
             <span>Dashboard</span>
           </button>
           <button
             onClick={() => setActivePage("clean")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all ${activePage === "clean" ? "bg-accent-muted text-accent border border-accent/20" : "text-text-secondary hover:text-text-primary hover:bg-white/5"}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+              activePage === "clean"
+                ? "bg-accent-muted text-accent border border-accent/20"
+                : "text-text-secondary hover:text-text-primary hover:bg-white/5"
+            }`}
           >
             <Trash2 size={16} />
             <span>Cleaner</span>
@@ -126,22 +243,36 @@ export default function App() {
           </button>
           <button
             onClick={() => setActivePage("apps")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all ${activePage === "apps" ? "bg-accent-muted text-accent border border-accent/20" : "text-text-secondary hover:text-text-primary hover:bg-white/5"}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+              activePage === "apps"
+                ? "bg-accent-muted text-accent border border-accent/20"
+                : "text-text-secondary hover:text-text-primary hover:bg-white/5"
+            }`}
           >
             <Package size={16} />
             <span>Apps</span>
-            <span className="ml-auto text-[10px] bg-signal-gate text-white px-1.5 py-0.2 rounded-full font-mono font-bold">12</span>
+            <span className="ml-auto text-[10px] bg-signal-gate text-white px-1.5 py-0.2 rounded-full font-mono font-bold">
+              12
+            </span>
           </button>
           <button
             onClick={() => setActivePage("proc")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all ${activePage === "proc" ? "bg-accent-muted text-accent border border-accent/20" : "text-text-secondary hover:text-text-primary hover:bg-white/5"}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+              activePage === "proc"
+                ? "bg-accent-muted text-accent border border-accent/20"
+                : "text-text-secondary hover:text-text-primary hover:bg-white/5"
+            }`}
           >
             <Cpu size={16} />
             <span>Processes</span>
           </button>
           <button
             onClick={() => setActivePage("set")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all ${activePage === "set" ? "bg-accent-muted text-accent border border-accent/20" : "text-text-secondary hover:text-text-primary hover:bg-white/5"}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+              activePage === "set"
+                ? "bg-accent-muted text-accent border border-accent/20"
+                : "text-text-secondary hover:text-text-primary hover:bg-white/5"
+            }`}
           >
             <Settings size={16} />
             <span>Settings</span>
@@ -164,156 +295,100 @@ export default function App() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl font-bold tracking-tight">System Telemetry &amp; Health</h1>
-                  <p className="text-xs text-text-secondary mt-0.5">Host: Linux (Wayland) · 4.2 GB reclaimable</p>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    Host: Linux (Wayland) · Live 1.0 Hz Push Stream
+                  </p>
                 </div>
                 <button
-                  onClick={() => { setActivePage("clean"); triggerToast("Starting smart scan..."); }}
-                  className="px-4 py-2 bg-accent hover:bg-accent-hover active:bg-accent-active text-accent-text font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-all flex items-center gap-2"
+                  onClick={() => {
+                    setActivePage("clean");
+                    triggerToast("Opening Smart Scan & Clean...");
+                  }}
+                  className="px-4 py-2 bg-accent hover:bg-accent-hover active:bg-accent-active text-accent-text font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Sparkles size={14} />
                   <span>Smart Scan &amp; Clean</span>
                 </button>
               </div>
 
-              {/* Metric Cards Grid */}
-              <div className="grid grid-cols-4 gap-4">
-                {/* CPU Card */}
-                <div className="glass-panel p-4 rounded-2xl flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase tracking-wider">
-                    <span>CPU</span>
-                    <span className="font-mono text-[11px] bg-white/5 px-1.5 py-0.5 rounded border border-border-subtle">48°C</span>
-                  </div>
-                  <div className="my-3 flex items-baseline gap-2">
-                    <span className="font-mono text-2xl font-bold text-text-primary">{cpuUsage}%</span>
-                    <span className="text-xs text-text-secondary">8 cores · 3.4 GHz</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent transition-all duration-500" style={{ width: `${cpuUsage}%` }}></div>
-                  </div>
+              {/* Row 1: Health Gauge & Metric Sparklines */}
+              <div className="grid grid-cols-12 gap-4">
+                {/* Health Gauge: 5 columns */}
+                <div className="col-span-5">
+                  <HealthGauge health={health} onNavigate={(p) => setActivePage(p as Page)} />
                 </div>
 
-                {/* Memory Card */}
-                <div className="glass-panel p-4 rounded-2xl flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase tracking-wider">
-                    <span>Memory</span>
-                    <span className="font-mono text-[11px] bg-white/5 px-1.5 py-0.5 rounded border border-border-subtle">16 GB DDR5</span>
-                  </div>
-                  <div className="my-3 flex items-baseline gap-2">
-                    <span className="font-mono text-2xl font-bold text-text-primary">{memUsed} GB</span>
-                    <span className="text-xs text-text-secondary">used of 16 GB</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent transition-all duration-500" style={{ width: `${(memUsed / 16) * 100}%` }}></div>
-                  </div>
-                </div>
-
-                {/* Disk Card */}
-                <div className="glass-panel p-4 rounded-2xl flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase tracking-wider">
-                    <span>Root Disk</span>
-                    <span className="font-mono text-[11px] bg-white/5 px-1.5 py-0.5 rounded border border-border-subtle">NVMe</span>
-                  </div>
-                  <div className="my-3 flex items-baseline gap-2">
-                    <span className="font-mono text-2xl font-bold text-text-primary">312 GB</span>
-                    <span className="text-xs text-text-secondary">used of 512 GB</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent" style={{ width: "61%" }}></div>
-                  </div>
-                </div>
-
-                {/* Health Score Card */}
-                <div className="glass-panel p-4 rounded-2xl flex flex-col justify-between border-l-4 border-l-signal-success">
-                  <div className="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase tracking-wider">
-                    <span>Health Score</span>
-                    <span className="font-mono text-[11px] text-signal-success bg-signal-success-bg px-1.5 py-0.5 rounded font-bold">Good</span>
-                  </div>
-                  <div className="my-3 flex items-baseline gap-2">
-                    <span className="font-mono text-3xl font-bold text-signal-success">{healthScore}</span>
-                    <span className="text-xs text-text-secondary">−14 pts (junk, updates)</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setActivePage("clean")} className="text-[11px] font-semibold text-accent hover:underline">
-                      Clean junk →
-                    </button>
-                    <button onClick={() => setActivePage("apps")} className="text-[11px] font-semibold text-accent hover:underline">
-                      Updates →
-                    </button>
-                  </div>
+                {/* Telemetry Sparklines: 7 columns (3 cards) */}
+                <div className="col-span-7 grid grid-cols-3 gap-4">
+                  <TelemetrySparkline
+                    title="CPU Load"
+                    currentValue={cpuPercent}
+                    unit="%"
+                    subValue={tempC}
+                    dataPoints={cpuHistory}
+                    maxValue={100}
+                    color="#38BDF8"
+                  />
+                  <TelemetrySparkline
+                    title="Memory"
+                    currentValue={memUsedGb}
+                    unit="GB"
+                    subValue={`of ${memTotalGb} GB`}
+                    dataPoints={memHistory}
+                    maxValue={100}
+                    color="#A855F7"
+                  />
+                  <TelemetrySparkline
+                    title="Network In"
+                    currentValue={netDownKb}
+                    subValue={telemetry?.network.interface_name || "eth0"}
+                    dataPoints={netHistory}
+                    color="#10B981"
+                  />
                 </div>
               </div>
 
-              {/* Secondary Details Section */}
+              {/* Row 2: Secondary Details Section */}
               <div className="grid grid-cols-2 gap-4 flex-1 min-h-0">
                 {/* Reclaimable Storage Card */}
-                <div className="glass-panel p-5 rounded-2xl flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Reclaimable Cache Categories</h3>
-                    <button onClick={() => setActivePage("clean")} className="text-xs font-semibold text-accent hover:underline">
-                      View all in Cleaner →
-                    </button>
-                  </div>
-                  <div className="flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                      <span className="font-semibold">Web Browser Caches (Chrome &amp; Firefox)</span>
-                      <span className="font-mono font-bold text-accent">1.32 GB</span>
+                <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                        Reclaimable Cache Categories
+                      </h3>
+                      <button
+                        onClick={() => setActivePage("clean")}
+                        className="text-xs font-semibold text-accent hover:underline cursor-pointer"
+                      >
+                        Clean All →
+                      </button>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                      <span className="font-semibold">Stale Development Artifacts (target/ &amp; node_modules)</span>
-                      <span className="font-mono font-bold text-signal-dev">2.10 GB</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                      <span className="font-semibold">Package Manager Cache (apt/pacman &amp; flatpak)</span>
-                      <span className="font-mono font-bold text-accent">0.52 GB</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                      <span className="font-semibold">Old Journal Logs &amp; Thumbnails</span>
-                      <span className="font-mono font-bold text-text-secondary">0.26 GB</span>
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
+                        <span className="font-semibold">Web Browser Caches (Chrome &amp; Firefox)</span>
+                        <span className="font-mono font-bold text-accent">1.32 GB</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
+                        <span className="font-semibold">
+                          Stale Development Artifacts (target/ &amp; node_modules)
+                        </span>
+                        <span className="font-mono font-bold text-signal-dev">2.10 GB</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
+                        <span className="font-semibold">Package Manager Cache (apt &amp; flatpak)</span>
+                        <span className="font-mono font-bold text-accent">0.52 GB</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
+                        <span className="font-semibold">Old Journal Logs &amp; Thumbnails</span>
+                        <span className="font-mono font-bold text-text-secondary">0.26 GB</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Top Resource Consumers */}
-                <div className="glass-panel p-5 rounded-2xl flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Top Resource Consumers</h3>
-                    <button onClick={() => setActivePage("proc")} className="text-xs font-semibold text-accent hover:underline">
-                      Process Explorer →
-                    </button>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold">Firefox</span>
-                        <span className="text-[10px] text-text-secondary">(34 tabs)</span>
-                      </div>
-                      <div className="flex items-center gap-3 font-mono text-[11px]">
-                        <span>24.1% CPU</span>
-                        <span className="text-text-secondary">1.8 GB RAM</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold">VS Code</span>
-                        <span className="text-[10px] text-text-secondary">(Rust Analyzer)</span>
-                      </div>
-                      <div className="flex items-center gap-3 font-mono text-[11px]">
-                        <span>11.3% CPU</span>
-                        <span className="text-text-secondary">1.2 GB RAM</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold">tracker-miner-fs</span>
-                        <span className="text-[10px] text-signal-thinking">(Indexing)</span>
-                      </div>
-                      <div className="flex items-center gap-3 font-mono text-[11px]">
-                        <span>4.2% CPU</span>
-                        <span className="text-text-secondary">210 MB RAM</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <TopConsumersCard onNavigate={(p) => setActivePage(p as Page)} />
               </div>
             </>
           )}
@@ -444,7 +519,9 @@ export default function App() {
                     onChange={(e) => {
                       setReduceEffects(e.target.checked);
                       triggerToast(
-                        e.target.checked ? "Reduce Effects Enabled (0px blur)" : "Glass Effects Restored"
+                        e.target.checked
+                          ? "Reduce Effects Enabled (0px blur)"
+                          : "Glass Effects Restored"
                       );
                     }}
                     className="w-5 h-5 accent-accent cursor-pointer"
@@ -481,7 +558,10 @@ export default function App() {
                 <span className="text-xs font-bold">Starship Agent</span>
                 <span className="text-[10px] font-mono text-text-secondary">local · llama3.1</span>
               </div>
-              <button onClick={() => setAgentOpen(false)} className="text-text-secondary hover:text-text-primary">
+              <button
+                onClick={() => setAgentOpen(false)}
+                className="text-text-secondary hover:text-text-primary cursor-pointer"
+              >
                 <X size={16} />
               </button>
             </div>
@@ -495,26 +575,34 @@ export default function App() {
               {/* Sample Task Sheet Card */}
               <div className="glass-panel-strong p-3.5 rounded-xl border border-accent/30 flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-accent uppercase tracking-wider">Plan: Clean 4.8 GB</span>
+                  <span className="text-[11px] font-bold text-accent uppercase tracking-wider">
+                    Plan: Clean 4.8 GB
+                  </span>
                   <span className="text-[10px] font-mono bg-signal-gate-bg text-signal-gate px-1.5 py-0.5 rounded font-bold">
                     Tier 3 Gate
                   </span>
                 </div>
                 <div className="text-xs text-text-secondary flex flex-col gap-1 font-mono text-[11px]">
-                  <div>1. scan_junk <span className="text-signal-success">✓ safe</span></div>
-                  <div>2. clean_junk (caches) <span className="text-accent">reversible</span></div>
-                  <div>3. purge_orphans (4 packages) <span className="text-signal-gate">destructive</span></div>
+                  <div>
+                    1. scan_junk <span className="text-signal-success">✓ safe</span>
+                  </div>
+                  <div>
+                    2. clean_junk (caches) <span className="text-accent">reversible</span>
+                  </div>
+                  <div>
+                    3. purge_orphans (4 packages) <span className="text-signal-gate">destructive</span>
+                  </div>
                 </div>
                 <div className="flex gap-2 mt-1">
                   <button
                     onClick={() => triggerToast("Step Approved: Purging 4 packages")}
-                    className="flex-1 py-1.5 bg-accent hover:bg-accent-hover text-accent-text font-bold text-xs rounded-lg shadow-sm"
+                    className="flex-1 py-1.5 bg-accent hover:bg-accent-hover text-accent-text font-bold text-xs rounded-lg shadow-sm cursor-pointer"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => triggerToast("Step Rejected")}
-                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-xs font-semibold rounded-lg"
+                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-xs font-semibold rounded-lg cursor-pointer"
                   >
                     Reject
                   </button>
@@ -526,7 +614,7 @@ export default function App() {
             <div className="p-3 border-t border-border-subtle flex items-center gap-2 bg-black/40">
               <button
                 onClick={() => triggerToast("Voice dictation active (Whisper base.en)")}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-text-primary transition-colors"
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-text-primary transition-colors cursor-pointer"
                 title="Push to talk"
               >
                 <Mic size={15} />
@@ -537,7 +625,7 @@ export default function App() {
               />
               <button
                 onClick={() => triggerToast("Prompt sent to agent planner")}
-                className="px-3 py-1.5 rounded-xl bg-accent text-accent-text text-xs font-bold"
+                className="px-3 py-1.5 rounded-xl bg-accent text-accent-text text-xs font-bold cursor-pointer"
               >
                 Send
               </button>

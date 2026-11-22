@@ -119,3 +119,40 @@ impl HealthScore {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_perfect_health_score() {
+        let health = HealthScore::calculate(40.0, 50.0, Some(45.0), 0, 0);
+        assert_eq!(health.score, 100);
+        assert_eq!(health.rating, "good");
+        assert!(health.deductions.is_empty());
+    }
+
+    #[test]
+    fn test_disk_pressure_penalty() {
+        let health = HealthScore::calculate(95.0, 50.0, Some(45.0), 0, 0);
+        assert!(health.score < 85);
+        assert!(health.deductions.iter().any(|d| d.category == "disk"));
+    }
+
+    #[test]
+    fn test_memory_and_thermal_penalty() {
+        let health = HealthScore::calculate(50.0, 95.0, Some(88.0), 0, 0);
+        assert!(health.score < 85);
+        assert!(health.deductions.iter().any(|d| d.category == "memory"));
+        assert!(health.deductions.iter().any(|d| d.category == "thermal"));
+    }
+
+    #[test]
+    fn test_critically_degraded_score() {
+        // High disk + High memory + Hot thermal + Updates + Bloat
+        let health = HealthScore::calculate(98.0, 99.0, Some(92.0), 10, 10 * 1024 * 1024 * 1024);
+        assert!(health.score < 65);
+        assert_eq!(health.rating, "poor");
+        assert_eq!(health.deductions.len(), 5);
+    }
+}
