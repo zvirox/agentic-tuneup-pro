@@ -1,0 +1,20 @@
+[Unit]
+Description=Agentic Tuneup Pro Privileged System Helper
+Documentation=man:agentic-tuneup-pro(1) https://github.com/zvirox/agentic-tuneup-pro
+After=dbus.service
+Wants=dbus.service
+
+[Service]
+Type=dbus
+BusName=in.zvirox.AgenticTuneupHelper
+ExecStart=/usr/libexec/atpd-helper
+Restart=on-failure
+RestartSec=3s
+ProtectHome=read-only
+ProtectSystem=strict
+ReadWritePaths=/var/cache /var/log /tmp
+PrivateTmp=true
+CapabilityBoundingSet=CAP_KILL CAP_SYS_ADMIN CAP_DAC_OVERRIDE
+
+[Install]
+WantedBy=multi-user.target

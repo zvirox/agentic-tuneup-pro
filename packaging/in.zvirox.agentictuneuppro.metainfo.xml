@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>in.zvirox.agentictuneuppro</id>
+  <name>Agentic Tuneup Pro</name>
+  <summary>Sovereign AI-orchestrated Linux cleaner and performance suite</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+  <developer id="in.zvirox">
+    <name>Zvirox</name>
+  </developer>
+  <description>
+    <p>
+      Agentic Tuneup Pro (ATP) is a sovereign desktop utility and MCP server designed
+      for Linux power users. Built on a safety-first architecture with zero unquarantined
+      deletions, atomic multi-file rollback, and Polkit-gated system privileges.
+    </p>
+    <ul>
+      <li>Parallel declarative disk cleaner for browser caches, build artifacts, and package caches</li>
+      <li>Zero-loss quarantine engine with byte-parity rollback and cryptographic audit logs</li>
+      <li>Unified package manager for Native (pacman/apt/dnf), Flatpak, and AppImage</li>
+      <li>Interactive process tree viewer, systemd service manager, and startup editor</li>
+      <li>Integrated in-app Starship Agent cockpit with Tier 3 approval consent gates</li>
+      <li>Headless Starship MCP bridge via Unix domain socket with SO_PEERCRED authentication</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">agentic-tuneup-pro.desktop</launchable>
+  <url type="homepage">https://github.com/zvirox/agentic-tuneup-pro</url>
+  <url type="bugtracker">https://github.com/zvirox/agentic-tuneup-pro/issues</url>
+  <provides>
+    <binary>agentic-tuneup-pro</binary>
+    <binary>atpd-helper</binary>
+  </provides>
+  <releases>
+    <release version="0.0.1-alpha" date="2026-11-22">
+      <description>
+        <p>First public alpha release featuring:</p>
+        <ul>
+          <li>Declarative junk cleaner with zero unquarantined deletions</li>
+          <li>System monitor with 1 Hz real-time telemetry and health gauge</li>
+          <li>Unified package and process manager across Native and Flatpak</li>
+          <li>Starship MCP server bridge and headless stdio JSON-RPC loop</li>
+          <li>In-app Starship Agent drawer with Task Sheet state machine and approval gates</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

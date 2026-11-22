@@ -264,6 +264,45 @@
 
 ---
 
+## Milestone: v0.0.1-alpha Pre-Release Packaging & Multi-Distro Distribution
+
+> **Goal:** Release the first public alpha (`v0.0.1-alpha`) across all primary Linux distribution channels (.deb, .rpm, Flatpak, and AUR PKGBUILD) with full privileged helper, desktop integration, and D-Bus/Polkit policies.
+
+- [x] **M.1 System Integration & Metadata Assets**
+  - Desktop Entry: `packaging/agentic-tuneup-pro.desktop` adhering to FreeDesktop standard.
+  - AppStream Metadata: `packaging/in.zvirox.agentictuneuppro.metainfo.xml` for GNOME Software and KDE Discover.
+  - Systemd Service: `packaging/atpd-helper.service` managing the privileged helper daemon.
+  - Icon theme assets: multi-resolution icons (`hicolor` 32x32, 64x64, 128x128, 256x256, 512x512, scalable SVG).
+  - *Verify:* Desktop entry validates cleanly via `desktop-file-validate` and AppStream validates via `appstreamcli`.
+- [x] **M.2 Debian / Ubuntu Package (`.deb`)**
+  - Standalone Debian package generator and Tauri bundle configuration.
+  - Install scripts (`postinst`, `prerm`, `postrm`) for D-Bus and systemd daemon reloading.
+  - Multi-arch amd64 support with dependencies (`libwebkit2gtk-4.1-0`, `libgtk-3-0`, `libayatana-appindicator3-1`).
+  - *Verify:* Package builds and installs cleanly on Debian/Ubuntu systems with full Polkit registration.
+- [x] **M.3 Fedora / RHEL / openSUSE Package (`.rpm`)**
+  - RPM specification file: `packaging/rpm/agentic-tuneup-pro.spec`.
+  - Configured dependencies (`webkit2gtk4.1`, `gtk3`, `libappindicator-gtk3`, `polkit`).
+  - Integrated `rpmbuild` workflow producing `agentic-tuneup-pro-0.0.1-alpha.1.x86_64.rpm`.
+  - *Verify:* `rpmbuild -bb` succeeds and package query confirms all files and scripts.
+- [x] **M.4 Flatpak Manifest (`in.zvirox.AgenticTuneupPro.yaml`)**
+  - Author Flatpak manifest targeting `org.freedesktop.Platform//24.08`.
+  - Grant permissions for filesystem cleanup (`filesystem=host:ro`, `filesystem=home`, `filesystem=xdg-cache`).
+  - Configure system bus talk to `in.zvirox.AgenticTuneupHelper`.
+  - *Verify:* Manifest conforms to Flatpak 1.x builder specifications.
+- [x] **M.5 Arch Linux AUR Package (`PKGBUILD` & `.SRCINFO`)**
+  - Author standard Arch Linux `PKGBUILD` for `agentic-tuneup-pro-bin` / `agentic-tuneup-pro`.
+  - Author `packaging/aur/agentic-tuneup-pro.install` pacman hooks.
+  - Generate canonical `.SRCINFO` for AUR repository synchronization.
+  - *Verify:* `makepkg -od` or pacman verification parses and validates the package recipe.
+- [x] **M.6 Automated Release Orchestration Script (`scripts/build-packages.sh`)**
+  - Single-command orchestration script that builds optimized release binaries and generates `.deb`, `.rpm`, `flatpak` manifest bundle, and `AUR` tarball.
+  - Direct output to `dist/v0.0.1-alpha/` with checksums (`SHA256SUMS`).
+  - *Verify:* Running `./scripts/build-packages.sh` compiles and packages all targets reproducibly.
+
+**Definition of Done (v0.0.1-alpha Milestone):** ✅ `.deb`, `.rpm`, `Flatpak`, and `AUR PKGBUILD` packages produced and validated for public alpha testing ahead of Phase 7 and the final v1.0 stable release. [COMPLETED]
+
+---
+
 ## Phase 7 — Voice Dictation & Advanced Diagnostics
 
 > **Goal:** Hands-free voice commands via local Whisper dictation, "Why is my PC slow?" automated diagnostics, and Timeshift/btrfs snapshot hooks.

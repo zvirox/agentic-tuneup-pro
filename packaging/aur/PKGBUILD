@@ -1,0 +1,60 @@
+# Maintainer: Zvirox <cyber@zvirox.in>
+pkgname=agentic-tuneup-pro-bin
+pkgver=0.0.1.alpha
+pkgrel=1
+pkgdesc="Sovereign AI-orchestrated Linux cleaner, package manager, and performance suite"
+arch=('x86_64' 'aarch64')
+url="https://github.com/zvirox/agentic-tuneup-pro"
+license=('Apache-2.0')
+depends=(
+    'webkit2gtk-4.1'
+    'gtk3'
+    'libappindicator-gtk3'
+    'polkit'
+    'dbus'
+    'systemd-libs'
+)
+provides=('agentic-tuneup-pro')
+conflicts=('agentic-tuneup-pro')
+install=agentic-tuneup-pro.install
+source=(
+    'agentic-tuneup-pro'
+    'atpd-helper'
+    'agentic-tuneup-pro.desktop'
+    'in.zvirox.agentictuneuppro.metainfo.xml'
+    'in.zvirox.agentic_tuneup.policy'
+    'in.zvirox.AgenticTuneupHelper.conf'
+    'atpd-helper.service'
+    'in.zvirox.agentictuneuppro.svg'
+    '128x128.png'
+    '64x64.png'
+    '32x32.png'
+    'LICENSE'
+)
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+
+package() {
+    # Install main binary & privileged helper
+    install -Dm755 "${srcdir}/agentic-tuneup-pro" "${pkgdir}/usr/bin/agentic-tuneup-pro"
+    install -Dm755 "${srcdir}/atpd-helper" "${pkgdir}/usr/libexec/atpd-helper"
+
+    # Install Desktop entry & AppStream metadata
+    install -Dm644 "${srcdir}/agentic-tuneup-pro.desktop" "${pkgdir}/usr/share/applications/agentic-tuneup-pro.desktop"
+    install -Dm644 "${srcdir}/in.zvirox.agentictuneuppro.metainfo.xml" "${pkgdir}/usr/share/metainfo/in.zvirox.agentictuneuppro.metainfo.xml"
+
+    # Install Polkit policy & D-Bus service configuration
+    install -Dm644 "${srcdir}/in.zvirox.agentic_tuneup.policy" "${pkgdir}/usr/share/polkit-1/actions/in.zvirox.agentic_tuneup.policy"
+    install -Dm644 "${srcdir}/in.zvirox.AgenticTuneupHelper.conf" "${pkgdir}/usr/share/dbus-1/system.d/in.zvirox.AgenticTuneupHelper.conf"
+
+    # Install systemd service unit
+    install -Dm644 "${srcdir}/atpd-helper.service" "${pkgdir}/usr/lib/systemd/system/atpd-helper.service"
+
+    # Install application icons
+    install -Dm644 "${srcdir}/in.zvirox.agentictuneuppro.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/in.zvirox.agentictuneuppro.svg"
+    install -Dm644 "${srcdir}/128x128.png" "${pkgdir}/usr/share/icons/hicolor/128x128/apps/in.zvirox.agentictuneuppro.png"
+    install -Dm644 "${srcdir}/64x64.png" "${pkgdir}/usr/share/icons/hicolor/64x64/apps/in.zvirox.agentictuneuppro.png"
+    install -Dm644 "${srcdir}/32x32.png" "${pkgdir}/usr/share/icons/hicolor/32x32/apps/in.zvirox.agentictuneuppro.png"
+
+    # Install license
+    install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

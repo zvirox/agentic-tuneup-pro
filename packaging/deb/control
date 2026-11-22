@@ -1,0 +1,15 @@
+Package: agentic-tuneup-pro
+Version: 0.0.1-alpha
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Zvirox <cyber@zvirox.in>
+Depends: libc6 (>= 2.34), libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37, libgtk-3-0, libayatana-appindicator3-1 | libappindicator3-1, dbus, polkitd | policykit-1
+Recommends: systemd
+Homepage: https://github.com/zvirox/agentic-tuneup-pro
+Description: Sovereign AI-orchestrated Linux cleaner and performance suite
+ Agentic Tuneup Pro is a sovereign, glass-UI system cleaner, package manager,
+ and performance tune-up suite for Linux, orchestrated by an AI agent and
+ integrated into the Starship Control ecosystem via Model Context Protocol (MCP).
+ Featuring zero unquarantined deletions, atomic multi-file rollback, and
+ Polkit-gated system privileges.
