@@ -19,6 +19,7 @@ dependencies = [
  "atp-pkg",
  "atp-procs",
  "atp-safety",
+ "libc",
  "serde",
  "serde_json",
  "tauri",
@@ -191,6 +192,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "atp-core",
+ "fastrand",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -202,6 +204,7 @@ name = "atp-procs"
 version = "0.1.0"
 dependencies = [
  "atp-core",
+ "libc",
  "serde",
  "serde_json",
  "sysinfo",

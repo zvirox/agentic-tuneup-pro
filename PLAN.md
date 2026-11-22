@@ -199,37 +199,37 @@
 
 > **Goal:** Unified package management across Flatpak, Host Native (`pacman`/`apt`/`dnf`), and AppImage, plus process tree kill and systemd unit control.
 
-- [ ] **5.1 `PackageBackend` Trait & Host Detection (`atp-pkg`)**
+- [x] **5.1 `PackageBackend` Trait & Host Detection (`atp-pkg`)**
   - Define `PackageBackend` async trait (search, list, check updates, audit orphans, prepare plan).
   - Implement host detector inspecting `/etc/os-release` to activate Flatpak, Native, and AppImage backends.
   - *Verify:* Running on Arch activates pacman + Flatpak; running on Ubuntu activates apt + Flatpak.
-- [ ] **5.2 Flatpak & AppImage Backends**
+- [x] **5.2 Flatpak & AppImage Backends**
   - Implement Flatpak backend: query installed apps/runtimes, detect unused runtimes (`flatpak uninstall --unused`).
   - Implement AppImage backend: scan `~/Applications` and `~/.local/bin`, manage `.desktop` entries.
   - *Verify:* Unused Flatpak runtimes are detected with exact reclaimable sizes.
-- [ ] **5.3 Distro-Native Backends & Orphan Resolution**
+- [x] **5.3 Distro-Native Backends & Orphan Resolution**
   - Implement Arch backend (`pacman -Qdtq` for orphans).
   - Implement Debian/Ubuntu backend (`apt autoremove --dry-run`).
   - Implement Fedora backend (`dnf autoremove`).
   - Calculate dependency diffs before execution (`PackagePlan`).
   - Route mutating uninstalls through `atpd-helper` with Polkit prompt.
   - *Verify:* Orphan packages are audited and displayed with zero reverse dependency proof.
-- [ ] **5.4 Process Tree Explorer & Signals (`atp-procs`)**
+- [x] **5.4 Process Tree Explorer & Signals (`atp-procs`)**
   - Implement process list grouped by application (e.g. Chrome parent + 20 helper workers).
   - Implement signals: `SIGTERM` (clean close), `SIGKILL` (force kill), `nice` priority shift.
   - Implement tree-kill: traverse child PIDs recursively and terminate the full tree.
   - *Verify:* Terminating a multi-process browser closes all child processes cleanly without orphaned workers.
-- [ ] **5.5 Systemd Services & Startup Manager (`atp-procs`)**
+- [x] **5.5 Systemd Services & Startup Manager (`atp-procs`)**
   - Connect to systemd user and system buses via `zbus`.
   - List services, start, stop, restart, enable, disable.
   - Autostart manager: parse desktop files in `~/.config/autostart/` and toggle enabled states.
   - *Verify:* User can toggle startup apps and inspect service logs directly from the UI.
-- [ ] **5.6 Apps & Processes UI**
+- [x] **5.6 Apps & Processes UI**
   - Build **Apps** screen with source filters (All, Flatpak, Native, AppImage), updates counter, and "Update All" button.
   - Build **Processes** screen with sortable tables, CPU/Memory progress bars, and kill confirmation modals.
   - *Verify:* User can update an app and kill a runaway process with interactive confirmation.
 
-**Definition of Done (Phase 5):** ✅ Unified package management across native and containerized formats; orphan packages audited and pruned; processes and systemd services managed safely.
+**Definition of Done (Phase 5):** ✅ Unified package management across native and containerized formats; orphan packages audited and pruned; processes and systemd services managed safely. [COMPLETED]
 
 ---
 

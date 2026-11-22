@@ -2,6 +2,8 @@ use tauri::{command, State};
 use atp_cleaner::{CleanExecutionOutput, CleanerExecutor, ParallelScanner, RuleEngine, ScanSummary};
 use atp_core::{AuditEntry, ExecutionResult, QuarantineSessionRecord};
 use atp_monitor::{HealthScore, TelemetryMonitor, TelemetrySnapshot};
+use atp_pkg::{PackageInfo, PackageManagerManager, PackagePlan, PackageUpdate};
+use atp_procs::{AppProcessGroup, AutostartEntry, AutostartManager, ProcessEntry, ProcessManager, ServiceEntry, SystemdManager};
 use atp_safety::{AuditStore, QuarantineStore};
 
 #[command]
@@ -51,7 +53,7 @@ pub fn cleaner_restore_quarantine(session_id: String) -> Result<ExecutionResult,
         &session_id,
         2,
         "success",
-        "{}",
+        &format!("{{\"files_restored\": {}}}", res.files_affected),
     );
 
     Ok(res)
@@ -124,4 +126,95 @@ pub async fn health_get_score(
         0,
         0,
     ))
+}
+
+// ======================== Package Management Commands ========================
+
+#[command]
+pub async fn pkg_list_installed(backend_filter: Option<String>) -> Result<Vec<PackageInfo>, String> {
+    let manager = PackageManagerManager::new();
+    manager
+        .list_all_installed(backend_filter.as_deref())
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn pkg_check_updates() -> Result<Vec<PackageUpdate>, String> {
+    let manager = PackageManagerManager::new();
+    manager.check_all_updates().await.map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn pkg_audit_orphans() -> Result<Vec<PackageInfo>, String> {
+    let manager = PackageManagerManager::new();
+    manager.audit_all_orphans().await.map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn pkg_prepare_action(
+    action_type: String,
+    backend_id: String,
+    package_id: String,
+) -> Result<PackagePlan, String> {
+    let manager = PackageManagerManager::new();
+    manager
+        .prepare_action(&action_type, &backend_id, &package_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// ======================== Process & Services Commands ========================
+
+#[command]
+pub fn proc_list(sort_by: Option<String>) -> Result<Vec<ProcessEntry>, String> {
+    Ok(ProcessManager::list_processes(sort_by.as_deref().unwrap_or("cpu")))
+}
+
+#[command]
+pub fn proc_list_groups(sort_by: Option<String>) -> Result<Vec<AppProcessGroup>, String> {
+    Ok(ProcessManager::list_app_groups(sort_by.as_deref().unwrap_or("cpu")))
+}
+
+#[command]
+pub fn proc_kill(
+    pid: u32,
+    kill_tree: Option<bool>,
+    signal: Option<i32>,
+) -> Result<Vec<u32>, String> {
+    let sig = signal.unwrap_or(libc::SIGTERM);
+    if kill_tree.unwrap_or(true) {
+        ProcessManager::kill_process_tree(pid, sig).map_err(|e| e.to_string())
+    } else {
+        ProcessManager::send_signal(pid, sig).map_err(|e| e.to_string())?;
+        Ok(vec![pid])
+    }
+}
+
+#[command]
+pub async fn service_list(user_mode: Option<bool>) -> Result<Vec<ServiceEntry>, String> {
+    SystemdManager::list_services(user_mode.unwrap_or(false))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn service_control(
+    unit_name: String,
+    action: String,
+    user_mode: Option<bool>,
+) -> Result<(), String> {
+    SystemdManager::control_service(&unit_name, &action, user_mode.unwrap_or(false))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+pub fn autostart_list() -> Result<Vec<AutostartEntry>, String> {
+    Ok(AutostartManager::list_entries())
+}
+
+#[command]
+pub fn autostart_toggle(file_name: String, enabled: bool) -> Result<(), String> {
+    AutostartManager::toggle_entry(&file_name, enabled).map_err(|e| e.to_string())
 }

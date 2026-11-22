@@ -95,6 +95,17 @@ fn main() {
             commands::telemetry_get_snapshot,
             commands::telemetry_get_history,
             commands::health_get_score,
+            commands::pkg_list_installed,
+            commands::pkg_check_updates,
+            commands::pkg_audit_orphans,
+            commands::pkg_prepare_action,
+            commands::proc_list,
+            commands::proc_list_groups,
+            commands::proc_kill,
+            commands::service_list,
+            commands::service_control,
+            commands::autostart_list,
+            commands::autostart_toggle,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

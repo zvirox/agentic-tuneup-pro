@@ -8,6 +8,13 @@ import {
   HealthScore,
   ScanSummary,
   CleanExecutionOutput,
+  PackageInfo,
+  PackageUpdate,
+  PackagePlan,
+  ProcessEntry,
+  AppProcessGroup,
+  ServiceEntry,
+  AutostartEntry,
 } from "../types";
 
 export async function safeInvoke<T>(
@@ -311,4 +318,258 @@ export async function cleanerExecuteClean(
     { selectedRuleIds },
     mockFallback
   );
+}
+
+// ================= Package Management IPC =================
+
+export async function pkgListInstalled(backendFilter?: string): Promise<PackageInfo[]> {
+  const mockFallback: PackageInfo[] = [
+    {
+      id: "org.mozilla.firefox",
+      name: "Firefox Web Browser",
+      version: "133.0",
+      backend: "flatpak",
+      summary: "Fast, Private & Safe Web Browser",
+      size_bytes: 268435456,
+      is_updatable: true,
+    },
+    {
+      id: "com.spotify.Client",
+      name: "Spotify",
+      version: "1.2.50",
+      backend: "flatpak",
+      summary: "Music and podcast streaming client",
+      size_bytes: 188743680,
+      is_updatable: false,
+    },
+    {
+      id: "ripgrep",
+      name: "ripgrep",
+      version: "14.1.0",
+      backend: "pacman",
+      summary: "Line-oriented search tool combining grep speed with ack usability",
+      size_bytes: 5400000,
+      is_updatable: false,
+    },
+    {
+      id: "/home/user/Applications/Obsidian-1.7.7.AppImage",
+      name: "Obsidian",
+      version: "1.7.7",
+      backend: "appimage",
+      summary: "Standalone Markdown knowledge base & note-taking tool",
+      size_bytes: 120586240,
+      is_updatable: false,
+    },
+  ];
+
+  return safeInvoke<PackageInfo[]>("pkg_list_installed", { backendFilter }, mockFallback);
+}
+
+export async function pkgCheckUpdates(): Promise<PackageUpdate[]> {
+  const mockFallback: PackageUpdate[] = [
+    {
+      package_id: "org.mozilla.firefox",
+      current_version: "133.0",
+      new_version: "133.0.1",
+      backend: "flatpak",
+      download_size_bytes: 94371840,
+    },
+  ];
+
+  return safeInvoke<PackageUpdate[]>("pkg_check_updates", undefined, mockFallback);
+}
+
+export async function pkgAuditOrphans(): Promise<PackageInfo[]> {
+  const mockFallback: PackageInfo[] = [
+    {
+      id: "org.gnome.Platform//44",
+      name: "GNOME Platform 44",
+      version: "44",
+      backend: "flatpak",
+      summary: "Unused runtime (no installed applications depend on this)",
+      size_bytes: 786432000,
+      is_updatable: false,
+    },
+    {
+      id: "libgtk2.0-0",
+      name: "libgtk2.0-0",
+      version: "2.24.33",
+      backend: "apt",
+      summary: "Unused library dependency (0 reverse dependencies)",
+      size_bytes: 14680064,
+      is_updatable: false,
+    },
+  ];
+
+  return safeInvoke<PackageInfo[]>("pkg_audit_orphans", undefined, mockFallback);
+}
+
+export async function pkgPrepareAction(
+  actionType: string,
+  backendId: string,
+  packageId: string
+): Promise<PackagePlan> {
+  const mockFallback: PackagePlan = {
+    plan_id: `pkg_plan_${Math.floor(Date.now() / 1000)}`,
+    action_type: actionType,
+    risk_tier: actionType === "remove" ? 3 : 2,
+    target_package: packageId,
+    affected_packages: [packageId],
+    download_bytes: 0,
+    disk_delta_bytes: -188743680,
+    requires_polkit: backendId === "pacman" || backendId === "apt" || backendId === "dnf",
+  };
+
+  return safeInvoke<PackagePlan>(
+    "pkg_prepare_action",
+    { actionType, backendId, packageId },
+    mockFallback
+  );
+}
+
+// ================= Process & Services IPC =================
+
+export async function procList(sortBy = "cpu"): Promise<ProcessEntry[]> {
+  const mockFallback: ProcessEntry[] = [
+    {
+      pid: 3120,
+      name: "firefox",
+      displayName: "firefox",
+      cpuPercent: 12.4,
+      memoryBytes: 1824520192,
+      ioReadBytesPerSec: 1048576,
+      isCritical: false,
+    },
+    {
+      pid: 1450,
+      name: "code",
+      displayName: "code",
+      cpuPercent: 4.8,
+      memoryBytes: 1248000000,
+      ioReadBytesPerSec: 524288,
+      isCritical: false,
+    },
+    {
+      pid: 1,
+      name: "systemd",
+      displayName: "systemd",
+      cpuPercent: 0.1,
+      memoryBytes: 18454937,
+      ioReadBytesPerSec: 0,
+      isCritical: true,
+    },
+  ];
+
+  return safeInvoke<ProcessEntry[]>("proc_list", { sortBy }, mockFallback);
+}
+
+export async function procListGroups(sortBy = "cpu"): Promise<AppProcessGroup[]> {
+  const mockFallback: AppProcessGroup[] = [
+    {
+      groupId: "firefox",
+      appName: "Firefox Browser",
+      rootPid: 3120,
+      processCount: 14,
+      totalCpuPercent: 18.2,
+      totalMemoryBytes: 2450000000,
+      pids: [3120, 3145, 3146, 3150],
+      isCritical: false,
+    },
+    {
+      groupId: "code",
+      appName: "VS Code",
+      rootPid: 1450,
+      processCount: 8,
+      totalCpuPercent: 5.6,
+      totalMemoryBytes: 1850000000,
+      pids: [1450, 1460, 1475],
+      isCritical: false,
+    },
+    {
+      groupId: "systemd",
+      appName: "System Daemons",
+      rootPid: 1,
+      processCount: 6,
+      totalCpuPercent: 0.2,
+      totalMemoryBytes: 45000000,
+      pids: [1, 240, 350],
+      isCritical: true,
+    },
+  ];
+
+  return safeInvoke<AppProcessGroup[]>("proc_list_groups", { sortBy }, mockFallback);
+}
+
+export async function procKill(
+  pid: number,
+  killTree = true,
+  signal = 15
+): Promise<number[]> {
+  return safeInvoke<number[]>("proc_kill", { pid, killTree, signal }, [pid]);
+}
+
+export async function serviceList(userMode = false): Promise<ServiceEntry[]> {
+  const mockFallback: ServiceEntry[] = [
+    {
+      unitName: "bluetooth.service",
+      description: "Bluetooth service",
+      loadState: "loaded",
+      activeState: "active",
+      subState: "running",
+      isUserUnit: userMode,
+    },
+    {
+      unitName: "cups.service",
+      description: "CUPS Scheduler",
+      loadState: "loaded",
+      activeState: "inactive",
+      subState: "dead",
+      isUserUnit: userMode,
+    },
+    {
+      unitName: "dbus.service",
+      description: "D-Bus System Message Bus",
+      loadState: "loaded",
+      activeState: "active",
+      subState: "running",
+      isUserUnit: userMode,
+    },
+  ];
+
+  return safeInvoke<ServiceEntry[]>("service_list", { userMode }, mockFallback);
+}
+
+export async function serviceControl(
+  unitName: string,
+  action: string,
+  userMode = false
+): Promise<void> {
+  return safeInvoke<void>("service_control", { unitName, action, userMode });
+}
+
+export async function autostartList(): Promise<AutostartEntry[]> {
+  const mockFallback: AutostartEntry[] = [
+    {
+      fileName: "discord.desktop",
+      name: "Discord",
+      comment: "All-in-one voice and text chat",
+      exec: "/usr/bin/discord",
+      enabled: true,
+      path: "/home/user/.config/autostart/discord.desktop",
+    },
+    {
+      fileName: "steam.desktop",
+      name: "Steam",
+      comment: "Application for managing and playing games",
+      exec: "/usr/bin/steam -silent",
+      enabled: false,
+      path: "/home/user/.config/autostart/steam.desktop",
+    },
+  ];
+
+  return safeInvoke<AutostartEntry[]>("autostart_list", undefined, mockFallback);
+}
+
+export async function autostartToggle(fileName: string, enabled: boolean): Promise<void> {
+  return safeInvoke<void>("autostart_toggle", { fileName, enabled });
 }

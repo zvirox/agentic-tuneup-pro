@@ -113,3 +113,72 @@ export interface CleanExecutionOutput {
   files_count: number;
   quarantine_path: string;
 }
+
+export interface PackageInfo {
+  id: string;
+  name: string;
+  version: string;
+  backend: "flatpak" | "pacman" | "apt" | "dnf" | "appimage" | string;
+  summary: string;
+  size_bytes?: number | null;
+  is_updatable: boolean;
+}
+
+export interface PackageUpdate {
+  package_id: string;
+  current_version: string;
+  new_version: string;
+  backend: string;
+  download_size_bytes?: number | null;
+}
+
+export interface PackagePlan {
+  plan_id: string;
+  action_type: "install" | "remove" | "purge_orphans" | string;
+  risk_tier: number;
+  target_package: string;
+  affected_packages: string[];
+  download_bytes: number;
+  disk_delta_bytes: number;
+  requires_polkit: boolean;
+}
+
+export interface ProcessEntry {
+  pid: number;
+  ppid?: number | null;
+  name: string;
+  displayName: string;
+  cpuPercent: number;
+  memoryBytes: number;
+  ioReadBytesPerSec: number;
+  isCritical: boolean;
+}
+
+export interface AppProcessGroup {
+  groupId: string;
+  appName: string;
+  rootPid: number;
+  processCount: number;
+  totalCpuPercent: number;
+  totalMemoryBytes: number;
+  pids: number[];
+  isCritical: boolean;
+}
+
+export interface ServiceEntry {
+  unitName: string;
+  description: string;
+  loadState: string;
+  activeState: string;
+  subState: string;
+  isUserUnit: boolean;
+}
+
+export interface AutostartEntry {
+  fileName: string;
+  name: string;
+  comment?: string | null;
+  exec: string;
+  enabled: boolean;
+  path: string;
+}

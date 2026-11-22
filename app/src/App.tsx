@@ -21,6 +21,8 @@ import { TelemetrySparkline } from "./components/TelemetrySparkline";
 import { TopConsumersCard } from "./components/TopConsumersCard";
 import { CategoryTree } from "./components/CategoryTree";
 import { SamplePathsModal } from "./components/SamplePathsModal";
+import { AppsView } from "./components/AppsView";
+import { ProcessExplorer } from "./components/ProcessExplorer";
 import {
   cleanerScan,
   cleanerExecuteClean,
@@ -603,6 +605,14 @@ export default function App() {
                 />
               )}
             </div>
+          )}
+
+          {activePage === "apps" && (
+            <AppsView onTriggerToast={triggerToast} />
+          )}
+
+          {activePage === "proc" && (
+            <ProcessExplorer onTriggerToast={triggerToast} />
           )}
 
           {activePage === "set" && (
