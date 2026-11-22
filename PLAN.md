@@ -157,21 +157,21 @@
 
 > **Goal:** Unified binary supporting `--mcp` for headless background tasks and an authenticated Unix domain socket bridge (`atp.sock`) during live GUI sessions.
 
-- [ ] **4.1 Unified Binary Routing (`main.rs`)**
+- [x] **4.1 Unified Binary Routing (`main.rs`)**
   - Parse CLI arguments on startup:
     - If `--mcp` flag present $\to$ run headless stdio JSON-RPC 2.0 loop without GUI.
     - If default $\to$ launch Tauri GUI and start background Unix socket bridge.
   - *Verify:* Running `agentic-tuneup-pro --mcp` opens stdio JSON-RPC loop; normal launch opens desktop window.
-- [ ] **4.2 Unix Domain Socket Bridge with `SO_PEERCRED` (`atp-mcp`)**
+- [x] **4.2 Unix Domain Socket Bridge with `SO_PEERCRED` (`atp-mcp`)**
   - Bind listener at `$XDG_RUNTIME_DIR/starship/bridges/atp.sock` (mode `0700`).
   - On incoming connection, execute `libc::getsockopt(fd, SOL_SOCKET, SO_PEERCRED, ...)` to verify client UID matches host user.
   - Drop connection immediately if caller UID does not match.
   - *Verify:* Local socket connection verifies credentials; unauthorized UID is rejected.
-- [ ] **4.3 Plugin Manifest Auto-Registration**
+- [x] **4.3 Plugin Manifest Auto-Registration**
   - Write Starship capability manifest to `$XDG_DATA_HOME/starship/plugins/atp.json` on app startup.
   - Clean up socket and manifest cleanly on SIGTERM / application exit.
   - *Verify:* Starship Control discovers ATP automatically in its App Topology drawer.
-- [ ] **4.4 MCP Protocol Handshake (`starship/hello`) & Tool Schemas**
+- [x] **4.4 MCP Protocol Handshake (`starship/hello`) & Tool Schemas**
   - Implement `starship/hello` returning `appId: "atp"`, version, and full tool schemas:
     - `tuneup.get_health` (Tier 1)
     - `tuneup.scan_junk` (Tier 1)
@@ -185,13 +185,13 @@
     - `tuneup.kill_process` (Tier 3)
     - `tuneup.purge_quarantine` (Tier 3)
   - *Verify:* MCP client can inspect and discover all registered tools and JSON schemas.
-- [ ] **4.5 MCP Tool Invocation (`tools/call`) & Cancellation (`tools/cancel`)**
+- [x] **4.5 MCP Tool Invocation (`tools/call`) & Cancellation (`tools/cancel`)**
   - Wire `tools/call` to execute internal actions via `atp-core` with `leaseTimeoutMs`.
   - Wire `tools/cancel` to abort active file scans or package operations via Tokio cancellation tokens.
   - Format all return errors in standard Starship error envelope (`API.md §1`).
   - *Verify:* External MCP client (Claude Desktop / Starship Control) can trigger `tuneup.scan_junk` and receive structured byte totals.
 
-**Definition of Done (Phase 4):** ✅ ATP seamlessly integrates into Starship Control via Unix socket (`atp.sock`) and functions headlessly via `agentic-tuneup-pro --mcp`.
+**Definition of Done (Phase 4):** ✅ ATP seamlessly integrates into Starship Control via Unix socket (`atp.sock`) and functions headlessly via `agentic-tuneup-pro --mcp`. [COMPLETED]
 
 ---
 

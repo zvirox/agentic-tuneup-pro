@@ -10,8 +10,14 @@ workspace = true
 
 [dependencies]
 atp-core = { path = "../atp-core" }
+atp-cleaner = { path = "../atp-cleaner" }
+atp-monitor = { path = "../atp-monitor" }
+atp-safety = { path = "../atp-safety" }
+fastrand = "2.3"
 libc = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+sysinfo = "0.33"
 thiserror = "2.0"
-tokio = { version = "1.0", features = ["net", "io-util", "sync", "rt"] }
+tokio = { version = "1.0", features = ["net", "io-util", "io-std", "sync", "rt", "macros", "time", "process"] }
+tokio-util = { version = "0.7" }

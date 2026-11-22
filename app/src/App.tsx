@@ -290,6 +290,13 @@ export default function App() {
           </button>
         </div>
 
+        {/* Starship Control Bridge Indicator */}
+        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-black/40 border border-border-subtle text-[11px] font-mono">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse" />
+          <span className="text-text-muted">Starship Bridge:</span>
+          <span className="text-accent font-semibold">atp.sock</span>
+        </div>
+
         {/* Universal Search Bar */}
         <div className="ml-auto flex items-center gap-2 bg-black/30 border border-border-subtle rounded-xl px-3 py-1.5 w-72 text-xs text-text-secondary focus-within:border-accent">
           <Search size={14} />

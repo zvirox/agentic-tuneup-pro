@@ -25,6 +25,7 @@ dependencies = [
  "tauri-build",
  "thiserror 2.0.21",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]
@@ -158,12 +159,18 @@ dependencies = [
 name = "atp-mcp"
 version = "0.1.0"
 dependencies = [
+ "atp-cleaner",
  "atp-core",
+ "atp-monitor",
+ "atp-safety",
+ "fastrand",
  "libc",
  "serde",
  "serde_json",
+ "sysinfo",
  "thiserror 2.0.21",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]
