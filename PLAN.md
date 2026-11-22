@@ -10,12 +10,14 @@
 ## Master Checklist & Progress Tracker
 
 - [x] **Phase 0 — Workspace Foundation & WebKitGTK Glass Spike** (Shell, Design Tokens, WebKitGTK 60fps)
-- [ ] **Phase 1 — Core Safety Engine & Quarantine Store** (Quarantine Mover, Undo Journal, Protected Validator)
-- [ ] **Phase 2 — Privileged Polkit Helper & System Monitor** (`atpd-helper` D-Bus Daemon, Telemetry Stream, Health Score)
-- [ ] **Phase 3 — Cleaner Engine & Quarantine UI** (TOML Rules, Parallel Scanner, File Tree Diff, Instant Undo)
-- [ ] **Phase 4 — Starship MCP Server & Bridge** (Unified Binary `--mcp` / Unix Socket, `SO_PEERCRED`, Tools)
-- [ ] **Phase 5 — Package & Process Manager** (Flatpak, Native pacman/apt/dnf, AppImage, Process Tree Kill)
-- [ ] **Phase 6 — In-App Agent Cockpit Drawer** (Collapsible Split Drawer, Task Sheet Planner, Tier 3 Gates)
+- [x] **Phase 1 — Core Safety Engine & Quarantine Store** (Quarantine Mover, Undo Journal, Protected Validator)
+- [x] **Phase 2 — Privileged Polkit Helper & System Monitor** (`atpd-helper` D-Bus Daemon, Telemetry Stream, Health Score)
+- [x] **Phase 3 — Cleaner Engine & Quarantine UI** (TOML Rules, Parallel Scanner, File Tree Diff, Instant Undo)
+- [x] **Phase 4 — Starship MCP Server & Bridge** (Unified Binary `--mcp` / Unix Socket, `SO_PEERCRED`, Tools)
+- [x] **Phase 5 — Package & Process Manager** (Flatpak, Native pacman/apt/dnf, AppImage, Process Tree Kill)
+- [x] **Phase 6 — In-App Agent Cockpit Drawer** (Collapsible Split Drawer, Task Sheet Planner, Tier 3 Gates)
+- [x] **Milestone v0.0.1-alpha — Multi-Distro Release Pipeline** (.deb, .rpm, Flatpak, AUR PKGBUILD)
+- [x] **Milestone v0.0.2-alpha — Standalone Embedded UI & Async GTK Runtime Hotfix** (Release on GitHub)
 - [ ] **Phase 7 — Voice Dictation & Advanced Diagnostics** (Local Whisper, "Why is PC Slow?", Snapshot Hooks)
 - [ ] **Phase 8 — Polish, Packaging & Release** (AppImage, deb, rpm, PKGBUILD, Release v1.0)
 
