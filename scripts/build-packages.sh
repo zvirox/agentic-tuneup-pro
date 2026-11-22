@@ -118,7 +118,7 @@ echo -e "\033[1;34m--> Step 4/6: Generating Fedora/RHEL/openSUSE Package (.rpm)\
 RPM_PACKAGE_NAME="agentic-tuneup-pro-${PKG_VERSION}-${RELEASE_TAG}.${ARCH}.rpm"
 if command -v rpmbuild >/dev/null 2>&1; then
     mkdir -p "${STAGE_DIR}/rpmbuild"/{BUILD,RPMS,SOURCES,SPECS,SRPMS,rpmdb}
-    cp "${STAGE_DIR}/sources"/* "${STAGE_DIR}/rpmbuild/SOURCES/"
+    cp -r "${STAGE_DIR}/sources"/* "${STAGE_DIR}/rpmbuild/SOURCES/"
     sed "s/^Version:.*/Version:        ${PKG_VERSION}/" "${ROOT_DIR}/packaging/rpm/agentic-tuneup-pro.spec" > "${STAGE_DIR}/rpmbuild/SPECS/agentic-tuneup-pro.spec"
 
     rpmbuild --define "_topdir ${STAGE_DIR}/rpmbuild" \
