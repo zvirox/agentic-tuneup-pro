@@ -36,8 +36,6 @@ fn main() {
 
     // 2. Full Desktop GUI + Starship Unix Domain Socket Bridge Mode
     let monitor = TelemetryMonitor::new();
-    monitor.start_sampling_loop(1000);
-
     let monitor_for_setup = monitor.clone();
 
     // Starship bridge setup
@@ -66,6 +64,10 @@ fn main() {
         .manage(monitor)
         .manage(agent_engine)
         .setup(move |app| {
+            let monitor_sampling = monitor_for_setup.clone();
+            tauri::async_runtime::spawn(async move {
+                monitor_sampling.start_sampling_loop(1000);
+            });
             let handle = app.handle().clone();
             let mut rx = monitor_for_setup.subscribe();
             tauri::async_runtime::spawn(async move {

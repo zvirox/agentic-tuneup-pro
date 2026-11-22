@@ -59,22 +59,43 @@ impl TelemetryMonitor {
         self.tx.subscribe()
     }
 
-    /// Launches the background Tokio sampling loop.
-    pub fn start_sampling_loop(&self, interval_ms: u64) -> tokio::task::JoinHandle<()> {
+    /// Launches the background Tokio sampling loop if a runtime is active.
+    pub fn start_sampling_loop(&self, interval_ms: u64) -> Option<tokio::task::JoinHandle<()>> {
+        if tokio::runtime::Handle::try_current().is_err() {
+            return None;
+        }
         let monitor = self.clone();
-        tokio::spawn(async move {
+        Some(tokio::spawn(async move {
             let mut interval = tokio::time::interval(Duration::from_millis(interval_ms));
             loop {
                 interval.tick().await;
                 monitor.sample_now().await;
             }
-        })
+        }))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_sampling_loop_outside_runtime_returns_none() {
+        let monitor = TelemetryMonitor::new();
+        let handle = monitor.start_sampling_loop(100);
+        assert!(handle.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_sampling_loop_inside_runtime() {
+        let monitor = TelemetryMonitor::new();
+        let handle = monitor.start_sampling_loop(20);
+        assert!(handle.is_some());
+        tokio::time::sleep(Duration::from_millis(60)).await;
+        handle.unwrap().abort();
+        let history = monitor.get_history(10).await;
+        assert!(!history.is_empty());
+    }
 
     #[tokio::test]
     async fn test_telemetry_monitor_sampling_and_history() {
