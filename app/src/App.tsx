@@ -9,7 +9,10 @@ import {
   Bot,
   Search,
   ShieldCheck,
-  Sparkles,
+  Play,
+  Home,
+  Monitor,
+  Server,
   Archive,
   Camera,
 } from "lucide-react";
@@ -346,15 +349,15 @@ export default function App() {
       {/* Top Titlebar */}
       <header className="h-14 border-b border-border-subtle flex items-center px-4 gap-4 bg-raised/70 select-none">
         {/* Brand */}
-        <div className="flex items-center gap-2.5 font-bold tracking-tight">
+        <div className="flex items-center gap-2.5 font-medium tracking-tight">
           <img
             src="/logo.png"
             alt="Agentic Tuneup Pro Logo"
-            className="w-8 h-8 rounded-lg object-contain shadow-[0_0_15px_rgba(56,189,248,0.3)]"
+            className="w-8 h-8 rounded-lg object-contain"
           />
           <span className="text-sm font-semibold tracking-wide">Agentic Tuneup Pro</span>
-          <span className="text-[10px] font-mono uppercase bg-accent-muted text-accent px-1.5 py-0.5 rounded border border-accent/20">
-            v0.0.1-alpha
+          <span className="text-[10px] font-mono bg-accent-muted text-accent px-1.5 py-0.5 rounded border border-accent/20">
+            v0.0.4-alpha
           </span>
         </div>
 
@@ -371,7 +374,7 @@ export default function App() {
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            🏠 Daily
+            <Home size={13} className="text-text-muted" /> Daily
           </button>
           <button
             onClick={() => {
@@ -384,7 +387,7 @@ export default function App() {
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            💻 Dev
+            <Monitor size={13} className="text-text-muted" /> Dev
           </button>
           <button
             onClick={() => {
@@ -397,26 +400,26 @@ export default function App() {
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            🛡️ Server
+            <Server size={13} className="text-text-muted" /> Server
           </button>
         </div>
 
         {/* Starship Control Bridge Indicator */}
         <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-black/40 border border-border-subtle text-[11px] font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-signal-success" />
           <span className="text-text-muted">Starship Bridge:</span>
-          <span className="text-accent font-semibold">atp.sock</span>
+          <span className="text-text-primary font-medium">atp.sock</span>
         </div>
 
         {/* Universal Search Bar / Command Palette Trigger */}
         <button
           onClick={() => setCommandPaletteOpen(true)}
-          className="ml-auto flex items-center gap-2 bg-black/30 hover:bg-black/50 border border-border-subtle hover:border-accent/40 rounded-xl px-3 py-1.5 w-72 text-xs text-text-secondary transition-all cursor-pointer text-left focus-visible:border-accent"
+          className="ml-auto flex items-center gap-2 bg-black/30 hover:bg-black/50 border border-border-subtle hover:border-accent/40 rounded-xl px-3 py-1.5 w-72 text-xs text-text-secondary transition-colors cursor-pointer text-left focus-visible:border-accent"
           aria-label="Open command palette (Ctrl+K)"
         >
           <Search size={14} className="text-accent" />
           <span className="text-text-disabled truncate flex-1">
-            Search apps, caches, or ask agent...
+            Search
           </span>
           <kbd className="font-mono text-[10px] border border-border-subtle px-1.5 py-0.5 rounded text-text-disabled bg-white/5">
             Ctrl K
@@ -427,9 +430,9 @@ export default function App() {
         <button
           onClick={() => setAgentOpen(!agentOpen)}
           title="Toggle Starship Agent (Ctrl+Shift+A)"
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${
             agentOpen
-              ? "bg-accent text-accent-text border-transparent shadow-[0_0_12px_rgba(56,189,248,0.5)]"
+              ? "bg-accent text-accent-text border-transparent"
               : "bg-surface-glass border-border-glass hover:bg-white/10 text-text-primary"
           }`}
         >
@@ -447,7 +450,7 @@ export default function App() {
         <aside className="w-52 border-r border-border-subtle p-3 flex flex-col gap-1 select-none bg-raised/30">
           <button
             onClick={() => setActivePage("dash")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
               activePage === "dash"
                 ? "bg-accent-muted text-accent border border-accent/20"
                 : "text-text-secondary hover:text-text-primary hover:bg-white/5"
@@ -458,7 +461,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setActivePage("clean")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
               activePage === "clean"
                 ? "bg-accent-muted text-accent border border-accent/20"
                 : "text-text-secondary hover:text-text-primary hover:bg-white/5"
@@ -470,7 +473,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setActivePage("apps")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
               activePage === "apps"
                 ? "bg-accent-muted text-accent border border-accent/20"
                 : "text-text-secondary hover:text-text-primary hover:bg-white/5"
@@ -478,13 +481,11 @@ export default function App() {
           >
             <Package size={16} />
             <span>Apps</span>
-            <span className="ml-auto text-[10px] bg-signal-gate text-white px-1.5 py-0.2 rounded-full font-mono font-bold">
-              12
-            </span>
+            <span className="ml-auto text-[10px] font-mono text-text-secondary">12</span>
           </button>
           <button
             onClick={() => setActivePage("proc")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
               activePage === "proc"
                 ? "bg-accent-muted text-accent border border-accent/20"
                 : "text-text-secondary hover:text-text-primary hover:bg-white/5"
@@ -495,7 +496,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setActivePage("set")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
               activePage === "set"
                 ? "bg-accent-muted text-accent border border-accent/20"
                 : "text-text-secondary hover:text-text-primary hover:bg-white/5"
@@ -506,7 +507,7 @@ export default function App() {
           </button>
 
           <div className="mt-auto p-3 rounded-xl bg-signal-success-bg border border-signal-success/20 text-signal-success text-[11px] leading-relaxed">
-            <div className="flex items-center gap-1.5 font-bold mb-1">
+            <div className="flex items-center gap-1.5 font-medium mb-1">
               <ShieldCheck size={14} />
               <span>Safety Boundary</span>
             </div>
@@ -521,7 +522,7 @@ export default function App() {
               {/* Header section */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight">System Telemetry &amp; Health</h1>
+                  <h1 className="text-xl font-semibold tracking-tight">System Telemetry &amp; Health</h1>
                   <p className="text-xs text-text-secondary mt-0.5">
                     Host: Linux (Wayland) · Live 1.0 Hz Push Stream
                   </p>
@@ -529,10 +530,10 @@ export default function App() {
                 <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => setDiagnosticOpen(true)}
-                    className="px-3.5 py-2 bg-purple-500/15 hover:bg-purple-500/25 active:bg-purple-500/35 text-purple-300 font-bold text-xs rounded-xl border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all flex items-center gap-1.5 cursor-pointer"
-                    title="Intelligent bottleneck diagnosis"
+                    className="px-3.5 py-2 bg-surface-glass hover:bg-surface-solid text-text-primary font-medium text-xs rounded-lg border border-border-subtle transition-colors flex items-center gap-1.5 cursor-pointer"
+                    title="Bottleneck diagnosis"
                   >
-                    <Activity size={14} className="text-purple-400" />
+                    <Activity size={14} className="text-text-secondary" />
                     <span>Why is my PC slow?</span>
                   </button>
                   <button
@@ -541,9 +542,9 @@ export default function App() {
                       triggerToast("Opening Smart Scan & Clean...");
                       runScan();
                     }}
-                    className="px-4 py-2 bg-accent hover:bg-accent-hover active:bg-accent-active text-accent-text font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-all flex items-center gap-2 cursor-pointer"
+                    className="px-4 py-2 bg-accent hover:bg-accent-hover active:bg-accent-active text-accent-text font-medium text-xs rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
                   >
-                    <Sparkles size={14} />
+                    <Play size={14} />
                     <span>Smart Scan &amp; Clean</span>
                   </button>
                 </div>
@@ -592,34 +593,34 @@ export default function App() {
                 <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                        Reclaimable Cache Categories
+                      <h3 className="text-xs font-medium tracking-wider text-text-secondary">
+                        Reclaimable cache categories
                       </h3>
                       <button
                         onClick={() => setActivePage("clean")}
-                        className="text-xs font-semibold text-accent hover:underline cursor-pointer"
+                        className="text-xs font-medium text-accent hover:underline cursor-pointer"
                       >
-                        Clean All →
+                        Clean all →
                       </button>
                     </div>
                     <div className="flex flex-col gap-2.5">
                       <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                        <span className="font-semibold">Web Browser Caches (Chrome &amp; Firefox)</span>
-                        <span className="font-mono font-bold text-accent">1.32 GB</span>
+                        <span className="font-medium">Web browser caches (Chrome &amp; Firefox)</span>
+                        <span className="font-mono font-medium text-text-primary">1.32 GB</span>
                       </div>
                       <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                        <span className="font-semibold">
-                          Stale Development Artifacts (target/ &amp; node_modules)
+                        <span className="font-medium">
+                          Stale development artifacts (target/ &amp; node_modules)
                         </span>
-                        <span className="font-mono font-bold text-signal-dev">2.10 GB</span>
+                        <span className="font-mono font-medium text-text-primary">2.10 GB</span>
                       </div>
                       <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                        <span className="font-semibold">Package Manager Cache (apt &amp; flatpak)</span>
-                        <span className="font-mono font-bold text-accent">0.52 GB</span>
+                        <span className="font-medium">Package manager cache (apt &amp; flatpak)</span>
+                        <span className="font-mono font-medium text-text-primary">0.52 GB</span>
                       </div>
                       <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-border-subtle text-xs">
-                        <span className="font-semibold">Old Journal Logs &amp; Thumbnails</span>
-                        <span className="font-mono font-bold text-text-secondary">0.26 GB</span>
+                        <span className="font-medium">Old journal logs &amp; thumbnails</span>
+                        <span className="font-mono font-medium text-text-primary">0.26 GB</span>
                       </div>
                     </div>
                   </div>
@@ -636,7 +637,7 @@ export default function App() {
               {/* Cleaner Header */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight">System Cleaner &amp; Quarantine</h1>
+                  <h1 className="text-xl font-semibold tracking-tight">System Cleaner &amp; Quarantine</h1>
                   <p className="text-xs text-text-secondary mt-0.5">
                     Safe, reversible disk cleaning. Every deletion stages to quarantine with instant Undo.
                   </p>
@@ -664,7 +665,7 @@ export default function App() {
                   <button
                     onClick={handleExecuteClean}
                     disabled={selectedRuleIds.size === 0 || cleaning || scanning}
-                    className="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-accent-text text-xs font-bold shadow-[0_0_15px_rgba(56,189,248,0.4)] transition-all cursor-pointer disabled:opacity-50"
+                    className="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-accent-text text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {cleaning
                       ? "Cleaning..."
@@ -745,7 +746,7 @@ export default function App() {
           {activePage === "set" && (
             <div className="flex flex-col gap-6 max-w-4xl">
               <div>
-                <h1 className="text-xl font-bold tracking-tight">Settings &amp; Audit Trail</h1>
+                <h1 className="text-xl font-semibold tracking-tight">Settings &amp; Audit Trail</h1>
                 <p className="text-xs text-text-secondary mt-0.5">
                   App preferences, Starship bridge configuration, and system mutation governance.
                 </p>
@@ -780,21 +781,19 @@ export default function App() {
                       Listens on $XDG_RUNTIME_DIR/starship/bridges/atp.sock with SO_PEERCRED
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono text-signal-success font-bold bg-signal-success-bg px-2 py-0.5 rounded">
-                    Active
-                  </span>
+                  <span className="text-[10px] font-mono text-signal-success">Active</span>
                 </div>
 
                 <div className="flex items-center justify-between border-t border-border-subtle pt-3">
                   <div>
                     <div className="text-xs font-semibold flex items-center gap-2">
-                      <span>Pre-Change Snapshot Hooks</span>
+                      <span>Pre-change snapshot hooks</span>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/10 text-accent">
                         {snapshotCap?.recommended_provider
-                          ? snapshotCap.recommended_provider.toUpperCase()
+                          ? snapshotCap.recommended_provider
                           : snapshotCap?.btrfs_root_detected
-                          ? "BTRFS ROOT"
-                          : "AUTO-DETECT"}
+                          ? "Btrfs root"
+                          : "Auto-detect"}
                       </span>
                     </div>
                     <div className="text-[11px] text-text-secondary">
@@ -804,7 +803,7 @@ export default function App() {
                   <button
                     onClick={handleCreateSnapshot}
                     disabled={creatingSnapshot}
-                    className="px-3 py-1.5 rounded-lg bg-surface-glass hover:bg-white/10 text-[11px] font-medium text-text-primary border border-border-subtle transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                    className="px-3 py-1.5 rounded-lg bg-surface-glass hover:bg-white/10 text-[11px] font-medium text-text-primary border border-border-subtle transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                   >
                     <Camera size={13} className={creatingSnapshot ? "animate-spin" : ""} />
                     <span>{creatingSnapshot ? "Snapshotting..." : "Create Snapshot"}</span>

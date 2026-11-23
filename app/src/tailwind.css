@@ -60,8 +60,6 @@
 :focus-visible {
   outline: 2px solid var(--color-accent) !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
-  transition: outline-offset 0.12s ease-out;
 }
 
 /* Screen Reader Accessible Announcer Utility */

@@ -53,20 +53,20 @@ export const AuditTimeline: React.FC = () => {
     switch (tier) {
       case 1:
         return (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-signal-success-bg text-signal-success border border-signal-success/30">
-            TIER 1 (SAFE)
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-medium bg-signal-success-bg text-signal-success border border-signal-success/30">
+            Tier 1 · Safe
           </span>
         );
       case 2:
         return (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-accent-muted text-accent border border-accent/30">
-            TIER 2 (REVERSIBLE)
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-medium bg-accent-muted text-accent border border-accent/30">
+            Tier 2 · Reversible
           </span>
         );
       case 3:
         return (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-signal-gate-bg text-signal-gate border border-signal-gate/30">
-            TIER 3 (DESTRUCTIVE)
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-medium bg-signal-gate-bg text-signal-gate border border-signal-gate/30">
+            Tier 3 · Destructive
           </span>
         );
       default:
@@ -79,7 +79,7 @@ export const AuditTimeline: React.FC = () => {
       {/* Header & Controls */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-bold text-text-primary">Audit Log &amp; Governance</h2>
+          <h2 className="text-base font-medium text-text-primary">Audit Log &amp; Governance</h2>
           <p className="text-xs text-text-secondary mt-0.5">
             Cryptographically tracked trail of every system mutation, quarantine operation, and agent plan.
           </p>
@@ -151,7 +151,7 @@ export const AuditTimeline: React.FC = () => {
             return (
               <div
                 key={entry.entry_id}
-                className="glass-panel p-3.5 rounded-xl flex flex-col gap-2 transition-all hover:border-border-focus/40"
+                className="glass-panel p-3.5 rounded-xl flex flex-col gap-2 transition-colors hover:border-border-focus/40"
               >
                 <div
                   onClick={() => toggleExpand(entry.entry_id)}
@@ -177,7 +177,7 @@ export const AuditTimeline: React.FC = () => {
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-text-primary">
+                        <span className="font-mono text-xs font-medium text-text-primary">
                           {entry.action_type}
                         </span>
                         <span className="text-[11px] text-text-secondary">→ {entry.target}</span>
@@ -191,7 +191,7 @@ export const AuditTimeline: React.FC = () => {
                   <div className="flex items-center gap-2.5">
                     {getRiskBadge(entry.risk_tier)}
                     <span
-                      className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded font-medium ${
                         entry.status === "success"
                           ? "bg-signal-success-bg text-signal-success"
                           : "bg-signal-gate-bg text-signal-gate"

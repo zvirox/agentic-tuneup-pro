@@ -21,9 +21,9 @@ export function PlanStepCard({
 
   return (
     <div
-      className={`p-3.5 rounded-2xl border transition-all text-xs ${
+      className={`p-3.5 rounded-2xl border transition-colors text-xs ${
         isWaiting
-          ? "bg-amber-950/20 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/30"
+          ? "bg-amber-950/20 border-amber-500/50"
           : isDone
           ? "bg-surface-glass border-emerald-500/30 text-text-primary"
           : isFailed
@@ -39,26 +39,26 @@ export function PlanStepCard({
           <span className="w-5 h-5 rounded-full bg-black/40 border border-border-subtle flex items-center justify-center font-mono text-[10px] text-text-muted">
             {step.step_index + 1}
           </span>
-          <span className="font-mono text-[11px] font-bold text-accent truncate">
+          <span className="font-mono text-[11px] font-medium text-accent truncate">
             {step.tool_name}
           </span>
         </div>
 
         {/* Risk Tier Badge */}
         <span
-          className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded-full border ${
+          className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
             step.risk_tier === 1
               ? "bg-emerald-950/40 text-emerald-300 border-emerald-800/40"
               : step.risk_tier === 2
               ? "bg-sky-950/40 text-sky-300 border-sky-800/40"
-              : "bg-red-950/50 text-red-300 border-red-800/50 font-bold animate-pulse"
+              : "bg-red-950/50 text-red-300 border-red-800/50 font-medium"
           }`}
         >
           {step.risk_tier === 1
             ? "Tier 1 · Safe"
             : step.risk_tier === 2
             ? "Tier 2 · Reversible"
-            : "Tier 3 · Mutating"}
+            : "Tier 3 · Destructive"}
         </span>
       </div>
 
@@ -105,7 +105,7 @@ export function PlanStepCard({
           )}
           {isWaiting && (
             <span className="text-amber-400 flex items-center gap-1 font-semibold">
-              <ShieldAlert size={14} className="animate-pulse" /> Awaiting Consent Gate
+              <ShieldAlert size={14} /> Awaiting approval
             </span>
           )}
         </div>
@@ -116,14 +116,14 @@ export function PlanStepCard({
             <button
               onClick={() => onReject(step.step_index)}
               disabled={executing}
-              className="px-2.5 py-1 rounded-lg border border-border-subtle bg-surface-glass text-[11px] text-text-secondary hover:text-red-400 hover:border-red-900 transition-all cursor-pointer disabled:opacity-50"
+              className="px-2.5 py-1 rounded-lg border border-border-subtle bg-surface-glass text-[11px] text-text-secondary hover:text-red-400 hover:border-red-900 transition-colors cursor-pointer disabled:opacity-50"
             >
               Reject
             </button>
             <button
               onClick={() => onApprove(step.step_index)}
               disabled={executing}
-              className="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-[11px] font-bold shadow-[0_0_12px_rgba(16,185,129,0.4)] transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50"
+              className="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
             >
               <Sparkles size={11} />
               <span>Approve</span>

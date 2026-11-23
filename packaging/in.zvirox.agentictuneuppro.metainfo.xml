@@ -31,6 +31,16 @@
     <binary>atpd-helper</binary>
   </provides>
   <releases>
+    <release version="0.0.4-alpha" date="2026-11-23">
+      <description>
+        <p>Mother Ship interface refinement across the desktop application:</p>
+        <ul>
+          <li>Quieter chrome: removed colored glows, pulsing indicators and decorative emoji icons</li>
+          <li>Consistent sentence-case labels, restrained font weights and tabular figures</li>
+          <li>Calmer motion limited to meaningful state changes and live signals</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.0.2-alpha" date="2026-11-22">
       <description>
         <p>Second public alpha release hotfixing production webview initialization:</p>

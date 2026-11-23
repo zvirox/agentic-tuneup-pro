@@ -88,7 +88,7 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
             <Archive size={20} />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-text-primary">Quarantine Vault</h2>
+            <h2 className="text-sm font-medium text-text-primary">Quarantine Vault</h2>
             <p className="text-xs text-text-secondary mt-0.5">
               Isolated storage for reversible deletion. Files are held for 7 days before automated purge.
             </p>
@@ -97,10 +97,10 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
 
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <span className="text-[10px] uppercase font-semibold text-text-secondary tracking-wider block">
+            <span className="text-[10px] font-semibold text-text-secondary tracking-wider block">
               Quarantined Space
             </span>
-            <span className="font-mono text-base font-bold text-accent">
+            <span className="font-mono text-base font-medium text-accent">
               {formatBytes(totalActiveBytes)}
             </span>
           </div>
@@ -172,15 +172,15 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
             return (
               <div
                 key={s.session_id}
-                className="glass-panel p-4 rounded-2xl flex flex-col gap-3 transition-all hover:border-border-focus/40"
+                className="glass-panel p-4 rounded-2xl flex flex-col gap-3 transition-colors hover:border-border-focus/40"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-text-primary">
+                    <span className="font-mono text-xs font-medium text-text-primary">
                       {s.session_id}
                     </span>
                     <span
-                      className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-bold ${
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-medium ${
                         s.status === "active"
                           ? "bg-accent-muted text-accent border border-accent/30"
                           : s.status === "restored"
@@ -193,7 +193,7 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
                   </div>
 
                   <div className="flex items-center gap-3 font-mono text-xs">
-                    <span className="font-bold text-text-primary">
+                    <span className="font-medium text-text-primary">
                       {formatBytes(s.bytes_reclaimed)}
                     </span>
                     <span className="text-text-secondary">· {s.file_count} files</span>
@@ -261,14 +261,14 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
         >
           <div className="glass-panel-strong p-5 rounded-2xl max-w-md w-full border border-signal-gate/40 shadow-2xl flex flex-col gap-4">
-            <div className="flex items-center gap-3 text-signal-gate font-bold text-sm">
+            <div className="flex items-center gap-3 text-signal-gate font-medium text-sm">
               <AlertTriangle size={20} />
               <span>Confirm Permanent Deletion</span>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
               Are you sure you want to permanently delete session{" "}
               <strong className="text-text-primary font-mono">{purgeTarget}</strong>? This action
-              is destructive and CANNOT be undone.
+              is destructive and cannot be undone.
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <button
@@ -279,7 +279,7 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
               </button>
               <button
                 onClick={() => handlePurge(purgeTarget)}
-                className="px-4 py-1.5 rounded-xl bg-signal-gate hover:bg-signal-gate/90 text-white text-xs font-bold shadow-lg transition-colors cursor-pointer"
+                className="px-4 py-1.5 rounded-xl bg-signal-gate hover:bg-signal-gate/90 text-white text-xs font-medium shadow-lg transition-colors cursor-pointer"
               >
                 Permanently Delete
               </button>

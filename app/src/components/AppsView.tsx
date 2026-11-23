@@ -147,7 +147,7 @@ export function AppsView({
             <ArrowUpCircle size={14} className={updates.length > 0 ? "text-accent" : ""} />
             <span>Updates</span>
             {updates.length > 0 && (
-              <span className="text-[10px] font-mono bg-accent/20 text-accent font-bold px-1.5 py-0.5 rounded border border-accent/30 animate-pulse">
+              <span className="text-[10px] font-mono bg-accent/20 text-accent font-medium px-1.5 py-0.5 rounded border border-accent/30">
                 {updates.length}
               </span>
             )}
@@ -176,7 +176,7 @@ export function AppsView({
           <button
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-subtle bg-surface-glass text-xs font-semibold text-text-secondary hover:text-text-primary hover:border-accent transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-subtle bg-surface-glass text-xs font-semibold text-text-secondary hover:text-text-primary hover:border-accent transition-colors cursor-pointer disabled:opacity-50"
           >
             <RotateCw size={13} className={loading ? "animate-spin" : ""} />
             <span>Refresh</span>
@@ -195,7 +195,7 @@ export function AppsView({
                 <input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter packages by name, ID, or summary..."
+                  placeholder="Search packages"
                   className="bg-transparent border-0 outline-none text-text-primary placeholder:text-text-disabled w-full"
                 />
               </div>
@@ -209,9 +209,9 @@ export function AppsView({
                   <button
                     key={source}
                     onClick={() => setBackendFilter(source)}
-                    className={`px-2.5 py-1 rounded-lg uppercase font-mono text-[11px] transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg font-mono text-[11px] transition-colors cursor-pointer ${
                       backendFilter === source
-                        ? "bg-accent text-accent-text font-bold shadow-[0_0_10px_rgba(56,189,248,0.4)]"
+                        ? "bg-accent text-accent-text font-medium"
                         : "bg-surface-glass border border-border-subtle text-text-secondary hover:text-text-primary"
                     }`}
                   >
@@ -226,7 +226,7 @@ export function AppsView({
               {filteredPackages.map((pkg) => (
                 <div
                   key={`${pkg.backend}-${pkg.id}`}
-                  className="p-4 rounded-2xl bg-surface-glass border border-border-subtle hover:border-accent/40 transition-all flex flex-col justify-between group"
+                  className="p-4 rounded-2xl bg-surface-glass border border-border-subtle hover:border-accent/40 transition-colors flex flex-col justify-between group"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2">
@@ -239,7 +239,7 @@ export function AppsView({
                         </div>
                       </div>
                       <span
-                        className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full border ${
+                        className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                           pkg.backend === "flatpak"
                             ? "bg-purple-950/40 text-purple-300 border-purple-800/40"
                             : pkg.backend === "appimage"
@@ -273,7 +273,7 @@ export function AppsView({
 
                     <button
                       onClick={() => handleUninstallClick(pkg)}
-                      className="opacity-0 group-hover:opacity-100 px-2.5 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/40 text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1"
+                      className="opacity-0 group-hover:opacity-100 px-2.5 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/40 text-[11px] font-semibold transition-colors cursor-pointer flex items-center gap-1"
                     >
                       <Trash2 size={11} />
                       <span>Uninstall</span>
@@ -295,7 +295,7 @@ export function AppsView({
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-glass border border-border-subtle">
               <div>
-                <h3 className="text-base font-bold text-text-primary">Software Updates</h3>
+                <h3 className="text-base font-medium text-text-primary">Software Updates</h3>
                 <p className="text-xs text-text-secondary mt-0.5">
                   Keep system dependencies and containerized apps secure and performant.
                 </p>
@@ -303,7 +303,7 @@ export function AppsView({
               {updates.length > 0 && (
                 <button
                   onClick={() => onTriggerToast("Bulk package update dispatching...")}
-                  className="px-4 py-2 rounded-xl bg-accent text-accent-text text-xs font-bold shadow-[0_0_15px_rgba(56,189,248,0.5)] hover:bg-accent-active transition-all cursor-pointer flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl bg-accent text-accent-text text-xs font-medium hover:bg-accent-active transition-colors cursor-pointer flex items-center gap-2"
                 >
                   <Sparkles size={14} />
                   <span>Update All ({updates.length})</span>
@@ -322,15 +322,15 @@ export function AppsView({
                     <div className="text-xs text-text-secondary mt-1 flex items-center gap-2 font-mono">
                       <span>{up.current_version}</span>
                       <span className="text-accent">→</span>
-                      <span className="text-accent font-bold">{up.new_version}</span>
+                      <span className="text-accent font-medium">{up.new_version}</span>
                       <span className="text-border-subtle">•</span>
-                      <span className="uppercase text-[10px] text-text-muted">{up.backend}</span>
+                      <span className="text-[10px] text-text-muted">{up.backend}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={() => onTriggerToast(`Updating ${up.package_id}...`)}
-                    className="px-3 py-1.5 rounded-lg bg-surface-glass-strong border border-border-glass hover:border-accent text-xs font-semibold text-text-primary transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-surface-glass-strong border border-border-glass hover:border-accent text-xs font-semibold text-text-primary transition-colors cursor-pointer"
                   >
                     Update
                   </button>
@@ -340,7 +340,7 @@ export function AppsView({
               {updates.length === 0 && !loading && (
                 <div className="text-center py-16 flex flex-col items-center gap-2">
                   <CheckCircle2 size={36} className="text-emerald-400" />
-                  <span className="text-sm font-semibold">Everything is up to date!</span>
+                  <span className="text-sm font-semibold">Everything is up to date</span>
                   <span className="text-xs text-text-disabled">
                     All Flatpak, host native, and standalone packages are on the latest versions.
                   </span>
@@ -354,7 +354,7 @@ export function AppsView({
           <div className="space-y-4">
             <div className="p-5 rounded-2xl bg-amber-950/20 border border-amber-900/40 flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+                <div className="flex items-center gap-2 text-amber-300 font-medium text-sm">
                   <AlertTriangle size={16} />
                   <span>Orphan Dependencies & Unused Runtimes</span>
                 </div>
@@ -364,7 +364,7 @@ export function AppsView({
                 </p>
                 {totalOrphanBytes > 0 && (
                   <div className="mt-3 text-xs font-mono text-accent">
-                    Total Reclaimable: <strong className="font-bold">{formatBytes(totalOrphanBytes)}</strong>
+                    Total Reclaimable: <strong className="font-medium">{formatBytes(totalOrphanBytes)}</strong>
                   </div>
                 )}
               </div>
@@ -372,7 +372,7 @@ export function AppsView({
               {orphans.length > 0 && (
                 <button
                   onClick={handlePurgeOrphansClick}
-                  className="px-4 py-2 rounded-xl bg-amber-400 text-black text-xs font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)] hover:bg-amber-300 transition-all cursor-pointer flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl bg-amber-400 text-black text-xs font-medium hover:bg-amber-300 transition-colors cursor-pointer flex items-center gap-2"
                 >
                   <Trash2 size={14} />
                   <span>Purge Unused ({orphans.length})</span>
@@ -389,7 +389,7 @@ export function AppsView({
                   <div>
                     <div className="font-semibold text-sm flex items-center gap-2">
                       <span>{orph.name}</span>
-                      <span className="text-[10px] font-mono uppercase bg-white/10 px-1.5 py-0.5 rounded text-text-muted">
+                      <span className="text-[10px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-text-muted">
                         {orph.backend}
                       </span>
                     </div>
@@ -407,7 +407,7 @@ export function AppsView({
               {orphans.length === 0 && !loading && (
                 <div className="text-center py-16 flex flex-col items-center gap-2">
                   <CheckCircle2 size={36} className="text-emerald-400" />
-                  <span className="text-sm font-semibold">Zero orphan packages detected!</span>
+                  <span className="text-sm font-semibold">Zero orphan packages detected</span>
                   <span className="text-xs text-text-disabled">
                     No leftover runtime versions or orphaned packages exist on this host.
                   </span>
@@ -424,10 +424,10 @@ export function AppsView({
           <div className="w-full max-w-lg rounded-2xl bg-raised border border-border-glass shadow-2xl p-6 space-y-5 animate-in fade-in duration-200">
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-accent bg-accent/10 px-2 py-0.5 rounded border border-accent/20">
+                <span className="text-[10px] font-mono tracking-wider text-accent bg-accent/10 px-2 py-0.5 rounded border border-accent/20">
                   Plan #{activePlan.plan_id}
                 </span>
-                <h3 className="text-base font-bold text-text-primary mt-1">
+                <h3 className="text-base font-medium text-text-primary mt-1">
                   Confirm Package {activePlan.action_type.toUpperCase()}
                 </h3>
               </div>
@@ -439,23 +439,23 @@ export function AppsView({
             <div className="space-y-3 text-xs bg-black/40 p-4 rounded-xl border border-border-subtle font-mono">
               <div className="flex justify-between">
                 <span className="text-text-muted">Target:</span>
-                <span className="text-text-primary font-bold">{activePlan.target_package}</span>
+                <span className="text-text-primary font-medium">{activePlan.target_package}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-muted">Disk Delta:</span>
-                <span className="text-emerald-400 font-bold">
+                <span className="text-emerald-400 font-medium">
                   {formatBytes(Math.abs(activePlan.disk_delta_bytes))} (Free)
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-muted">Polkit Elevation:</span>
-                <span className={activePlan.requires_polkit ? "text-amber-400 font-bold" : "text-text-muted"}>
+                <span className={activePlan.requires_polkit ? "text-amber-400 font-medium" : "text-text-muted"}>
                   {activePlan.requires_polkit ? "Required (Polkit prompt)" : "User Session Only"}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-muted">Risk Tier:</span>
-                <span className="text-red-400 font-bold">Tier {activePlan.risk_tier} (Mutating)</span>
+                <span className="text-red-400 font-medium">Tier {activePlan.risk_tier} (Mutating)</span>
               </div>
             </div>
 
@@ -470,7 +470,7 @@ export function AppsView({
               <button
                 onClick={handleConfirmPlan}
                 disabled={executingPlan}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
                 {executingPlan ? (
                   <RotateCw size={13} className="animate-spin" />

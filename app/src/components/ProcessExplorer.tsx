@@ -186,7 +186,7 @@ export function ProcessExplorer({
                 onClick={() => setSortBy("cpu")}
                 className={`px-2.5 py-1 rounded-lg font-mono text-[11px] cursor-pointer ${
                   sortBy === "cpu"
-                    ? "bg-accent text-accent-text font-bold"
+                    ? "bg-accent text-accent-text font-medium"
                     : "text-text-secondary hover:text-text-primary"
                 }`}
               >
@@ -196,7 +196,7 @@ export function ProcessExplorer({
                 onClick={() => setSortBy("memory")}
                 className={`px-2.5 py-1 rounded-lg font-mono text-[11px] cursor-pointer ${
                   sortBy === "memory"
-                    ? "bg-accent text-accent-text font-bold"
+                    ? "bg-accent text-accent-text font-medium"
                     : "text-text-secondary hover:text-text-primary"
                 }`}
               >
@@ -208,7 +208,7 @@ export function ProcessExplorer({
           <button
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-subtle bg-surface-glass text-xs font-semibold text-text-secondary hover:text-text-primary hover:border-accent transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-subtle bg-surface-glass text-xs font-semibold text-text-secondary hover:text-text-primary hover:border-accent transition-colors cursor-pointer disabled:opacity-50"
           >
             <RotateCw size={13} className={loading ? "animate-spin" : ""} />
             <span>Refresh</span>
@@ -224,7 +224,7 @@ export function ProcessExplorer({
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search processes, units, or commands..."
+            placeholder="Search processes"
             className="bg-transparent border-0 outline-none text-text-primary placeholder:text-text-disabled w-full"
           />
         </div>
@@ -232,7 +232,7 @@ export function ProcessExplorer({
         {tab === "groups" && (
           <div className="border border-border-subtle rounded-2xl overflow-hidden bg-surface-glass">
             <table className="w-full text-left text-xs">
-              <thead className="bg-raised/60 text-text-secondary border-b border-border-subtle font-mono uppercase text-[10px]">
+              <thead className="bg-raised/60 text-text-secondary border-b border-border-subtle font-mono text-[10px]">
                 <tr>
                   <th className="p-3.5 pl-5">Application</th>
                   <th className="p-3.5">Workers</th>
@@ -253,8 +253,8 @@ export function ProcessExplorer({
                         <div className="flex items-center gap-2">
                           <span>{grp.appName}</span>
                           {grp.isCritical && (
-                            <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-red-950/40 text-red-400 border border-red-900/40">
-                              System Core
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-950/40 text-red-400 border border-red-900/40">
+                              System core
                             </span>
                           )}
                         </div>
@@ -280,7 +280,7 @@ export function ProcessExplorer({
                               isCritical: grp.isCritical,
                             })
                           }
-                          className="px-2.5 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/40 text-[11px] font-semibold transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="px-2.5 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/40 text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           End Tree
                         </button>
@@ -295,7 +295,7 @@ export function ProcessExplorer({
         {tab === "procs" && (
           <div className="border border-border-subtle rounded-2xl overflow-hidden bg-surface-glass">
             <table className="w-full text-left text-xs">
-              <thead className="bg-raised/60 text-text-secondary border-b border-border-subtle font-mono uppercase text-[10px]">
+              <thead className="bg-raised/60 text-text-secondary border-b border-border-subtle font-mono text-[10px]">
                 <tr>
                   <th className="p-3.5 pl-5">PID</th>
                   <th className="p-3.5">Name</th>
@@ -317,8 +317,8 @@ export function ProcessExplorer({
                         <div className="flex items-center gap-2">
                           <span>{proc.name}</span>
                           {proc.isCritical && (
-                            <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-red-950/40 text-red-400 border border-red-900/40">
-                              System Core
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-950/40 text-red-400 border border-red-900/40">
+                              System core
                             </span>
                           )}
                         </div>
@@ -339,7 +339,7 @@ export function ProcessExplorer({
                               isCritical: proc.isCritical,
                             })
                           }
-                          className="px-2.5 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/40 text-[11px] font-semibold transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="px-2.5 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/40 text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           Kill
                         </button>
@@ -354,7 +354,7 @@ export function ProcessExplorer({
         {tab === "services" && (
           <div className="border border-border-subtle rounded-2xl overflow-hidden bg-surface-glass">
             <table className="w-full text-left text-xs">
-              <thead className="bg-raised/60 text-text-secondary border-b border-border-subtle font-mono uppercase text-[10px]">
+              <thead className="bg-raised/60 text-text-secondary border-b border-border-subtle font-mono text-[10px]">
                 <tr>
                   <th className="p-3.5 pl-5">Service Unit</th>
                   <th className="p-3.5">Status</th>
@@ -374,7 +374,7 @@ export function ProcessExplorer({
                         </td>
                         <td className="p-3.5">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase border ${
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${
                               isRunning
                                 ? "bg-emerald-950/40 text-emerald-300 border-emerald-800/40"
                                 : "bg-neutral-900 text-text-disabled border-border-subtle"
@@ -438,7 +438,7 @@ export function ProcessExplorer({
 
                 <button
                   onClick={() => handleAutostartToggle(item.fileName, item.enabled)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
                     item.enabled
                       ? "bg-emerald-950/30 text-emerald-400 border-emerald-800/40"
                       : "bg-surface-glass text-text-disabled border-border-subtle"
@@ -459,7 +459,7 @@ export function ProcessExplorer({
           <div className="w-full max-w-md rounded-2xl bg-raised border border-border-glass shadow-2xl p-6 space-y-5 animate-in fade-in duration-200">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-base font-bold text-text-primary">
+                <h3 className="text-base font-medium text-text-primary">
                   Terminate Process
                 </h3>
                 <p className="text-xs text-text-secondary mt-0.5">
@@ -510,7 +510,7 @@ export function ProcessExplorer({
               <button
                 disabled={targetKillPid.isCritical}
                 onClick={handleKillExecute}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Terminate Process
               </button>

@@ -279,7 +279,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             aria-expanded="true"
             aria-controls="command-listbox"
             aria-activedescendant={filteredCommands[selectedIndex]?.id}
-            placeholder="Type a command or search (e.g. scan, undo, slow, apps)..."
+            placeholder="Search commands"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -327,7 +327,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`flex items-center justify-between p-2.5 rounded-xl text-xs transition-colors cursor-pointer ${
                     isSelected
-                      ? "bg-accent/15 border border-accent/40 text-text-primary shadow-[0_0_12px_rgba(56,189,248,0.2)]"
+                      ? "bg-accent/15 border border-accent/40 text-text-primary"
                       : "hover:bg-white/5 text-text-secondary border border-transparent"
                   }`}
                 >
@@ -365,7 +365,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       </kbd>
                     )}
                     {isSelected && (
-                      <CornerDownLeft size={13} className="text-accent animate-pulse" />
+                      <CornerDownLeft size={13} className="text-accent" />
                     )}
                   </div>
                 </li>

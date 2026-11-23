@@ -41,7 +41,7 @@ export const SamplePathsModal: React.FC<SamplePathsModalProps> = ({ rule, onClos
               <HardDrive size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-text-primary">{rule.name}</h3>
+              <h3 className="text-sm font-medium text-text-primary">{rule.name}</h3>
               <p className="text-xs text-text-secondary">
                 Rule ID: <span className="font-mono text-accent">{rule.rule_id}</span> · Showing up
                 to {paths.length} sample target paths
@@ -81,7 +81,7 @@ export const SamplePathsModal: React.FC<SamplePathsModalProps> = ({ rule, onClos
           <span>Protected credential paths are automatically excluded.</span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-accent text-accent-text font-bold text-xs shadow-sm hover:bg-accent-hover transition-colors cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-accent text-accent-text font-medium text-xs shadow-sm hover:bg-accent-hover transition-colors cursor-pointer"
           >
             Done
           </button>

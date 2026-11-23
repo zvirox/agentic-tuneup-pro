@@ -52,7 +52,7 @@ export const TelemetrySparkline: React.FC<TelemetrySparklineProps> = ({
     >
       {/* Header Info */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-text-secondary font-semibold uppercase tracking-wider">
+        <span className="text-xs text-text-secondary font-medium tracking-wider">
           {title}
         </span>
         {subValue && (
@@ -64,7 +64,7 @@ export const TelemetrySparkline: React.FC<TelemetrySparklineProps> = ({
 
       {/* Main Metric */}
       <div className="my-2 flex items-baseline gap-2">
-        <span className="font-mono text-2xl font-bold text-text-primary">
+        <span className="font-mono text-2xl font-medium text-text-primary tabular-nums">
           {currentValue}
           {unit && <span className="text-sm font-normal text-text-secondary ml-0.5">{unit}</span>}
         </span>
@@ -79,7 +79,7 @@ export const TelemetrySparkline: React.FC<TelemetrySparklineProps> = ({
         >
           <defs>
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+              <stop offset="0%" stopColor={color} stopOpacity="0.16" />
               <stop offset="100%" stopColor={color} stopOpacity="0.0" />
             </linearGradient>
           </defs>

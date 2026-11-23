@@ -4,8 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import {
   X,
   Send,
-  Sparkles,
   Settings,
+  Bot,
   AlertTriangle,
   Play,
   RotateCw,
@@ -197,7 +197,7 @@ export function AgentDrawer({
           await agentApproveStep(activePlan.plan_id, step.step_index, sig);
         }
       }
-      onTriggerToast("All approved steps executed successfully!");
+      onTriggerToast("All approved steps executed");
       const updated = await agentGetActivePlan();
       setActivePlan(updated);
     } catch (err: unknown) {
@@ -233,8 +233,8 @@ export function AgentDrawer({
       {/* Header */}
       <div className="h-14 border-b border-border-subtle px-4 flex items-center justify-between bg-raised/80">
         <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse" />
-          <span className="text-xs font-bold text-text-primary tracking-wide">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+          <span className="text-xs font-medium text-text-primary tracking-wide">
             Starship Agent
           </span>
           <button
@@ -264,7 +264,7 @@ export function AgentDrawer({
       {/* Settings Overlay Dropdown */}
       {settingsOpen && (
         <div className="p-4 border-b border-border-subtle bg-black/60 space-y-3 text-xs animate-in fade-in duration-150">
-          <div className="font-bold text-text-primary flex items-center justify-between">
+          <div className="font-medium text-text-primary flex items-center justify-between">
             <span>LLM Provider Configuration</span>
             <span className="text-[10px] text-text-disabled font-mono">Secret Service Integrated</span>
           </div>
@@ -274,9 +274,9 @@ export function AgentDrawer({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => handleSaveConfig("sovereign_offline", "offline-planner")}
-                className={`p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                className={`p-2 rounded-xl border text-left cursor-pointer transition-colors ${
                   config.provider === "sovereign_offline"
-                    ? "bg-accent/20 border-accent text-accent font-bold"
+                    ? "bg-accent/20 border-accent text-accent font-medium"
                     : "bg-surface-glass border-border-subtle text-text-secondary hover:text-text-primary"
                 }`}
               >
@@ -286,9 +286,9 @@ export function AgentDrawer({
 
               <button
                 onClick={() => handleSaveConfig("ollama", "llama3.1:latest")}
-                className={`p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                className={`p-2 rounded-xl border text-left cursor-pointer transition-colors ${
                   config.provider === "ollama"
-                    ? "bg-accent/20 border-accent text-accent font-bold"
+                    ? "bg-accent/20 border-accent text-accent font-medium"
                     : "bg-surface-glass border-border-subtle text-text-secondary hover:text-text-primary"
                 }`}
               >
@@ -306,47 +306,47 @@ export function AgentDrawer({
         {!activePlan && (
           <div className="space-y-4">
             <div className="p-4 rounded-2xl bg-surface-glass border border-border-subtle space-y-2">
-              <div className="flex items-center gap-2 text-accent font-semibold text-xs">
-                <Sparkles size={14} />
-                <span>Autonomous Maintenance Companion</span>
+              <div className="flex items-center gap-2 text-text-primary font-medium text-xs">
+                <Bot size={14} className="text-text-secondary" />
+                <span>Maintenance companion</span>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed">
                 Type what you need in plain English. I decompose your intent into structured Task Sheets with safety gates before touching your disk.
               </p>
               <div className="pt-2 flex items-center gap-1.5 text-[10px] text-text-muted font-mono">
-                <ShieldCheck size={12} className="text-emerald-400" />
+                <ShieldCheck size={12} className="text-signal-success" />
                 <span>Protected paths &amp; browser passwords strictly shielded</span>
               </div>
             </div>
 
             {/* Quick Action Chips */}
             <div className="space-y-1.5">
-              <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider px-1">
-                Suggested Actions
+              <div className="text-[11px] font-semibold text-text-muted tracking-wider px-1">
+                Suggested actions
               </div>
               <div className="space-y-1.5">
                 {[
                   {
-                    icon: <Trash2 size={13} className="text-accent" />,
+                    icon: <Trash2 size={14} className="text-text-muted" />,
                     text: "Free up 5 GB of disk space",
                   },
                   {
-                    icon: <AlertTriangle size={13} className="text-amber-400" />,
+                    icon: <AlertTriangle size={14} className="text-text-muted" />,
                     text: "Audit and purge orphan packages",
                   },
                   {
-                    icon: <Cpu size={13} className="text-purple-400" />,
+                    icon: <Cpu size={14} className="text-text-muted" />,
                     text: "Check why my machine is running hot",
                   },
                   {
-                    icon: <RefreshCw size={13} className="text-emerald-400" />,
+                    icon: <RefreshCw size={14} className="text-text-muted" />,
                     text: "Restore files from last cleanup",
                   },
                 ].map((item) => (
                   <button
                     key={item.text}
                     onClick={() => handleSend(item.text)}
-                    className="w-full p-2.5 rounded-xl bg-surface-glass border border-border-subtle hover:border-accent text-left text-xs flex items-center gap-2.5 transition-all cursor-pointer group"
+                    className="w-full p-2.5 rounded-xl bg-surface-glass border border-border-subtle hover:border-accent text-left text-xs flex items-center gap-2.5 transition-colors cursor-pointer group"
                   >
                     {item.icon}
                     <span className="text-text-secondary group-hover:text-text-primary transition-colors">
@@ -365,16 +365,16 @@ export function AgentDrawer({
             {/* Task Sheet Header */}
             <div className="p-3.5 rounded-2xl bg-black/40 border border-border-subtle space-y-2 font-mono">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-accent font-bold uppercase">
+                <span className="text-accent font-medium">
                   Task Sheet #{activePlan.plan_id}
                 </span>
                 {activePlan.total_disk_delta_bytes !== 0 && (
-                  <span className="text-emerald-400 font-bold">
+                  <span className="text-emerald-400 font-medium">
                     Est. {formatBytes(activePlan.total_disk_delta_bytes)}
                   </span>
                 )}
               </div>
-              <div className="text-xs text-text-secondary line-clamp-2 italic font-sans">
+              <div className="text-xs text-text-secondary line-clamp-2 font-sans">
                 "{activePlan.user_intent}"
               </div>
             </div>
@@ -397,7 +397,7 @@ export function AgentDrawer({
             <div className="pt-2 flex items-center justify-between gap-2">
               <button
                 onClick={handleAbort}
-                className="px-3 py-2 rounded-xl bg-surface-glass border border-border-subtle text-[11px] font-semibold text-text-secondary hover:text-red-400 hover:border-red-900 transition-all cursor-pointer"
+                className="px-3 py-2 rounded-xl bg-surface-glass border border-border-subtle text-[11px] font-semibold text-text-secondary hover:text-red-400 hover:border-red-900 transition-colors cursor-pointer"
               >
                 Abort Plan
               </button>
@@ -405,7 +405,7 @@ export function AgentDrawer({
               <button
                 onClick={handleExecuteAllApproved}
                 disabled={executing}
-                className="px-4 py-2 rounded-xl bg-accent text-accent-text text-xs font-bold shadow-[0_0_15px_rgba(56,189,248,0.4)] hover:bg-accent-active transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-accent text-accent-text text-xs font-medium hover:bg-accent-active transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
                 {executing ? (
                   <RotateCw size={13} className="animate-spin" />
@@ -423,16 +423,16 @@ export function AgentDrawer({
       <div className="p-3 border-t border-border-subtle bg-raised/80 space-y-2">
         {/* Live Audio Waveform when recording */}
         {isListening && (
-          <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-purple-950/30 border border-purple-500/30 animate-fadeIn">
-            <div className="flex items-center gap-2 text-xs font-medium text-purple-300">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-              <span>Listening...</span>
+          <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-raised border border-border-glass animate-fadeIn">
+            <div className="flex items-center gap-2 text-xs font-medium text-text-primary">
+              <span className="w-2 h-2 rounded-full bg-signal-gate" />
+              <span>Listening</span>
             </div>
             <VoiceWaveform levels={audioLevels} isActive={isListening} className="flex-1 max-w-[200px]" />
             <button
               type="button"
               onClick={handleToggleVoice}
-              className="text-[11px] font-semibold px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 hover:bg-purple-500/40 transition-colors"
+              className="text-[11px] font-medium px-2 py-0.5 rounded bg-surface-glass text-text-primary hover:bg-surface-solid transition-colors"
             >
               Done
             </button>
@@ -450,12 +450,12 @@ export function AgentDrawer({
             type="button"
             onClick={handleToggleVoice}
             disabled={planning}
-            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
               isListening
-                ? "bg-purple-600 text-white animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.5)]"
+                ? "bg-signal-gate-bg border border-signal-gate/40 text-signal-gate"
                 : "bg-surface-glass border border-border-subtle text-text-secondary hover:text-accent hover:border-accent/40"
             }`}
-            title="Push to Talk (Ctrl + Space)"
+            title="Push to talk (Ctrl + Space)"
             aria-label={isListening ? "Stop listening" : "Start voice dictation"}
           >
             {isListening ? <MicOff size={15} /> : <Mic size={15} />}
@@ -471,7 +471,7 @@ export function AgentDrawer({
                 ? "Listening to speech..."
                 : planning
                 ? "Generating Task Sheet..."
-                : "Ask agent or enter task..."
+                : "Ask the agent"
             }
             className="flex-1 bg-transparent border-0 outline-none px-2 text-xs text-text-primary placeholder:text-text-disabled"
           />
@@ -479,7 +479,7 @@ export function AgentDrawer({
           <button
             type="submit"
             disabled={planning || !prompt.trim()}
-            className="w-8 h-8 rounded-xl bg-accent text-accent-text flex items-center justify-center hover:bg-accent-active disabled:opacity-40 transition-all cursor-pointer shadow-sm"
+            className="w-8 h-8 rounded-xl bg-accent text-accent-text flex items-center justify-center hover:bg-accent-active disabled:opacity-40 transition-colors cursor-pointer shadow-sm"
           >
             {planning ? <RotateCw size={14} className="animate-spin" /> : <Send size={14} />}
           </button>

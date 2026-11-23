@@ -57,7 +57,7 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-signal-success-bg border border-signal-success/30 text-signal-success text-xs font-semibold ${className}`}
       >
         <CheckCircle2 size={14} className="shrink-0" />
-        <span>Restored successfully!</span>
+        <span>Restored successfully</span>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
         onClick={handleRestore}
         disabled={loading}
         aria-label={`Undo and restore quarantine session ${sessionId}`}
-        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-accent hover:bg-accent-hover active:bg-accent-active disabled:opacity-50 text-accent-text text-xs font-bold shadow-[0_0_12px_rgba(56,189,248,0.35)] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-canvas ${className}`}
+        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-accent hover:bg-accent-hover active:bg-accent-active disabled:opacity-50 text-accent-text text-xs font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-canvas ${className}`}
       >
         {loading ? (
           <Loader2 size={14} className="animate-spin shrink-0" />

@@ -43,12 +43,12 @@ export const TopConsumersCard: React.FC<TopConsumersCardProps> = ({ onNavigate }
   return (
     <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
-          Top Resource Consumers
+        <h3 className="text-xs font-medium tracking-wider text-text-secondary">
+          Top resource consumers
         </h3>
         <button
           onClick={() => onNavigate?.("proc")}
-          className="text-xs font-semibold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+          className="text-xs font-medium text-accent hover:underline flex items-center gap-1 cursor-pointer"
         >
           <span>Process Explorer</span>
           <ArrowRight size={12} />
@@ -66,7 +66,7 @@ export const TopConsumersCard: React.FC<TopConsumersCardProps> = ({ onNavigate }
                 <Terminal size={12} />
               </div>
               <div className="min-w-0">
-                <span className="font-bold text-text-primary block truncate font-mono text-xs">
+                <span className="font-medium text-text-primary block truncate font-mono text-xs">
                   {proc.name}
                 </span>
                 <span className="text-[10px] text-text-secondary truncate block">
@@ -76,7 +76,7 @@ export const TopConsumersCard: React.FC<TopConsumersCardProps> = ({ onNavigate }
             </div>
 
             <div className="flex items-center gap-3 font-mono text-[11px] shrink-0">
-              <span className="text-text-primary font-bold">{proc.cpuPercent}% CPU</span>
+              <span className="text-text-primary font-medium tabular-nums">{proc.cpuPercent}% CPU</span>
               <span className="text-text-secondary">{proc.memoryMb} MB</span>
             </div>
           </div>

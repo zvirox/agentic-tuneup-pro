@@ -32,17 +32,10 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
   return (
     <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
-          System Health Score
+        <span className="text-xs font-medium tracking-wider text-text-secondary">
+          System health score
         </span>
-        <span
-          className="text-[11px] font-mono px-2 py-0.5 rounded-full font-bold uppercase"
-          style={{
-            backgroundColor: `${themeColor}20`,
-            color: themeColor,
-            border: `1px solid ${themeColor}40`,
-          }}
-        >
+        <span className="text-[11px] font-mono font-medium" style={{ color: themeColor }}>
           {rating}
         </span>
       </div>
@@ -82,19 +75,19 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
               strokeDasharray={`${maxArcLength} ${circumference}`}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
-              className="transition-all duration-700 ease-out"
+              className="transition-[stroke-dashoffset] duration-500 ease-out"
             />
           </svg>
 
           {/* Centered Readout */}
           <div className="absolute flex flex-col items-center justify-center text-center">
             <span
-              className="font-mono text-3xl font-extrabold tracking-tight"
+              className="font-mono text-3xl font-semibold tracking-tight"
               style={{ color: themeColor }}
             >
               {score}
             </span>
-            <span className="text-[10px] text-text-secondary uppercase font-semibold">
+            <span className="text-[10px] text-text-secondary font-semibold">
               / 100
             </span>
           </div>
@@ -114,8 +107,8 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
                 className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-border-subtle text-xs gap-2"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-mono text-[10px] text-signal-gate font-bold bg-signal-gate-bg px-1.5 py-0.5 rounded shrink-0">
-                    -{d.points}
+                  <span className="font-mono text-[11px] text-signal-gate shrink-0 tabular-nums">
+                    −{d.points}
                   </span>
                   <span className="truncate text-text-secondary text-[11px]" title={d.reason}>
                     {d.reason}

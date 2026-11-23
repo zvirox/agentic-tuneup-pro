@@ -7,8 +7,8 @@ interface VoiceWaveformProps {
 }
 
 /**
- * High-performance 16-band audio waveform visualizer for real-time speech capture.
- * Accented with Electric Cyan and Violet gradient bars.
+ * 16-band audio waveform visualizer for real-time speech capture.
+ * One accent, no glow — the live signal is the only thing moving.
  */
 export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
   levels,
@@ -31,30 +31,19 @@ export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
     <div
       role="img"
       aria-label="Live voice input waveform"
-      className={`flex items-center justify-center gap-1 h-8 px-3 py-1 bg-[#0E131B]/80 rounded-lg border border-white/10 ${className}`}
+      className={`flex items-center justify-center gap-1 h-8 px-3 py-1 bg-raised/80 rounded-lg border border-border-subtle ${className}`}
     >
       {bars.map((amplitude, index) => {
-        // Height scaled from min 12% to max 100%
-        const normalizedHeight = isActive
-          ? Math.max(12, Math.min(100, Math.round(amplitude * 100)))
-          : 12;
-
-        // Alternate or gradient styling from Cyan to Violet
-        const isCyan = index % 2 === 0;
+        // Scale the bar from its centre so only the transform animates
+        const scale = isActive
+          ? Math.max(0.12, Math.min(1, amplitude))
+          : 0.12;
 
         return (
           <div
             key={index}
-            className="w-1 rounded-full transition-all duration-75 ease-out"
-            style={{
-              height: `${normalizedHeight}%`,
-              backgroundColor: isCyan ? "#38BDF8" : "#A855F7",
-              boxShadow: isActive && normalizedHeight > 30
-                ? isCyan
-                  ? "0 0 8px rgba(56, 189, 248, 0.4)"
-                  : "0 0 8px rgba(168, 85, 247, 0.4)"
-                : "none",
-            }}
+            className="w-1 h-full rounded-full bg-accent origin-center transition-transform duration-75 ease-out"
+            style={{ transform: `scaleY(${scale})` }}
           />
         );
       })}

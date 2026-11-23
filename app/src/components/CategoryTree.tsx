@@ -65,7 +65,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
         >
           <AlertCircle size={18} className="shrink-0 mt-0.5" />
           <div className="text-xs leading-relaxed">
-            <span className="font-bold block text-sm">
+            <span className="font-medium block text-sm">
               Applications In Use ({uniqueBlockingApps.join(", ")})
             </span>
             <span>
@@ -88,7 +88,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
         return (
           <div
             key={cat.category_id}
-            className="glass-panel rounded-2xl overflow-hidden transition-all border border-border-glass"
+            className="glass-panel rounded-2xl overflow-hidden transition-colors border border-border-glass"
           >
             {/* Category Header */}
             <div className="flex items-center justify-between p-3.5 bg-white/5 border-b border-border-subtle select-none">
@@ -113,7 +113,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                 />
 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-text-primary">{cat.display_name}</span>
+                  <span className="text-sm font-medium text-text-primary">{cat.display_name}</span>
                   <span className="text-[10px] font-mono text-text-secondary bg-white/10 px-1.5 py-0.5 rounded">
                     {checkedCount} / {cat.rules.length} selected
                   </span>
@@ -121,7 +121,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
               </div>
 
               <div className="flex items-center gap-3 font-mono text-xs">
-                <span className="font-bold text-accent">{formatBytes(cat.reclaimable_bytes)}</span>
+                <span className="font-medium text-accent">{formatBytes(cat.reclaimable_bytes)}</span>
                 <span className="text-text-secondary">· {cat.file_count} files</span>
               </div>
             </div>
@@ -156,12 +156,12 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                             <span className="text-xs font-semibold text-text-primary">
                               {rule.name}
                             </span>
-                            <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-white/10 text-text-secondary border border-border-subtle">
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-text-secondary border border-border-subtle">
                               Tier {rule.risk_tier}
                             </span>
 
                             {isBlocked && (
-                              <span className="text-[10px] font-mono text-signal-thinking bg-signal-thinking-bg px-1.5 py-0.5 rounded font-bold border border-signal-thinking/30">
+                              <span className="text-[10px] font-mono text-signal-thinking bg-signal-thinking-bg px-1.5 py-0.5 rounded font-medium border border-signal-thinking/30">
                                 App Running ({rule.running_apps_blocking.join(", ")})
                               </span>
                             )}
@@ -183,7 +183,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                         </button>
 
                         <div className="text-right font-mono text-xs min-w-[70px]">
-                          <span className="font-bold text-text-primary block">
+                          <span className="font-medium text-text-primary block">
                             {formatBytes(rule.reclaimable_bytes)}
                           </span>
                           <span className="text-[10px] text-text-secondary block">
