@@ -188,6 +188,7 @@ impl McpDispatcher {
             "tuneup.list_orphans" => self.tool_list_orphans().await,
             "tuneup.remove_packages" => self.tool_remove_packages(args).await,
             "tuneup.purge_orphans" => self.tool_purge_orphans(args).await,
+            "atp.system.clean_package_cache" => self.tool_clean_package_cache(args).await,
             _ => Err(CoreError::new(
                 ErrorKind::Mcp,
                 "mcp.tool_not_found",
@@ -302,6 +303,28 @@ impl McpDispatcher {
             "quarantinePath": output.quarantine_path.to_string_lossy(),
             "undoAvailable": true,
         }))
+    }
+
+    async fn tool_clean_package_cache(&self, _args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+        let engine = RuleEngine::discover_and_load()?;
+        let pkg_rule_ids: Vec<serde_json::Value> = engine
+            .rules()
+            .iter()
+            .filter(|r| r.category == "package_cache" || r.category == "package")
+            .map(|r| serde_json::Value::String(r.id.clone()))
+            .collect();
+
+        if pkg_rule_ids.is_empty() {
+            return Ok(serde_json::json!({
+                "status": "success",
+                "bytesReclaimed": 0,
+                "filesMoved": 0,
+                "message": "No package cache rules found or cache is already clean",
+            }));
+        }
+
+        let clean_args = serde_json::json!({ "ruleIds": pkg_rule_ids });
+        self.tool_clean_junk(&clean_args).await
     }
 
     async fn tool_restore_quarantine(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
@@ -616,6 +639,8 @@ mod tests {
         let res = resp.result.expect("result");
         let tools = res.get("tools").and_then(|v| v.as_array()).expect("tools array");
         assert!(tools.len() >= 10);
+        let has_pkg_clean = tools.iter().any(|t| t.get("name").and_then(|n| n.as_str()) == Some("atp.system.clean_package_cache"));
+        assert!(has_pkg_clean, "Expected atp.system.clean_package_cache in tools list");
     }
 
     #[tokio::test]

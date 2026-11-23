@@ -262,6 +262,17 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
             }),
         },
         McpToolDefinition {
+            name: "atp.system.clean_package_cache".into(),
+            description: "Purges obsolete package caches and orphaned libraries to reclaim disk space.".into(),
+            risk_tier: 3,
+            parameters: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "aggressive": { "type": "boolean", "default": false }
+                }
+            }),
+        },
+        McpToolDefinition {
             name: "tuneup.list_processes".into(),
             description: "Lists running processes sorted by resource consumption".into(),
             risk_tier: 1,

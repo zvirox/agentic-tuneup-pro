@@ -3,33 +3,18 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use atp_core::{CoreError, ErrorKind};
+use starship_plugin::{bridge_dir, manifest_dir, AppManifest};
 
 /// Computes the default Starship manifest path:
 /// `$XDG_DATA_HOME/starship/plugins/atp.json` (fallback `~/.local/share/starship/plugins/atp.json`).
 pub fn default_manifest_path() -> PathBuf {
-    let base_data = std::env::var("XDG_DATA_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-            PathBuf::from(home).join(".local/share")
-        });
-
-    base_data.join("starship/plugins/atp.json")
+    manifest_dir().join("atp.json")
 }
 
 /// Computes the default Unix domain bridge socket path:
-/// `$XDG_RUNTIME_DIR/starship/bridges/atp.sock` (fallback `/tmp/starship-<uid>/bridges/atp.sock`).
+/// `$XDG_RUNTIME_DIR/starship/bridges/atp.sock`.
 pub fn default_socket_path() -> PathBuf {
-    if let Ok(runtime_dir) = std::env::var("XDG_RUNTIME_DIR") {
-        PathBuf::from(runtime_dir).join("starship/bridges/atp.sock")
-    } else {
-        #[cfg(target_os = "linux")]
-        let uid = unsafe { libc::getuid() };
-        #[cfg(not(target_os = "linux"))]
-        let uid = 1000;
-
-        PathBuf::from(format!("/tmp/starship-{uid}/bridges/atp.sock"))
-    }
+    bridge_dir().join("atp.sock")
 }
 
 /// Registers the Starship capability manifest so Starship Control can discover ATP.
@@ -48,20 +33,26 @@ pub fn register_starship_manifest(socket_path: &Path) -> Result<PathBuf, CoreErr
         })?;
     }
 
-    let manifest_data = serde_json::json!({
-        "id": "atp",
-        "name": "Agentic Tuneup Pro",
-        "description": "Sovereign glass system cleaner, package manager, and performance tune-up suite",
-        "version": "0.1.0",
-        "socketPath": socket_path.to_string_lossy(),
-        "transport": "unix_socket",
-        "capabilities": {
+    let manifest = AppManifest {
+        schema_version: "1.0".to_string(),
+        app_id: "atp".to_string(),
+        name: "Agentic Tuneup Pro".to_string(),
+        version: "0.1.0".to_string(),
+        binary_path: "/usr/bin/agentic-tuneup-pro".to_string(),
+        launch_args: vec![],
+        mcp_cli_args: vec!["--mcp".to_string()],
+        socket_path: Some(socket_path.to_string_lossy().to_string()),
+        capabilities: serde_json::json!({
+            "packageCleaner": true,
+            "memoryOptimizer": true,
+            "cacheCleaner": true,
+            "serviceManager": true,
             "tools": true,
             "telemetry": true
-        }
-    });
+        }),
+    };
 
-    let json_bytes = serde_json::to_vec_pretty(&manifest_data).map_err(|e| {
+    let json_bytes = manifest.to_json().map_err(|e| {
         CoreError::new(
             ErrorKind::Mcp,
             "mcp.manifest_serialize_failed",
@@ -128,6 +119,15 @@ mod tests {
         assert!(!test_manifest.exists());
         assert!(!test_socket.exists());
 
+        // Test real register_starship_manifest produces valid AppManifest
+        let registered_path = register_starship_manifest(&test_socket).unwrap();
+        let content = fs::read_to_string(&registered_path).unwrap();
+        let parsed = AppManifest::from_json(&content).unwrap();
+        assert_eq!(parsed.app_id, "atp");
+        assert_eq!(parsed.name, "Agentic Tuneup Pro");
+        assert_eq!(parsed.socket_path.as_deref(), Some(test_socket.to_string_lossy().as_ref()));
+
+        let _ = unregister_starship_manifest(&registered_path, None);
         let _ = fs::remove_dir_all(&temp_dir);
     }
 }
