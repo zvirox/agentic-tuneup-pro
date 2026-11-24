@@ -32,6 +32,7 @@ import { CommandPalette } from "./components/CommandPalette";
 import { AriaAnnouncer } from "./components/AriaAnnouncer";
 import { TuneupTelemetryChart } from "./components/TuneupTelemetryChart";
 import { LinearCard } from "./components/linear/LinearCard";
+import { TitleBar } from "./components/linear/TitleBar";
 import {
   cleanerScan,
   cleanerExecuteClean,
@@ -350,27 +351,21 @@ export default function App() {
 
   return (
     <div
-      className={`h-screen w-screen flex flex-col font-sans bg-canvas text-text-primary ${
+      className={`h-screen w-screen flex flex-col font-sans bg-[var(--bg-app)] text-[var(--text)] ${
         reduceEffects ? "reduce-effects" : ""
       }`}
     >
-      {/* Top Titlebar */}
-      <header className="h-14 border-b border-border-subtle flex items-center px-4 gap-4 bg-raised/70 select-none">
-        {/* Brand */}
-        <div className="flex items-center gap-2.5 font-medium tracking-tight">
-          <img
-            src="/logo.png"
-            alt="Agentic Tuneup Pro Logo"
-            className="w-8 h-8 rounded-lg object-contain"
-          />
-          <span className="text-sm font-semibold tracking-wide">Agentic Tuneup Pro</span>
-          <span className="text-[10px] font-mono bg-accent-muted text-accent px-1.5 py-0.5 rounded border border-accent/20">
-            v0.0.4-alpha
-          </span>
-        </div>
+      {/* 0. Window TitleBar */}
+      <TitleBar
+        title="Agentic Tuneup Pro"
+        version="v0.1.0"
+        icon={<img src="/logo.png" alt="ATP" className="w-4 h-4 rounded object-contain" />}
+      />
 
+      {/* Top Action Toolbar */}
+      <header className="h-12 border-b border-[var(--border)] flex items-center px-4 gap-4 bg-[var(--bg-surface)] select-none">
         {/* Workspace Presets */}
-        <div className="flex items-center bg-black/40 p-1 rounded-xl border border-border-subtle text-xs font-medium ml-4">
+        <div className="flex items-center bg-[var(--bg-surface-2)] p-0.5 rounded-lg border border-[var(--border)] text-xs font-medium">
           <button
             onClick={() => {
               setWorkspace("daily");
