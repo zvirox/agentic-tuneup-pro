@@ -29,7 +29,7 @@
 
 Agentic Tuneup Pro is an intelligent, safety-first desktop optimizer and system maintenance suite for Linux. Most traditional cleaning utilities run unchecked shell commands that permanently delete files without an undo option. One mistyped path or buggy script can break an entire system installation.
 
-Agentic Tuneup Pro redefines Linux maintenance around verifiable safety. It gives you a clear visual dashboard showing your system health, package statuses, process trees, and disk usage. Files are never deleted permanently during cleanups; instead, they are moved to an encrypted local quarantine where they can be restored at any time with guaranteed byte-for-byte fidelity.
+Agentic Tuneup Pro redefines Linux maintenance around verifiable safety. It gives you a clear visual dashboard showing your system health, package statuses, process trees, and disk usage. Files are never deleted permanently during cleanups. Instead, they are moved to an encrypted local quarantine where they can be restored at any time with guaranteed byte-for-byte fidelity.
 
 ---
 
@@ -58,7 +58,7 @@ Agentic Tuneup Pro redefines Linux maintenance around verifiable safety. It give
 
 Agentic Tuneup Pro works fully as an independent desktop utility. You can scan, clean, and manage your machine without installing any other tools.
 
-To unlock hands-free maintenance, Agentic Tuneup Pro connects directly with **Starship Control**, the unified Linux desktop AI assistant.
+To unlock hands-free maintenance, Agentic Tuneup Pro connects directly with [Starship Control](https://github.com/zvirox/starship-control) ([Releases](https://github.com/zvirox/starship-control/releases)), the unified Linux desktop AI assistant.
 
 ### Why It Exists
 
@@ -77,7 +77,7 @@ Setup is completely automatic:
 1. **Automatic Discovery**: When Agentic Tuneup Pro starts, it registers its tool catalogue in `$XDG_DATA_HOME/starship/plugins/atp.json`.
 2. **Private Local Socket**: Communication flows over a private Unix domain socket at `$XDG_RUNTIME_DIR/starship/bridges/atp.sock`.
 3. **Operating System Peer Verification**: Security is enforced using Linux `SO_PEERCRED`. Only applications running under your exact user account can send commands. No web ports are opened, and no diagnostics leave your machine.
-4. **Instant Assistant Access**: Summon Starship Control with `Super+Shift+Space`. It immediately recognizes Agentic Tuneup Pro and is ready to diagnose and optimize your machine.
+4. **Instant Assistant Access**: Summon Starship Control with `Super+Shift+Space`. It immediately recognizes Agentic Tuneup Pro and is ready to diagnose and optimize your machine. For setup guides and downloads, visit the [Starship Control repository](https://github.com/zvirox/starship-control) and [releases](https://github.com/zvirox/starship-control/releases).
 
 ---
 
@@ -119,7 +119,7 @@ cargo build --release -p agentic-tuneup-pro
 ## Frequently Asked Questions
 
 #### Can Agentic Tuneup Pro accidentally break my system?
-No. The app uses a strict whitelist of cleanable cache folders and an absolute blacklist for system-critical paths. Furthermore, files are never permanently deleted on the first pass; they are safely quarantined and can be restored at any time.
+No. The app uses a strict whitelist of cleanable cache folders and an absolute blacklist for system-critical paths. Furthermore, files are never permanently deleted on the first pass. They are safely quarantined and can be restored at any time.
 
 #### Does Agentic Tuneup Pro require root privileges?
 Most everyday operations, like clearing browser caches and developer build artifacts, run with standard user permissions. When an administrative task is required (like managing system-level packages), the app communicates with a tightly scoped helper service that asks for standard Linux authorization.
