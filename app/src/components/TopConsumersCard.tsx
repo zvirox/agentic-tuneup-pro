@@ -1,5 +1,6 @@
 import React from "react";
 import { ArrowRight, Terminal } from "lucide-react";
+import { LinearCard } from "./linear/LinearCard";
 
 interface ConsumerItem {
   name: string;
@@ -41,7 +42,7 @@ export const TopConsumersCard: React.FC<TopConsumersCardProps> = ({ onNavigate }
   ];
 
   return (
-    <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
+    <LinearCard level="raised" className="p-5 flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-medium tracking-wider text-text-secondary">
           Top resource consumers
@@ -82,6 +83,6 @@ export const TopConsumersCard: React.FC<TopConsumersCardProps> = ({ onNavigate }
           </div>
         ))}
       </div>
-    </div>
+    </LinearCard>
   );
 };

@@ -1,6 +1,7 @@
 import React from "react";
 import { HealthScore } from "../types";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { LinearCard } from "./linear/LinearCard";
 
 interface HealthGaugeProps {
   health: HealthScore;
@@ -30,7 +31,7 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
   const themeColor = getThemeColor();
 
   return (
-    <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
+    <LinearCard level="raised" className="p-5 flex flex-col justify-between">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium tracking-wider text-text-secondary">
           System health score
@@ -126,6 +127,6 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
           )}
         </div>
       </div>
-    </div>
+    </LinearCard>
   );
 };

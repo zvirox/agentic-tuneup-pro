@@ -30,6 +30,8 @@ import { AgentDrawer } from "./components/AgentDrawer";
 import { DiagnosticModal } from "./components/DiagnosticModal";
 import { CommandPalette } from "./components/CommandPalette";
 import { AriaAnnouncer } from "./components/AriaAnnouncer";
+import { TuneupTelemetryChart } from "./components/TuneupTelemetryChart";
+import { LinearCard } from "./components/linear/LinearCard";
 import {
   cleanerScan,
   cleanerExecuteClean,
@@ -76,6 +78,7 @@ export default function App() {
   const [telemetry, setTelemetry] = useState<TelemetrySnapshot | null>(null);
   const [cpuHistory, setCpuHistory] = useState<number[]>([20, 22, 25, 24, 26, 23, 24]);
   const [memHistory, setMemHistory] = useState<number[]>([38, 38, 39, 39, 38, 39, 39]);
+  const [diskHistory, setDiskHistory] = useState<number[]>([45, 48, 52, 49, 53, 56, 54]);
   const [netHistory, setNetHistory] = useState<number[]>([120, 340, 850, 420, 150, 600, 280]);
   const [health, setHealth] = useState<HealthScore>({
     score: 86,
@@ -129,6 +132,11 @@ export default function App() {
           ? (snapshot.memory.used_bytes / snapshot.memory.total_bytes) * 100
           : 0;
       setMemHistory((prev) => [...prev.slice(-29), memPct]);
+      const diskPct =
+        snapshot.disk && snapshot.disk.total_bytes > 0
+          ? Number(((snapshot.disk.used_bytes / snapshot.disk.total_bytes) * 100).toFixed(1))
+          : 48.5;
+      setDiskHistory((prev) => [...prev.slice(-29), diskPct]);
       setNetHistory((prev) => [
         ...prev.slice(-29),
         snapshot.network.download_bytes_per_sec / 1024,
@@ -587,10 +595,33 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Real-time Streaming ECharts Telemetry Visualizer */}
+              <TuneupTelemetryChart
+                title="Real-Time Hardware & Storage Telemetry"
+                subtitle="Live streaming memory consumption, disk I/O utilization, and aggregate CPU throughput"
+                series={[
+                  {
+                    name: "Memory Consumption (%)",
+                    data: memHistory.slice(-7),
+                    color: "#a855f7",
+                  },
+                  {
+                    name: "Disk Utilization (%)",
+                    data: diskHistory.slice(-7),
+                    color: "#38bdf8",
+                  },
+                  {
+                    name: "CPU Aggregate (%)",
+                    data: cpuHistory.slice(-7),
+                    color: "#10b981",
+                  },
+                ]}
+              />
+
               {/* Row 2: Secondary Details Section */}
               <div className="grid grid-cols-2 gap-4 flex-1 min-h-0">
                 {/* Reclaimable Storage Card */}
-                <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
+                <LinearCard level="raised" className="p-5 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xs font-medium tracking-wider text-text-secondary">
@@ -624,7 +655,7 @@ export default function App() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </LinearCard>
 
                 {/* Top Resource Consumers */}
                 <TopConsumersCard onNavigate={(p) => setActivePage(p as Page)} />
@@ -715,11 +746,11 @@ export default function App() {
                     onInspectRule={setInspectingRule}
                   />
                 ) : (
-                  <div className="glass-panel p-8 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
+                  <LinearCard level="raised" className="p-8 flex flex-col items-center justify-center text-center gap-2">
                     <span className="text-xs text-text-secondary">
                       {scanning ? "Scanning system caches..." : "Click Rescan to discover junk"}
                     </span>
-                  </div>
+                  </LinearCard>
                 )
               ) : (
                 <QuarantineView onNotify={triggerToast} />
@@ -752,7 +783,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+              <LinearCard level="raised" className="p-5 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs font-semibold">Reduce Effects</div>
@@ -809,7 +840,7 @@ export default function App() {
                     <span>{creatingSnapshot ? "Snapshotting..." : "Create Snapshot"}</span>
                   </button>
                 </div>
-              </div>
+              </LinearCard>
 
               {/* Immutable Audit Log Component */}
               <div className="mt-2">
@@ -862,10 +893,13 @@ export default function App() {
 
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl glass-panel-strong border border-accent/40 text-xs font-semibold text-text-primary flex items-center gap-2 shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
+        <LinearCard
+          level="overlay"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 text-xs font-semibold text-text-primary flex items-center gap-2 shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2 border-accent/40"
+        >
           <div className="w-2 h-2 rounded-full bg-accent" />
           <span>{toastMsg}</span>
-        </div>
+        </LinearCard>
       )}
     </div>
   );

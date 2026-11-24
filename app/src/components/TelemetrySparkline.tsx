@@ -1,4 +1,5 @@
 import React from "react";
+import { LinearCard } from "./linear/LinearCard";
 
 interface TelemetrySparklineProps {
   title: string;
@@ -47,8 +48,9 @@ export const TelemetrySparkline: React.FC<TelemetrySparklineProps> = ({
   const gradId = `sparkline-grad-${title.replace(/\s+/g, "").toLowerCase()}`;
 
   return (
-    <div
-      className={`glass-panel p-4 rounded-2xl flex flex-col justify-between ${className}`}
+    <LinearCard
+      level="raised"
+      className={`p-4 flex flex-col justify-between ${className}`}
     >
       {/* Header Info */}
       <div className="flex items-center justify-between">
@@ -100,6 +102,6 @@ export const TelemetrySparkline: React.FC<TelemetrySparklineProps> = ({
           )}
         </svg>
       </div>
-    </div>
+    </LinearCard>
   );
 };

@@ -1,5 +1,7 @@
 import React, { useEffect } from "react";
 import { X, FileCode, HardDrive } from "lucide-react";
+import { LinearCard } from "./linear/LinearCard";
+import { LinearButton } from "./linear/LinearButton";
 import { RuleScanResult } from "../types";
 
 interface SamplePathsModalProps {
@@ -27,12 +29,13 @@ export const SamplePathsModal: React.FC<SamplePathsModalProps> = ({ rule, onClos
       role="dialog"
       aria-modal="true"
       aria-label={`Sample paths for ${rule.name}`}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
+      className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 animate-in fade-in"
       onClick={onClose}
     >
-      <div
-        className="glass-panel-strong p-5 rounded-2xl max-w-2xl w-full border border-border-glass shadow-2xl flex flex-col gap-4 max-h-[80vh]"
-        onClick={(e) => e.stopPropagation()}
+      <LinearCard
+        level="modal"
+        className="p-5 max-w-2xl w-full flex flex-col gap-4 max-h-[80vh]"
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
@@ -79,14 +82,15 @@ export const SamplePathsModal: React.FC<SamplePathsModalProps> = ({ rule, onClos
         {/* Footer */}
         <div className="flex items-center justify-between pt-3 border-t border-border-subtle text-xs text-text-secondary">
           <span>Protected credential paths are automatically excluded.</span>
-          <button
+          <LinearButton
+            variant="primary"
+            size="sm"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-accent text-accent-text font-medium text-xs shadow-sm hover:bg-accent-hover transition-colors cursor-pointer"
           >
             Done
-          </button>
+          </LinearButton>
         </div>
-      </div>
+      </LinearCard>
     </div>
   );
 };

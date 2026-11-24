@@ -15,6 +15,8 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import { LinearCard } from "./linear/LinearCard";
+import { LinearButton } from "./linear/LinearButton";
 import type { BottleneckCategory, DiagnosticIssue, DiagnosticReport } from "../types";
 
 interface DiagnosticModalProps {
@@ -135,9 +137,12 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="diagnostic-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 animate-fadeIn"
     >
-      <div className="relative w-full max-w-2xl bg-raised border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <LinearCard
+        level="modal"
+        className="relative w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] p-0"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-3">
@@ -265,16 +270,19 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
                           <span className="text-xs text-text-secondary">
                             {issue.remediation.description}
                           </span>
-                          <button
+                          <LinearButton
+                            variant="primary"
+                            size="sm"
                             onClick={() => handleApplyFix(issue)}
                             disabled={applyingAction === `${issue.id}_${issue.remediation.action_type}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent/15 text-accent hover:bg-accent hover:text-accent-text border border-accent/30 transition-colors disabled:opacity-50"
                           >
-                            <Wrench className="w-3.5 h-3.5" />
-                            {applyingAction === `${issue.id}_${issue.remediation.action_type}`
-                              ? "Applying..."
-                              : issue.remediation.label}
-                          </button>
+                            <Wrench className="w-3.5 h-3.5 mr-1" />
+                            <span>
+                              {applyingAction === `${issue.id}_${issue.remediation.action_type}`
+                                ? "Applying..."
+                                : issue.remediation.label}
+                            </span>
+                          </LinearButton>
                         </div>
                       )}
                     </div>
@@ -286,16 +294,17 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-white/10 bg-white/[0.01] flex items-center justify-between text-xs text-text-secondary">
+        <div className="px-6 py-3.5 border-t border-border-subtle bg-white/[0.01] flex items-center justify-between text-xs text-text-secondary">
           <span>Diagnosis generated from live /proc and system metrics.</span>
-          <button
+          <LinearButton
+            variant="secondary"
+            size="sm"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-text-primary font-medium transition-colors"
           >
             Done
-          </button>
+          </LinearButton>
         </div>
-      </div>
+      </LinearCard>
     </div>
   );
 };
