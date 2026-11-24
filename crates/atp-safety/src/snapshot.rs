@@ -126,7 +126,10 @@ impl SnapshotManager {
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs() as i64;
-        let snapshot_id = format!("snap_{}_{timestamp}", chosen_provider.to_string().to_lowercase().replace(' ', "_"));
+        let snapshot_id = format!(
+            "snap_{}_{timestamp}",
+            chosen_provider.to_string().to_lowercase().replace(' ', "_")
+        );
 
         let result = match chosen_provider {
             SnapshotProvider::Timeshift => {

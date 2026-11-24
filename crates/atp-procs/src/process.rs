@@ -1,9 +1,9 @@
 #![allow(unsafe_code)]
 
-use std::collections::{HashMap, HashSet};
-use serde::{Deserialize, Serialize};
-use sysinfo::{Pid, ProcessesToUpdate, System};
 use atp_core::{CoreError, ErrorKind};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
+use sysinfo::{Pid, ProcessesToUpdate, System};
 
 pub const CRITICAL_PROCESS_NAMES: &[&str] = &[
     "systemd",
@@ -116,16 +116,18 @@ impl ProcessManager {
                 .unwrap_or(&proc_entry.name)
                 .to_lowercase();
 
-            let group = groups.entry(key.clone()).or_insert_with(|| AppProcessGroup {
-                group_id: key.clone(),
-                app_name: proc_entry.name.clone(),
-                root_pid: proc_entry.pid,
-                process_count: 0,
-                total_cpu_percent: 0.0,
-                total_memory_bytes: 0,
-                pids: Vec::new(),
-                is_critical: proc_entry.is_critical,
-            });
+            let group = groups
+                .entry(key.clone())
+                .or_insert_with(|| AppProcessGroup {
+                    group_id: key.clone(),
+                    app_name: proc_entry.name.clone(),
+                    root_pid: proc_entry.pid,
+                    process_count: 0,
+                    total_cpu_percent: 0.0,
+                    total_memory_bytes: 0,
+                    pids: Vec::new(),
+                    is_critical: proc_entry.is_critical,
+                });
 
             group.process_count += 1;
             group.total_cpu_percent += proc_entry.cpu_percent;
@@ -208,7 +210,9 @@ impl ProcessManager {
                     ErrorKind::Safety,
                     "safety.critical_process_protected",
                     false,
-                    format!("Process '{name}' (PID {pid}) is a critical system service and cannot be terminated."),
+                    format!(
+                        "Process '{name}' (PID {pid}) is a critical system service and cannot be terminated."
+                    ),
                     Some(serde_json::json!({ "pid": pid, "name": name })),
                 ));
             }
@@ -222,7 +226,10 @@ impl ProcessManager {
                 ErrorKind::Safety,
                 "safety.kill_failed",
                 false,
-                format!("Failed sending signal {signal} to PID {pid}: {}", std::io::Error::last_os_error()),
+                format!(
+                    "Failed sending signal {signal} to PID {pid}: {}",
+                    std::io::Error::last_os_error()
+                ),
                 Some(serde_json::json!({ "pid": pid, "signal": signal })),
             ))
         }

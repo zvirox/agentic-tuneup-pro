@@ -1,9 +1,9 @@
-use std::path::PathBuf;
-use serde::{Deserialize, Serialize};
-use atp_core::{CoreError, ErrorKind};
-use atp_safety::{AuditStore, QuarantineStore};
 use crate::rule::CleanerRule;
 use crate::scanner::ParallelScanner;
+use atp_core::{CoreError, ErrorKind};
+use atp_safety::{AuditStore, QuarantineStore};
+use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CleanExecutionOutput {
@@ -66,7 +66,10 @@ impl CleanerExecutor {
                     ErrorKind::Cleaner,
                     "cleaner.browser_running",
                     true,
-                    format!("Applications must be closed before cleaning: {}", blocking_apps.join(", ")),
+                    format!(
+                        "Applications must be closed before cleaning: {}",
+                        blocking_apps.join(", ")
+                    ),
                     Some(serde_json::json!({ "blocking_apps": blocking_apps })),
                 ));
             } else {
@@ -138,7 +141,10 @@ mod tests {
             name: "Junk Rule".into(),
             category: "system".into(),
             description: "Test".into(),
-            paths: vec![format!("{target_dir_str}/*.dat", target_dir_str = target_dir.display())],
+            paths: vec![format!(
+                "{target_dir_str}/*.dat",
+                target_dir_str = target_dir.display()
+            )],
             requires_closed: vec![],
             risk_tier: 2,
             explanation: "Testing".into(),
@@ -149,11 +155,15 @@ mod tests {
             &[rule],
             &q_store,
             &audit_store,
-        ).expect("Clean execution must succeed");
+        )
+        .expect("Clean execution must succeed");
 
         assert_eq!(output.files_count, 1);
         assert_eq!(output.bytes_freed, 19);
-        assert!(!junk_file.exists(), "Original junk file should be moved into quarantine");
+        assert!(
+            !junk_file.exists(),
+            "Original junk file should be moved into quarantine"
+        );
         assert!(q_store.session_path(&output.session_id).exists());
 
         // Check SQLite session entry

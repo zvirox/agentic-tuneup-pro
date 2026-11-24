@@ -1,9 +1,9 @@
+use crate::dispatcher::McpDispatcher;
+use crate::protocol::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use atp_core::CoreError;
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio_util::sync::CancellationToken;
-use atp_core::CoreError;
-use crate::dispatcher::McpDispatcher;
-use crate::protocol::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 
 /// Runs a headless stdio JSON-RPC 2.0 processing loop.
 /// Standard input is parsed for newline-delimited requests.

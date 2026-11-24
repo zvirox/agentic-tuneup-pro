@@ -54,18 +54,31 @@ impl HostSystemProfile {
             }
         }
 
-        let family = if id == "arch" || id_like.contains("arch") || id == "manjaro" || id == "endeavouros" {
-            DistroFamily::Arch
-        } else if id == "debian" || id == "ubuntu" || id_like.contains("debian") || id_like.contains("ubuntu") {
-            DistroFamily::Debian
-        } else if id == "fedora" || id == "rhel" || id_like.contains("fedora") || id_like.contains("rhel") {
-            DistroFamily::Fedora
-        } else {
-            DistroFamily::Unknown
-        };
+        let family =
+            if id == "arch" || id_like.contains("arch") || id == "manjaro" || id == "endeavouros" {
+                DistroFamily::Arch
+            } else if id == "debian"
+                || id == "ubuntu"
+                || id_like.contains("debian")
+                || id_like.contains("ubuntu")
+            {
+                DistroFamily::Debian
+            } else if id == "fedora"
+                || id == "rhel"
+                || id_like.contains("fedora")
+                || id_like.contains("rhel")
+            {
+                DistroFamily::Fedora
+            } else {
+                DistroFamily::Unknown
+            };
 
         let display_name = if pretty_name.is_empty() {
-            if id.is_empty() { "Linux".to_string() } else { id }
+            if id.is_empty() {
+                "Linux".to_string()
+            } else {
+                id
+            }
         } else {
             pretty_name
         };
@@ -103,7 +116,8 @@ mod tests {
 
     #[test]
     fn test_detect_arch_os_release() {
-        let content = "NAME=\"Arch Linux\"\nPRETTY_NAME=\"Arch Linux\"\nID=arch\nBUILD_ID=rolling\n";
+        let content =
+            "NAME=\"Arch Linux\"\nPRETTY_NAME=\"Arch Linux\"\nID=arch\nBUILD_ID=rolling\n";
         let temp_file = std::env::temp_dir().join("test_os_release_arch");
         fs::write(&temp_file, content).unwrap();
 
@@ -116,7 +130,8 @@ mod tests {
 
     #[test]
     fn test_detect_ubuntu_os_release() {
-        let content = "NAME=\"Ubuntu\"\nID=ubuntu\nID_LIKE=debian\nPRETTY_NAME=\"Ubuntu 24.04 LTS\"\n";
+        let content =
+            "NAME=\"Ubuntu\"\nID=ubuntu\nID_LIKE=debian\nPRETTY_NAME=\"Ubuntu 24.04 LTS\"\n";
         let temp_file = std::env::temp_dir().join("test_os_release_ubuntu");
         fs::write(&temp_file, content).unwrap();
 

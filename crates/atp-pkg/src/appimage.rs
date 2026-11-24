@@ -1,8 +1,8 @@
-use std::fs;
-use std::path::{Path, PathBuf};
+use crate::backend::{PackageBackend, PackageInfo, PackagePlan, PackageUpdate};
 use async_trait::async_trait;
 use atp_core::{CoreError, RiskTier};
-use crate::backend::{PackageBackend, PackageInfo, PackagePlan, PackageUpdate};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 pub struct AppImageBackend;
 
@@ -52,7 +52,10 @@ impl PackageBackend for AppImageBackend {
     async fn search(&self, query: &str) -> Result<Vec<PackageInfo>, CoreError> {
         let all = self.list_installed().await?;
         let q = query.to_lowercase();
-        Ok(all.into_iter().filter(|p| p.name.to_lowercase().contains(&q) || p.id.to_lowercase().contains(&q)).collect())
+        Ok(all
+            .into_iter()
+            .filter(|p| p.name.to_lowercase().contains(&q) || p.id.to_lowercase().contains(&q))
+            .collect())
     }
 
     async fn list_installed(&self) -> Result<Vec<PackageInfo>, CoreError> {
@@ -67,7 +70,10 @@ impl PackageBackend for AppImageBackend {
                 for entry in entries.flatten() {
                     let path = entry.path();
                     if path.is_file() && Self::is_appimage_file(&path) {
-                        let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("appimage");
+                        let file_name = path
+                            .file_name()
+                            .and_then(|s| s.to_str())
+                            .unwrap_or("appimage");
                         let meta = fs::metadata(&path).ok();
                         let size = meta.map(|m| m.len());
 
@@ -82,7 +88,10 @@ impl PackageBackend for AppImageBackend {
                             name: clean_name,
                             version: "standalone".into(),
                             backend: "appimage".into(),
-                            summary: format!("Standalone Linux AppImage binary ({})", path.display()),
+                            summary: format!(
+                                "Standalone Linux AppImage binary ({})",
+                                path.display()
+                            ),
                             size_bytes: size,
                             is_updatable: false,
                         });
@@ -113,8 +122,11 @@ impl PackageBackend for AppImageBackend {
                         if let Ok(content) = fs::read_to_string(&p) {
                             for line in content.lines() {
                                 if let Some(exec) = line.strip_prefix("Exec=") {
-                                    let target_binary = exec.split_whitespace().next().unwrap_or("");
-                                    if target_binary.ends_with(".AppImage") || target_binary.ends_with(".appimage") {
+                                    let target_binary =
+                                        exec.split_whitespace().next().unwrap_or("");
+                                    if target_binary.ends_with(".AppImage")
+                                        || target_binary.ends_with(".appimage")
+                                    {
                                         if !Path::new(target_binary).exists() {
                                             orphans.push(PackageInfo {
                                                 id: p.to_string_lossy().to_string(),
@@ -155,7 +167,9 @@ impl PackageBackend for AppImageBackend {
     async fn prepare_remove(&self, package_id: &str) -> Result<PackagePlan, CoreError> {
         let plan_id = format!("pkg_plan_remove_{}", fastrand::u32(..));
         let path = PathBuf::from(package_id);
-        let size = fs::metadata(&path).map(|m| m.len() as i64).unwrap_or(100_000_000);
+        let size = fs::metadata(&path)
+            .map(|m| m.len() as i64)
+            .unwrap_or(100_000_000);
 
         Ok(PackagePlan {
             plan_id,
@@ -193,9 +207,17 @@ mod tests {
 
     #[test]
     fn test_is_appimage_file() {
-        assert!(AppImageBackend::is_appimage_file(Path::new("/tmp/MyApp.AppImage")));
-        assert!(AppImageBackend::is_appimage_file(Path::new("tool.appimage")));
-        assert!(!AppImageBackend::is_appimage_file(Path::new("archive.tar.gz")));
-        assert!(!AppImageBackend::is_appimage_file(Path::new("/usr/bin/python3")));
+        assert!(AppImageBackend::is_appimage_file(Path::new(
+            "/tmp/MyApp.AppImage"
+        )));
+        assert!(AppImageBackend::is_appimage_file(Path::new(
+            "tool.appimage"
+        )));
+        assert!(!AppImageBackend::is_appimage_file(Path::new(
+            "archive.tar.gz"
+        )));
+        assert!(!AppImageBackend::is_appimage_file(Path::new(
+            "/usr/bin/python3"
+        )));
     }
 }

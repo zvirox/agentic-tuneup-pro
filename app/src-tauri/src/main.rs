@@ -3,14 +3,14 @@
 mod agent;
 mod commands;
 
-use std::sync::Arc;
 use agent::AgentEngine;
 use atp_mcp::{
-    default_socket_path, register_starship_manifest, unregister_starship_manifest,
-    McpDispatcher, UnixSocketServer,
+    McpDispatcher, UnixSocketServer, default_socket_path, register_starship_manifest,
+    unregister_starship_manifest,
 };
 use atp_monitor::TelemetryMonitor;
 use atp_voice::AudioCaptureSession;
+use std::sync::Arc;
 use tauri::Emitter;
 use tokio_util::sync::CancellationToken;
 
@@ -43,7 +43,10 @@ fn main() {
     let socket_path = default_socket_path();
     let manifest_path = match register_starship_manifest(&socket_path) {
         Ok(path) => {
-            eprintln!("[ATP-Bridge] Registered Starship capability manifest at {}", path.display());
+            eprintln!(
+                "[ATP-Bridge] Registered Starship capability manifest at {}",
+                path.display()
+            );
             Some(path)
         }
         Err(e) => {
@@ -80,11 +83,8 @@ fn main() {
             });
 
             // Start Starship Unix Domain Socket listener in background
-            let bridge_server = UnixSocketServer::new(
-                bridge_socket_path,
-                dispatcher,
-                bridge_cancel_token,
-            );
+            let bridge_server =
+                UnixSocketServer::new(bridge_socket_path, dispatcher, bridge_cancel_token);
 
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = bridge_server.run().await {

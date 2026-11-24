@@ -1,9 +1,8 @@
-use zbus::{interface, fdo};
 use crate::validator::{
-    is_valid_backend, is_valid_keep_days, is_valid_package_action,
-    is_valid_package_name, is_valid_service_action, is_valid_service_unit,
-    is_valid_signal,
+    is_valid_backend, is_valid_keep_days, is_valid_package_action, is_valid_package_name,
+    is_valid_service_action, is_valid_service_unit, is_valid_signal,
 };
+use zbus::{fdo, interface};
 
 pub struct AgenticTuneupHelper;
 
@@ -15,13 +14,19 @@ impl AgenticTuneupHelper {
         package_name: &str,
     ) -> fdo::Result<String> {
         if !is_valid_package_action(action) {
-            return Err(fdo::Error::InvalidArgs(format!("Invalid package action: '{action}'")));
+            return Err(fdo::Error::InvalidArgs(format!(
+                "Invalid package action: '{action}'"
+            )));
         }
         if !is_valid_backend(backend) {
-            return Err(fdo::Error::InvalidArgs(format!("Unsupported backend: '{backend}'")));
+            return Err(fdo::Error::InvalidArgs(format!(
+                "Unsupported backend: '{backend}'"
+            )));
         }
         if !package_name.is_empty() && !is_valid_package_name(package_name) {
-            return Err(fdo::Error::InvalidArgs(format!("Invalid package name: '{package_name}'")));
+            return Err(fdo::Error::InvalidArgs(format!(
+                "Invalid package name: '{package_name}'"
+            )));
         }
 
         let output = match backend {
@@ -36,51 +41,64 @@ impl AgenticTuneupHelper {
 
     pub async fn handle_vacuum_journal(&self, keep_days: u32) -> fdo::Result<String> {
         if !is_valid_keep_days(keep_days) {
-            return Err(fdo::Error::InvalidArgs("keep_days must be between 1 and 365".into()));
+            return Err(fdo::Error::InvalidArgs(
+                "keep_days must be between 1 and 365".into(),
+            ));
         }
 
         let mut cmd = tokio::process::Command::new("journalctl");
         cmd.arg(format!("--vacuum-time={}d", keep_days));
 
-        let res = cmd.output().await.map_err(|e| {
-            fdo::Error::Failed(format!("Failed executing journalctl: {e}"))
-        })?;
+        let res = cmd
+            .output()
+            .await
+            .map_err(|e| fdo::Error::Failed(format!("Failed executing journalctl: {e}")))?;
 
         Ok(String::from_utf8_lossy(&res.stdout).to_string())
     }
 
     pub async fn handle_kill_process(&self, pid: u32, signal: i32) -> fdo::Result<bool> {
         if !is_valid_signal(signal) {
-            return Err(fdo::Error::InvalidArgs("Signal must be 15 (SIGTERM) or 9 (SIGKILL)".into()));
+            return Err(fdo::Error::InvalidArgs(
+                "Signal must be 15 (SIGTERM) or 9 (SIGKILL)".into(),
+            ));
         }
         if pid <= 1 {
-            return Err(fdo::Error::Failed("Refusing to terminate root init process (PID <= 1)".into()));
+            return Err(fdo::Error::Failed(
+                "Refusing to terminate root init process (PID <= 1)".into(),
+            ));
         }
 
         let mut cmd = tokio::process::Command::new("kill");
         cmd.arg(format!("-{signal}")).arg(pid.to_string());
 
-        let res = cmd.status().await.map_err(|e| {
-            fdo::Error::Failed(format!("Failed executing kill: {e}"))
-        })?;
+        let res = cmd
+            .status()
+            .await
+            .map_err(|e| fdo::Error::Failed(format!("Failed executing kill: {e}")))?;
 
         Ok(res.success())
     }
 
     pub async fn handle_control_service(&self, unit: &str, action: &str) -> fdo::Result<bool> {
         if !is_valid_service_unit(unit) {
-            return Err(fdo::Error::InvalidArgs(format!("Invalid service unit name: '{unit}'")));
+            return Err(fdo::Error::InvalidArgs(format!(
+                "Invalid service unit name: '{unit}'"
+            )));
         }
         if !is_valid_service_action(action) {
-            return Err(fdo::Error::InvalidArgs(format!("Invalid service action: '{action}'")));
+            return Err(fdo::Error::InvalidArgs(format!(
+                "Invalid service action: '{action}'"
+            )));
         }
 
         let mut cmd = tokio::process::Command::new("systemctl");
         cmd.arg(action).arg(unit);
 
-        let res = cmd.status().await.map_err(|e| {
-            fdo::Error::Failed(format!("Failed executing systemctl: {e}"))
-        })?;
+        let res = cmd
+            .status()
+            .await
+            .map_err(|e| fdo::Error::Failed(format!("Failed executing systemctl: {e}")))?;
 
         Ok(res.success())
     }
@@ -100,12 +118,17 @@ impl AgenticTuneupHelper {
             "clean" | "autoremove" => {
                 cmd.args(["uninstall", "--unused", "-y", "--noninteractive"]);
             }
-            _ => return Err(fdo::Error::InvalidArgs("Unsupported action for flatpak".into())),
+            _ => {
+                return Err(fdo::Error::InvalidArgs(
+                    "Unsupported action for flatpak".into(),
+                ));
+            }
         }
 
-        let res = cmd.output().await.map_err(|e| {
-            fdo::Error::Failed(format!("Failed executing flatpak: {e}"))
-        })?;
+        let res = cmd
+            .output()
+            .await
+            .map_err(|e| fdo::Error::Failed(format!("Failed executing flatpak: {e}")))?;
 
         Ok(String::from_utf8_lossy(&res.stdout).to_string())
     }
@@ -132,9 +155,10 @@ impl AgenticTuneupHelper {
             _ => return Err(fdo::Error::InvalidArgs("Unsupported action for apt".into())),
         }
 
-        let res = cmd.output().await.map_err(|e| {
-            fdo::Error::Failed(format!("Failed executing apt-get: {e}"))
-        })?;
+        let res = cmd
+            .output()
+            .await
+            .map_err(|e| fdo::Error::Failed(format!("Failed executing apt-get: {e}")))?;
 
         Ok(String::from_utf8_lossy(&res.stdout).to_string())
     }
@@ -154,12 +178,17 @@ impl AgenticTuneupHelper {
             "clean" => {
                 cmd.args(["-Sc", "--noconfirm"]);
             }
-            _ => return Err(fdo::Error::InvalidArgs("Unsupported action for pacman".into())),
+            _ => {
+                return Err(fdo::Error::InvalidArgs(
+                    "Unsupported action for pacman".into(),
+                ));
+            }
         }
 
-        let res = cmd.output().await.map_err(|e| {
-            fdo::Error::Failed(format!("Failed executing pacman: {e}"))
-        })?;
+        let res = cmd
+            .output()
+            .await
+            .map_err(|e| fdo::Error::Failed(format!("Failed executing pacman: {e}")))?;
 
         Ok(String::from_utf8_lossy(&res.stdout).to_string())
     }
@@ -173,7 +202,8 @@ impl AgenticTuneupHelper {
         backend: &str,
         package_name: &str,
     ) -> fdo::Result<String> {
-        self.handle_manage_package(action, backend, package_name).await
+        self.handle_manage_package(action, backend, package_name)
+            .await
     }
 
     async fn vacuum_journal(&self, keep_days: u32) -> fdo::Result<String> {
@@ -198,15 +228,21 @@ mod tests {
         let helper = AgenticTuneupHelper;
 
         // Reject invalid action
-        let res1 = helper.handle_manage_package("drop_database", "flatpak", "org.test.app").await;
+        let res1 = helper
+            .handle_manage_package("drop_database", "flatpak", "org.test.app")
+            .await;
         assert!(matches!(res1, Err(fdo::Error::InvalidArgs(_))));
 
         // Reject unsupported backend
-        let res2 = helper.handle_manage_package("install", "snap", "testapp").await;
+        let res2 = helper
+            .handle_manage_package("install", "snap", "testapp")
+            .await;
         assert!(matches!(res2, Err(fdo::Error::InvalidArgs(_))));
 
         // Reject malicious package name with shell injection
-        let res3 = helper.handle_manage_package("install", "apt", "evil;rm -rf /").await;
+        let res3 = helper
+            .handle_manage_package("install", "apt", "evil;rm -rf /")
+            .await;
         assert!(matches!(res3, Err(fdo::Error::InvalidArgs(_))));
     }
 
@@ -243,7 +279,9 @@ mod tests {
         assert!(matches!(res_unit, Err(fdo::Error::InvalidArgs(_))));
 
         // Reject invalid action
-        let res_act = helper.handle_control_service("pipewire.service", "destroy").await;
+        let res_act = helper
+            .handle_control_service("pipewire.service", "destroy")
+            .await;
         assert!(matches!(res_act, Err(fdo::Error::InvalidArgs(_))));
     }
 }

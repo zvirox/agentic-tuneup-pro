@@ -1,7 +1,7 @@
 #![allow(unsafe_code)]
 
-use std::os::unix::io::AsRawFd;
 use atp_core::{CoreError, ErrorKind};
+use std::os::unix::io::AsRawFd;
 
 /// Verifies that the peer connected to the Unix domain socket shares the same UID as current process.
 #[cfg(target_os = "linux")]
@@ -40,7 +40,10 @@ pub fn verify_peer_cred<T: AsRawFd>(stream: &T) -> Result<u32, CoreError> {
             ErrorKind::Safety,
             "safety.unauthorized_peer_uid",
             false,
-            format!("Rejected connection: Peer UID ({}) != Host UID ({}).", ucred.uid, current_uid),
+            format!(
+                "Rejected connection: Peer UID ({}) != Host UID ({}).",
+                ucred.uid, current_uid
+            ),
             Some(serde_json::json!({ "peer_uid": ucred.uid, "host_uid": current_uid })),
         ));
     }

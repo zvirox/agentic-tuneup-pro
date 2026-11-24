@@ -1,5 +1,5 @@
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use serde::{Deserialize, Serialize};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use sysinfo::{Components, Disks, Networks, System};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -145,7 +145,11 @@ impl Sampler {
         let mut highest: Option<f32> = None;
         for component in self.components.iter() {
             let label = component.label().to_lowercase();
-            if label.contains("cpu") || label.contains("core") || label.contains("package") || label.contains("k10temp") {
+            if label.contains("cpu")
+                || label.contains("core")
+                || label.contains("package")
+                || label.contains("k10temp")
+            {
                 if let Some(temp) = component.temperature() {
                     highest = Some(highest.map_or(temp, |h| h.max(temp)));
                 }
@@ -165,12 +169,21 @@ impl Sampler {
     }
 
     fn sample_disk(&self) -> DiskSnapshot {
-        let root_disk = self.disks.iter().find(|d| d.mount_point().to_str() == Some("/"));
+        let root_disk = self
+            .disks
+            .iter()
+            .find(|d| d.mount_point().to_str() == Some("/"));
 
         let (total_bytes, used_bytes) = if let Some(d) = root_disk {
-            (d.total_space(), d.total_space().saturating_sub(d.available_space()))
+            (
+                d.total_space(),
+                d.total_space().saturating_sub(d.available_space()),
+            )
         } else if let Some(first) = self.disks.first() {
-            (first.total_space(), first.total_space().saturating_sub(first.available_space()))
+            (
+                first.total_space(),
+                first.total_space().saturating_sub(first.available_space()),
+            )
         } else {
             (0, 0)
         };
@@ -196,8 +209,12 @@ impl Sampler {
         let download_bytes_per_sec = (rx_delta as f32 / elapsed_secs) as u64;
         let upload_bytes_per_sec = (tx_delta as f32 / elapsed_secs) as u64;
 
-        let interface_name = self.networks.iter()
-            .find(|(name, _)| !name.starts_with("lo") && !name.starts_with("docker") && !name.starts_with("veth"))
+        let interface_name = self
+            .networks
+            .iter()
+            .find(|(name, _)| {
+                !name.starts_with("lo") && !name.starts_with("docker") && !name.starts_with("veth")
+            })
             .map(|(name, _)| name.clone())
             .unwrap_or_else(|| "default".to_string());
 

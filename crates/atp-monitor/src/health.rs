@@ -50,7 +50,10 @@ impl HealthScore {
                 deductions.push(HealthDeduction {
                     category: "memory".into(),
                     points: pts,
-                    reason: format!("Memory utilization is critically high ({:.1}%)", mem_used_percent),
+                    reason: format!(
+                        "Memory utilization is critically high ({:.1}%)",
+                        mem_used_percent
+                    ),
                     action_label: "Inspect Processes".into(),
                     target_page: "proc".into(),
                 });
@@ -110,7 +113,8 @@ impl HealthScore {
             85..=100 => "good",
             65..=84 => "fair",
             _ => "poor",
-        }.to_string();
+        }
+        .to_string();
 
         Self {
             score: clamped_score,

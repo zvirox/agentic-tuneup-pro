@@ -1,7 +1,7 @@
-use async_trait::async_trait;
-use atp_core::{CoreError, ErrorKind, RiskTier};
 use crate::backend::{PackageBackend, PackageInfo, PackagePlan, PackageUpdate};
 use crate::detector::{DistroFamily, HostSystemProfile};
+use async_trait::async_trait;
+use atp_core::{CoreError, ErrorKind, RiskTier};
 
 pub struct NativeBackend {
     family: DistroFamily,
@@ -67,7 +67,10 @@ impl PackageBackend for NativeBackend {
     async fn search(&self, query: &str) -> Result<Vec<PackageInfo>, CoreError> {
         let all = self.list_installed().await?;
         let q = query.to_lowercase();
-        Ok(all.into_iter().filter(|p| p.name.to_lowercase().contains(&q) || p.id.to_lowercase().contains(&q)).collect())
+        Ok(all
+            .into_iter()
+            .filter(|p| p.name.to_lowercase().contains(&q) || p.id.to_lowercase().contains(&q))
+            .collect())
     }
 
     async fn list_installed(&self) -> Result<Vec<PackageInfo>, CoreError> {
@@ -255,7 +258,10 @@ impl NativeBackend {
 
     async fn list_debian_installed(&self) -> Result<Vec<PackageInfo>, CoreError> {
         let output = tokio::process::Command::new("dpkg-query")
-            .args(["-W", "-f=${Package}\t${Version}\t${Installed-Size}\t${binary:Summary}\n"])
+            .args([
+                "-W",
+                "-f=${Package}\t${Version}\t${Installed-Size}\t${binary:Summary}\n",
+            ])
             .output()
             .await
             .map_err(|e| {
@@ -276,8 +282,15 @@ impl NativeBackend {
                 if parts.len() >= 2 && !parts[0].trim().is_empty() {
                     let id = parts[0].trim().to_string();
                     let version = parts[1].trim().to_string();
-                    let size_kb: u64 = parts.get(2).and_then(|s| s.trim().parse().ok()).unwrap_or(0);
-                    let summary = parts.get(3).map(|s| s.trim()).unwrap_or("Native Debian package").to_string();
+                    let size_kb: u64 = parts
+                        .get(2)
+                        .and_then(|s| s.trim().parse().ok())
+                        .unwrap_or(0);
+                    let summary = parts
+                        .get(3)
+                        .map(|s| s.trim())
+                        .unwrap_or("Native Debian package")
+                        .to_string();
 
                     list.push(PackageInfo {
                         id: id.clone(),
@@ -285,7 +298,11 @@ impl NativeBackend {
                         version,
                         backend: "apt".into(),
                         summary,
-                        size_bytes: if size_kb > 0 { Some(size_kb * 1024) } else { None },
+                        size_bytes: if size_kb > 0 {
+                            Some(size_kb * 1024)
+                        } else {
+                            None
+                        },
                         is_updatable: false,
                     });
                 }
@@ -384,7 +401,10 @@ impl NativeBackend {
                 if parts.len() >= 2 && !parts[0].trim().is_empty() {
                     let id = parts[0].trim().to_string();
                     let version = parts[1].trim().to_string();
-                    let size: u64 = parts.get(2).and_then(|s| s.trim().parse().ok()).unwrap_or(0);
+                    let size: u64 = parts
+                        .get(2)
+                        .and_then(|s| s.trim().parse().ok())
+                        .unwrap_or(0);
                     let summary = parts.get(3).map(|s| s.trim()).unwrap_or("").to_string();
 
                     list.push(PackageInfo {

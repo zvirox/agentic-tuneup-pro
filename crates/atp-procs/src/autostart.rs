@@ -1,7 +1,7 @@
+use atp_core::{CoreError, ErrorKind};
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
-use serde::{Deserialize, Serialize};
-use atp_core::{CoreError, ErrorKind};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -130,7 +130,11 @@ impl AutostartManager {
             if sys_candidate.exists() {
                 fs::read_to_string(&sys_candidate).unwrap_or_default()
             } else {
-                format!("[Desktop Entry]\nType=Application\nName={}\nExec={}\n", file_name.trim_end_matches(".desktop"), file_name)
+                format!(
+                    "[Desktop Entry]\nType=Application\nName={}\nExec={}\n",
+                    file_name.trim_end_matches(".desktop"),
+                    file_name
+                )
             }
         };
 
@@ -150,7 +154,10 @@ impl AutostartManager {
                 ErrorKind::Helper,
                 "helper.autostart_write_failed",
                 false,
-                format!("Failed writing autostart file {}: {e}", target_file.display()),
+                format!(
+                    "Failed writing autostart file {}: {e}",
+                    target_file.display()
+                ),
                 None,
             )
         })?;

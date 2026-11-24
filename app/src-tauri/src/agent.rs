@@ -1,8 +1,8 @@
-use std::sync::Arc;
-use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
 use atp_core::{CoreError, ErrorKind, Plan, RiskTier, Step, StepStatus};
 use atp_mcp::McpDispatcher;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -87,10 +87,10 @@ impl AgentEngine {
 
         let plan = match self.config.read().await.provider {
             LlmProviderKind::SovereignOffline => Self::decompose_heuristic(&req_id, trimmed),
-            LlmProviderKind::Ollama => {
-                self.decompose_with_ollama(&req_id, trimmed).await
-                    .unwrap_or_else(|_| Self::decompose_heuristic(&req_id, trimmed))
-            }
+            LlmProviderKind::Ollama => self
+                .decompose_with_ollama(&req_id, trimmed)
+                .await
+                .unwrap_or_else(|_| Self::decompose_heuristic(&req_id, trimmed)),
             LlmProviderKind::Claude | LlmProviderKind::OpenAi => {
                 Self::decompose_heuristic(&req_id, trimmed)
             }
@@ -129,10 +129,16 @@ impl AgentEngine {
                 "Purge unused package dependencies and Flatpak runtimes (Root action)",
                 serde_json::json!({ "backend": "all" }),
             );
-            purge_step.diff_summary = Some("Frees up ~800 MB across Flatpak and native runtimes".into());
+            purge_step.diff_summary =
+                Some("Frees up ~800 MB across Flatpak and native runtimes".into());
             plan.add_step(purge_step);
             plan.total_disk_delta_bytes = -800_000_000;
-        } else if lower.contains("slow") || lower.contains("cpu") || lower.contains("hot") || lower.contains("memory") || lower.contains("ram") {
+        } else if lower.contains("slow")
+            || lower.contains("cpu")
+            || lower.contains("hot")
+            || lower.contains("memory")
+            || lower.contains("ram")
+        {
             // Plan: Diagnostics & Top resource hogs
             plan.add_step(Step::new(
                 format!("{req_id}_s0"),
@@ -170,7 +176,8 @@ impl AgentEngine {
                 "Restore quarantined files atomically back to original paths",
                 serde_json::json!({ "sessionId": "latest" }),
             );
-            restore_step.diff_summary = Some("Restores files with SHA-256 byte parity verification".into());
+            restore_step.diff_summary =
+                Some("Restores files with SHA-256 byte parity verification".into());
             plan.add_step(restore_step);
         } else {
             // Default Plan: Comprehensive disk cleanup
@@ -191,7 +198,8 @@ impl AgentEngine {
                 "Move safe cache and temporary file targets into atomic quarantine store",
                 serde_json::json!({ "ruleIds": ["system-tmp", "chrome-cache", "system-thumbnails", "stale-node-modules"] }),
             );
-            clean_step.diff_summary = Some("Reclaims ~4.2 GB of storage with instant 1-click Undo".into());
+            clean_step.diff_summary =
+                Some("Reclaims ~4.2 GB of storage with instant 1-click Undo".into());
             plan.add_step(clean_step);
             plan.total_disk_delta_bytes = -4_509_715_660;
         }
@@ -204,7 +212,9 @@ impl AgentEngine {
         let (endpoint, model) = {
             let cfg = self.config.read().await;
             (
-                cfg.endpoint.clone().unwrap_or_else(|| "http://localhost:11434".into()),
+                cfg.endpoint
+                    .clone()
+                    .unwrap_or_else(|| "http://localhost:11434".into()),
                 cfg.model.clone(),
             )
         };
@@ -212,7 +222,15 @@ impl AgentEngine {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(5))
             .build()
-            .map_err(|e| CoreError::new(ErrorKind::Ipc, "agent.client_init_failed", false, e.to_string(), None))?;
+            .map_err(|e| {
+                CoreError::new(
+                    ErrorKind::Ipc,
+                    "agent.client_init_failed",
+                    false,
+                    e.to_string(),
+                    None,
+                )
+            })?;
 
         let system_prompt = "You are Agentic Tuneup Pro. Given a user request, suggest clean steps using tools: tuneup.scan_junk, tuneup.clean_junk, tuneup.get_health, tuneup.list_orphans, tuneup.purge_orphans. Respond concisely.";
 
@@ -223,15 +241,32 @@ impl AgentEngine {
         });
 
         let url = format!("{}/api/generate", endpoint.trim_end_matches('/'));
-        let res = client.post(&url).json(&req_body).send().await.map_err(|e| {
-            CoreError::new(ErrorKind::Ipc, "agent.ollama_unreachable", true, format!("Ollama unreachable: {e}"), None)
-        })?;
+        let res = client
+            .post(&url)
+            .json(&req_body)
+            .send()
+            .await
+            .map_err(|e| {
+                CoreError::new(
+                    ErrorKind::Ipc,
+                    "agent.ollama_unreachable",
+                    true,
+                    format!("Ollama unreachable: {e}"),
+                    None,
+                )
+            })?;
 
         if res.status().is_success() {
             // Successfully communicated with Ollama; return structured plan
             Ok(Self::decompose_heuristic(req_id, prompt))
         } else {
-            Err(CoreError::new(ErrorKind::Ipc, "agent.ollama_error", true, "Ollama returned error status", None))
+            Err(CoreError::new(
+                ErrorKind::Ipc,
+                "agent.ollama_error",
+                true,
+                "Ollama returned error status",
+                None,
+            ))
         }
     }
 
@@ -255,15 +290,33 @@ impl AgentEngine {
         let step_to_run = {
             let mut active = self.active_plan.write().await;
             let plan = active.as_mut().ok_or_else(|| {
-                CoreError::new(ErrorKind::Ipc, "agent.no_active_plan", false, "No active plan found.", None)
+                CoreError::new(
+                    ErrorKind::Ipc,
+                    "agent.no_active_plan",
+                    false,
+                    "No active plan found.",
+                    None,
+                )
             })?;
 
             if plan.plan_id != plan_id {
-                return Err(CoreError::new(ErrorKind::Ipc, "agent.plan_mismatch", false, "Plan ID mismatch.", None));
+                return Err(CoreError::new(
+                    ErrorKind::Ipc,
+                    "agent.plan_mismatch",
+                    false,
+                    "Plan ID mismatch.",
+                    None,
+                ));
             }
 
             let step = plan.steps.get_mut(step_index).ok_or_else(|| {
-                CoreError::new(ErrorKind::Ipc, "agent.step_not_found", false, "Step index out of range.", None)
+                CoreError::new(
+                    ErrorKind::Ipc,
+                    "agent.step_not_found",
+                    false,
+                    "Step index out of range.",
+                    None,
+                )
             })?;
 
             step.status = StepStatus::Executing;
@@ -292,14 +345,23 @@ impl AgentEngine {
             }
             res
         } else {
-            let err_obj = resp.error.map(|e| e.message).unwrap_or_else(|| "Tool failed".into());
+            let err_obj = resp
+                .error
+                .map(|e| e.message)
+                .unwrap_or_else(|| "Tool failed".into());
             let mut active = self.active_plan.write().await;
             if let Some(plan) = active.as_mut() {
                 if let Some(step) = plan.steps.get_mut(step_index) {
                     step.status = StepStatus::Failed;
                 }
             }
-            return Err(CoreError::new(ErrorKind::Mcp, "agent.step_execution_failed", false, err_obj, None));
+            return Err(CoreError::new(
+                ErrorKind::Mcp,
+                "agent.step_execution_failed",
+                false,
+                err_obj,
+                None,
+            ));
         };
 
         Ok(result)
@@ -309,15 +371,33 @@ impl AgentEngine {
     pub async fn reject_step(&self, plan_id: &str, step_index: usize) -> Result<(), CoreError> {
         let mut active = self.active_plan.write().await;
         let plan = active.as_mut().ok_or_else(|| {
-            CoreError::new(ErrorKind::Ipc, "agent.no_active_plan", false, "No active plan found.", None)
+            CoreError::new(
+                ErrorKind::Ipc,
+                "agent.no_active_plan",
+                false,
+                "No active plan found.",
+                None,
+            )
         })?;
 
         if plan.plan_id != plan_id {
-            return Err(CoreError::new(ErrorKind::Ipc, "agent.plan_mismatch", false, "Plan ID mismatch.", None));
+            return Err(CoreError::new(
+                ErrorKind::Ipc,
+                "agent.plan_mismatch",
+                false,
+                "Plan ID mismatch.",
+                None,
+            ));
         }
 
         let step = plan.steps.get_mut(step_index).ok_or_else(|| {
-            CoreError::new(ErrorKind::Ipc, "agent.step_not_found", false, "Step index out of range.", None)
+            CoreError::new(
+                ErrorKind::Ipc,
+                "agent.step_not_found",
+                false,
+                "Step index out of range.",
+                None,
+            )
         })?;
 
         step.status = StepStatus::Rejected;
@@ -351,7 +431,10 @@ mod tests {
         let dispatcher = Arc::new(McpDispatcher::new());
         let engine = AgentEngine::new(dispatcher);
 
-        let plan = engine.plan_from_prompt("Clean my system caches and temp files").await.unwrap();
+        let plan = engine
+            .plan_from_prompt("Clean my system caches and temp files")
+            .await
+            .unwrap();
         assert_eq!(plan.steps.len(), 2);
         assert_eq!(plan.steps[0].tool_name, "tuneup.scan_junk");
         assert_eq!(plan.steps[1].tool_name, "tuneup.clean_junk");
@@ -362,7 +445,10 @@ mod tests {
         let dispatcher = Arc::new(McpDispatcher::new());
         let engine = AgentEngine::new(dispatcher);
 
-        let plan = engine.plan_from_prompt("Purge unused orphan packages").await.unwrap();
+        let plan = engine
+            .plan_from_prompt("Purge unused orphan packages")
+            .await
+            .unwrap();
         assert_eq!(plan.steps.len(), 2);
         assert_eq!(plan.steps[0].tool_name, "tuneup.list_orphans");
         assert_eq!(plan.steps[1].tool_name, "tuneup.purge_orphans");
@@ -375,7 +461,10 @@ mod tests {
         let dispatcher = Arc::new(McpDispatcher::new());
         let engine = AgentEngine::new(dispatcher);
 
-        let plan = engine.plan_from_prompt("Purge unused orphan packages").await.unwrap();
+        let plan = engine
+            .plan_from_prompt("Purge unused orphan packages")
+            .await
+            .unwrap();
 
         // Reject without proper signature
         let res = engine.approve_step(&plan.plan_id, 1, "invalid_sig").await;

@@ -1,9 +1,8 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
-static PACKAGE_NAME_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[a-zA-Z0-9_\-\.\+]+$").expect("Valid regex")
-});
+static PACKAGE_NAME_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_\-\.\+]+$").expect("Valid regex"));
 
 static SERVICE_UNIT_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^[a-zA-Z0-9_\-\.\@]+\.(service|socket|timer)$").expect("Valid regex")
@@ -14,7 +13,10 @@ pub fn is_valid_package_name(name: &str) -> bool {
 }
 
 pub fn is_valid_package_action(action: &str) -> bool {
-    matches!(action, "install" | "remove" | "update" | "clean" | "autoremove")
+    matches!(
+        action,
+        "install" | "remove" | "update" | "clean" | "autoremove"
+    )
 }
 
 pub fn is_valid_backend(backend: &str) -> bool {
@@ -26,7 +28,10 @@ pub fn is_valid_service_unit(unit: &str) -> bool {
 }
 
 pub fn is_valid_service_action(action: &str) -> bool {
-    matches!(action, "start" | "stop" | "restart" | "enable" | "disable" | "status")
+    matches!(
+        action,
+        "start" | "stop" | "restart" | "enable" | "disable" | "status"
+    )
 }
 
 pub fn is_valid_signal(sig: i32) -> bool {

@@ -11,4 +11,6 @@ pub use diagnostics::{
 pub use health::{HealthDeduction, HealthScore};
 pub use monitor::TelemetryMonitor;
 pub use ring_buffer::RingBuffer;
-pub use sampler::{CpuSnapshot, DiskSnapshot, MemorySnapshot, NetworkSnapshot, Sampler, TelemetrySnapshot};
+pub use sampler::{
+    CpuSnapshot, DiskSnapshot, MemorySnapshot, NetworkSnapshot, Sampler, TelemetrySnapshot,
+};

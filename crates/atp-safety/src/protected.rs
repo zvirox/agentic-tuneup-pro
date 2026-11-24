@@ -1,5 +1,5 @@
-use std::path::{Component, Path};
 use atp_core::{CoreError, ErrorKind};
+use std::path::{Component, Path};
 
 pub struct ProtectedValidator;
 
@@ -21,16 +21,7 @@ impl ProtectedValidator {
     ];
 
     const SYSTEM_ROOT_PREFIXES: &'static [&'static str] = &[
-        "/etc",
-        "/boot",
-        "/sys",
-        "/proc",
-        "/dev",
-        "/root",
-        "/usr",
-        "/sbin",
-        "/bin",
-        "/lib",
+        "/etc", "/boot", "/sys", "/proc", "/dev", "/root", "/usr", "/sbin", "/bin", "/lib",
         "/lib64",
     ];
 
@@ -41,7 +32,7 @@ impl ProtectedValidator {
     /// cryptographic keys, keyrings, or protected system root hierarchies.
     pub fn validate(path: &Path) -> Result<(), CoreError> {
         Self::check_traversal(path)?;
-        
+
         let path_str = path.to_string_lossy();
         Self::check_forbidden_patterns(&path_str)?;
         Self::check_system_roots(&path_str)?;
@@ -194,7 +185,10 @@ mod tests {
             let validation = ProtectedValidator::validate(&link_path);
             let _ = std::fs::remove_file(&link_path);
             let _ = std::fs::remove_dir(&tmp_dir);
-            assert!(validation.is_err(), "Symlink pointing to /etc/shadow must be blocked");
+            assert!(
+                validation.is_err(),
+                "Symlink pointing to /etc/shadow must be blocked"
+            );
         }
     }
 

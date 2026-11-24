@@ -1,12 +1,12 @@
+use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
-use rayon::prelude::*;
-use serde::{Deserialize, Serialize};
 use sysinfo::{ProcessesToUpdate, System};
 
-use atp_safety::ProtectedValidator;
 use crate::rule::CleanerRule;
+use atp_safety::ProtectedValidator;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuleScanResult {
@@ -78,10 +78,7 @@ impl ParallelScanner {
             if !r.running_apps_blocking.is_empty() {
                 any_blocked = true;
             }
-            category_map
-                .entry(r.category.clone())
-                .or_default()
-                .push(r);
+            category_map.entry(r.category.clone()).or_default().push(r);
         }
 
         let mut categories = Vec::new();
@@ -240,7 +237,10 @@ mod tests {
             name: "Test Temp Files".into(),
             category: "system".into(),
             description: "Temporary files".into(),
-            paths: vec![format!("{temp_dir_str}/*.cache", temp_dir_str = temp_dir.display())],
+            paths: vec![format!(
+                "{temp_dir_str}/*.cache",
+                temp_dir_str = temp_dir.display()
+            )],
             requires_closed: vec![],
             risk_tier: 1,
             explanation: "Testing".into(),
@@ -260,7 +260,10 @@ mod tests {
     #[test]
     fn test_detects_running_process_lock() {
         let running = ParallelScanner::get_running_process_names();
-        assert!(!running.is_empty(), "Must detect at least one running process on Linux");
+        assert!(
+            !running.is_empty(),
+            "Must detect at least one running process on Linux"
+        );
         let sample_running = running.iter().next().unwrap().clone();
 
         let rule = CleanerRule {
@@ -275,7 +278,11 @@ mod tests {
         };
 
         let summary = ParallelScanner::scan_rules(&[rule]);
-        assert!(summary.blocked_by_running_apps, "Should detect running process: {}", sample_running);
+        assert!(
+            summary.blocked_by_running_apps,
+            "Should detect running process: {}",
+            sample_running
+        );
     }
 
     #[test]

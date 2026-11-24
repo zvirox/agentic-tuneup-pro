@@ -1,15 +1,15 @@
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::fs::{self, File};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
-use atp_core::{CoreError, ErrorKind, ExecutionResult};
 use crate::protected::ProtectedValidator;
+use atp_core::{CoreError, ErrorKind, ExecutionResult};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QuarantinedFile {
@@ -374,7 +374,10 @@ impl QuarantineStore {
         Ok(())
     }
 
-    fn write_manifest_atomic(manifest_path: &Path, manifest: &QuarantineManifest) -> Result<(), CoreError> {
+    fn write_manifest_atomic(
+        manifest_path: &Path,
+        manifest: &QuarantineManifest,
+    ) -> Result<(), CoreError> {
         let serialized = serde_json::to_string_pretty(manifest).map_err(|e| {
             CoreError::new(
                 ErrorKind::Cleaner,
@@ -437,7 +440,11 @@ mod tests {
 
         let session_id = "session_cycle_1";
         let manifest = store
-            .stage_files(session_id, &["rule.test".to_string()], &[file_a.clone(), file_b.clone()])
+            .stage_files(
+                session_id,
+                &["rule.test".to_string()],
+                &[file_a.clone(), file_b.clone()],
+            )
             .expect("Staging must succeed");
 
         assert_eq!(manifest.files.len(), 2);
@@ -446,9 +453,15 @@ mod tests {
 
         // Sub-second undo performance verification (< 200ms)
         let start = std::time::Instant::now();
-        let restore_res = store.restore_session(session_id).expect("Restore must succeed");
+        let restore_res = store
+            .restore_session(session_id)
+            .expect("Restore must succeed");
         let elapsed = start.elapsed();
-        assert!(elapsed.as_millis() < 200, "Sub-second undo must finish within 200ms, took {:?}", elapsed);
+        assert!(
+            elapsed.as_millis() < 200,
+            "Sub-second undo must finish within 200ms, took {:?}",
+            elapsed
+        );
 
         assert!(restore_res.success);
         assert_eq!(restore_res.files_affected, 2);
@@ -476,9 +489,19 @@ mod tests {
         let safe_file = work_dir.join("safe.tmp");
         fs::write(&safe_file, b"safe data").unwrap();
 
-        let res = store.stage_files("session_fail", &["rule.test".to_string()], &[safe_file.clone(), protected_file]);
-        assert!(res.is_err(), "Must reject entire staging if any protected path is present");
-        assert!(safe_file.exists(), "Safe file should remain untouched due to pre-validation failure");
+        let res = store.stage_files(
+            "session_fail",
+            &["rule.test".to_string()],
+            &[safe_file.clone(), protected_file],
+        );
+        assert!(
+            res.is_err(),
+            "Must reject entire staging if any protected path is present"
+        );
+        assert!(
+            safe_file.exists(),
+            "Safe file should remain untouched due to pre-validation failure"
+        );
 
         let _ = fs::remove_dir_all(&quarantine_dir);
         let _ = fs::remove_dir_all(&work_dir);
@@ -501,7 +524,10 @@ mod tests {
 
         let purged_bytes = store.purge_session(session_id).unwrap();
         assert_eq!(purged_bytes, 13);
-        assert!(!store.session_path(session_id).exists(), "Session dir must be gone");
+        assert!(
+            !store.session_path(session_id).exists(),
+            "Session dir must be gone"
+        );
 
         let _ = fs::remove_dir_all(&quarantine_dir);
         let _ = fs::remove_dir_all(&work_dir);

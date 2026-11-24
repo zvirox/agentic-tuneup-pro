@@ -1,13 +1,13 @@
+use crate::dispatcher::McpDispatcher;
+use crate::protocol::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use crate::security::verify_peer_cred;
+use atp_core::{CoreError, ErrorKind};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
 use tokio_util::sync::CancellationToken;
-use atp_core::{CoreError, ErrorKind};
-use crate::dispatcher::McpDispatcher;
-use crate::protocol::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
-use crate::security::verify_peer_cred;
 
 pub struct UnixSocketServer {
     socket_path: PathBuf,
@@ -36,7 +36,10 @@ impl UnixSocketServer {
                     ErrorKind::Mcp,
                     "mcp.socket_dir_create_failed",
                     false,
-                    format!("Failed creating bridge socket directory {}: {e}", parent.display()),
+                    format!(
+                        "Failed creating bridge socket directory {}: {e}",
+                        parent.display()
+                    ),
                     None,
                 )
             })?;
@@ -57,7 +60,10 @@ impl UnixSocketServer {
                 ErrorKind::Mcp,
                 "mcp.socket_bind_failed",
                 false,
-                format!("Failed binding Unix domain socket at {}: {e}", socket_path.display()),
+                format!(
+                    "Failed binding Unix domain socket at {}: {e}",
+                    socket_path.display()
+                ),
                 None,
             )
         })?;
@@ -114,7 +120,10 @@ impl UnixSocketServer {
     ) {
         // 1. Authenticate peer credentials via SO_PEERCRED
         if let Err(auth_err) = verify_peer_cred(&stream) {
-            eprintln!("[ATP-Bridge] Connection rejected: {}", auth_err.user_message);
+            eprintln!(
+                "[ATP-Bridge] Connection rejected: {}",
+                auth_err.user_message
+            );
             let err_resp = JsonRpcResponse::error(None, JsonRpcError::from_core_error(&auth_err));
             if let Ok(err_bytes) = serde_json::to_vec(&err_resp) {
                 let _ = stream.write_all(&err_bytes).await;
@@ -197,7 +206,9 @@ mod tests {
         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
 
         // Connect as client
-        let mut client = UnixStream::connect(&sock_path).await.expect("connect to socket");
+        let mut client = UnixStream::connect(&sock_path)
+            .await
+            .expect("connect to socket");
 
         // Send starship/hello
         let req = serde_json::json!({
@@ -213,7 +224,11 @@ mod tests {
         // Read response
         let (read_half, _) = client.into_split();
         let mut lines = BufReader::new(read_half).lines();
-        let line = lines.next_line().await.expect("read line").expect("has line");
+        let line = lines
+            .next_line()
+            .await
+            .expect("read line")
+            .expect("has line");
 
         let resp: JsonRpcResponse = serde_json::from_str(&line).expect("parse response");
         assert_eq!(resp.id, Some(serde_json::json!(1)));

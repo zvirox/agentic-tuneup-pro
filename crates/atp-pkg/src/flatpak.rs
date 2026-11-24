@@ -1,7 +1,7 @@
-use async_trait::async_trait;
-use atp_core::{CoreError, ErrorKind, RiskTier};
 use crate::backend::{PackageBackend, PackageInfo, PackagePlan, PackageUpdate};
 use crate::detector::HostSystemProfile;
+use async_trait::async_trait;
+use atp_core::{CoreError, ErrorKind, RiskTier};
 
 pub struct FlatpakBackend;
 
@@ -62,7 +62,11 @@ impl PackageBackend for FlatpakBackend {
         }
 
         let output = tokio::process::Command::new("flatpak")
-            .args(["search", query, "--columns=application,name,version,description"])
+            .args([
+                "search",
+                query,
+                "--columns=application,name,version,description",
+            ])
             .output()
             .await
             .map_err(|e| {
@@ -108,7 +112,11 @@ impl PackageBackend for FlatpakBackend {
         }
 
         let output = tokio::process::Command::new("flatpak")
-            .args(["list", "--app", "--columns=application,name,version,size,description"])
+            .args([
+                "list",
+                "--app",
+                "--columns=application,name,version,size,description",
+            ])
             .output()
             .await
             .map_err(|e| {
@@ -157,7 +165,11 @@ impl PackageBackend for FlatpakBackend {
         }
 
         let output = tokio::process::Command::new("flatpak")
-            .args(["remote-ls", "--updates", "--columns=application,name,version"])
+            .args([
+                "remote-ls",
+                "--updates",
+                "--columns=application,name,version",
+            ])
             .output()
             .await
             .map_err(|e| {
@@ -285,7 +297,10 @@ mod tests {
 
     #[test]
     fn test_parse_size_string() {
-        assert_eq!(FlatpakBackend::parse_size_string("1.2 GB"), Some(1288490188));
+        assert_eq!(
+            FlatpakBackend::parse_size_string("1.2 GB"),
+            Some(1288490188)
+        );
         assert_eq!(FlatpakBackend::parse_size_string("500 MB"), Some(524288000));
         assert_eq!(FlatpakBackend::parse_size_string("2048 KB"), Some(2097152));
         assert_eq!(FlatpakBackend::parse_size_string(""), None);

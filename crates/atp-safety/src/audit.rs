@@ -1,12 +1,12 @@
+use rusqlite::{Connection, params};
 use std::fs;
 use std::path::Path;
-use rusqlite::{Connection, params};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
-use atp_core::{AuditEntry, CoreError, ErrorKind, QuarantineSessionRecord, RuleStateRecord};
 use crate::quarantine::QuarantineManifest;
+use atp_core::{AuditEntry, CoreError, ErrorKind, QuarantineSessionRecord, RuleStateRecord};
 
 pub struct AuditStore {
     conn: Connection,
@@ -26,7 +26,10 @@ impl AuditStore {
                 ErrorKind::Db,
                 "db.open_failed",
                 false,
-                format!("Failed to open SQLite database at {}: {e}", db_path.display()),
+                format!(
+                    "Failed to open SQLite database at {}: {e}",
+                    db_path.display()
+                ),
                 None,
             )
         })?;
@@ -54,8 +57,9 @@ impl AuditStore {
     }
 
     fn run_migrations(&self) -> Result<(), CoreError> {
-        self.conn.execute_batch(
-            "PRAGMA journal_mode = WAL;
+        self.conn
+            .execute_batch(
+                "PRAGMA journal_mode = WAL;
              PRAGMA foreign_keys = ON;
              PRAGMA busy_timeout = 5000;
 
@@ -89,16 +93,17 @@ impl AuditStore {
                  enabled INTEGER NOT NULL DEFAULT 1,
                  custom_toml TEXT,
                  updated_at INTEGER NOT NULL
-             );"
-        ).map_err(|e| {
-            CoreError::new(
-                ErrorKind::Db,
-                "db.migration_failed",
-                false,
-                format!("Failed to execute database migrations: {e}"),
-                None,
+             );",
             )
-        })?;
+            .map_err(|e| {
+                CoreError::new(
+                    ErrorKind::Db,
+                    "db.migration_failed",
+                    false,
+                    format!("Failed to execute database migrations: {e}"),
+                    None,
+                )
+            })?;
 
         Ok(())
     }
@@ -166,9 +171,13 @@ impl AuditStore {
         })?;
 
         let rows = match initiator {
-            Some(init) => stmt.query_map(params![init, limit as i64, offset as i64], Self::map_audit_row),
+            Some(init) => stmt.query_map(
+                params![init, limit as i64, offset as i64],
+                Self::map_audit_row,
+            ),
             None => stmt.query_map(params![limit as i64, offset as i64], Self::map_audit_row),
-        }.map_err(|e| {
+        }
+        .map_err(|e| {
             CoreError::new(
                 ErrorKind::Db,
                 "db.query_failed",
@@ -212,7 +221,8 @@ impl AuditStore {
         manifest: &QuarantineManifest,
         expires_at: i64,
     ) -> Result<(), CoreError> {
-        let rule_ids_json = serde_json::to_string(&manifest.rule_ids).unwrap_or_else(|_| "[]".to_string());
+        let rule_ids_json =
+            serde_json::to_string(&manifest.rule_ids).unwrap_or_else(|_| "[]".to_string());
 
         self.conn.execute(
             "INSERT INTO quarantine_sessions
@@ -267,18 +277,20 @@ impl AuditStore {
     }
 
     pub fn mark_quarantine_purged(&self, session_id: &str) -> Result<(), CoreError> {
-        self.conn.execute(
-            "UPDATE quarantine_sessions SET status = 'purged' WHERE session_id = ?1",
-            params![session_id],
-        ).map_err(|e| {
-            CoreError::new(
-                ErrorKind::Db,
-                "db.write_failed",
-                false,
-                format!("Failed to mark quarantine session as purged: {e}"),
-                None,
+        self.conn
+            .execute(
+                "UPDATE quarantine_sessions SET status = 'purged' WHERE session_id = ?1",
+                params![session_id],
             )
-        })?;
+            .map_err(|e| {
+                CoreError::new(
+                    ErrorKind::Db,
+                    "db.write_failed",
+                    false,
+                    format!("Failed to mark quarantine session as purged: {e}"),
+                    None,
+                )
+            })?;
 
         Ok(())
     }
@@ -349,23 +361,25 @@ impl AuditStore {
             .unwrap_or_default()
             .as_secs() as i64;
 
-        self.conn.execute(
-            "INSERT INTO user_rules (rule_id, enabled, custom_toml, updated_at)
+        self.conn
+            .execute(
+                "INSERT INTO user_rules (rule_id, enabled, custom_toml, updated_at)
              VALUES (?1, ?2, ?3, ?4)
              ON CONFLICT(rule_id) DO UPDATE SET
                  enabled = excluded.enabled,
                  custom_toml = excluded.custom_toml,
                  updated_at = excluded.updated_at;",
-            params![rule_id, if enabled { 1 } else { 0 }, custom_toml, now],
-        ).map_err(|e| {
-            CoreError::new(
-                ErrorKind::Db,
-                "db.write_failed",
-                false,
-                format!("Failed to set user rule state: {e}"),
-                None,
+                params![rule_id, if enabled { 1 } else { 0 }, custom_toml, now],
             )
-        })?;
+            .map_err(|e| {
+                CoreError::new(
+                    ErrorKind::Db,
+                    "db.write_failed",
+                    false,
+                    format!("Failed to set user rule state: {e}"),
+                    None,
+                )
+            })?;
 
         Ok(())
     }
@@ -383,15 +397,17 @@ impl AuditStore {
             )
         })?;
 
-        let mut rows = stmt.query_map(params![rule_id], Self::map_rule_row).map_err(|e| {
-            CoreError::new(
-                ErrorKind::Db,
-                "db.query_failed",
-                false,
-                format!("Failed to execute rule state query: {e}"),
-                None,
-            )
-        })?;
+        let mut rows = stmt
+            .query_map(params![rule_id], Self::map_rule_row)
+            .map_err(|e| {
+                CoreError::new(
+                    ErrorKind::Db,
+                    "db.query_failed",
+                    false,
+                    format!("Failed to execute rule state query: {e}"),
+                    None,
+                )
+            })?;
 
         if let Some(first) = rows.next() {
             let record = first.map_err(|e| {
@@ -426,7 +442,8 @@ mod tests {
     use std::path::PathBuf;
 
     fn temp_db(name: &str) -> PathBuf {
-        let path = std::env::temp_dir().join(format!("atp_test_db_{name}_{}.sqlite", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("atp_test_db_{name}_{}.sqlite", std::process::id()));
         let _ = fs::remove_file(&path);
         path
     }
@@ -436,8 +453,26 @@ mod tests {
         let db_path = temp_db("audit");
         let store = AuditStore::open(&db_path).expect("DB open must succeed");
 
-        let id1 = store.record("user", "clean", "cache.thumbnails", 1, "success", "{\"bytes\": 1024}").unwrap();
-        let id2 = store.record("starship", "purge", "orphans", 3, "success", "{\"pkgs\": 2}").unwrap();
+        let id1 = store
+            .record(
+                "user",
+                "clean",
+                "cache.thumbnails",
+                1,
+                "success",
+                "{\"bytes\": 1024}",
+            )
+            .unwrap();
+        let id2 = store
+            .record(
+                "starship",
+                "purge",
+                "orphans",
+                3,
+                "success",
+                "{\"pkgs\": 2}",
+            )
+            .unwrap();
 
         assert!(id1 > 0);
         assert!(id2 > id1);
@@ -466,7 +501,9 @@ mod tests {
             files: vec![],
         };
 
-        store.record_quarantine_session(&manifest, 1700000000 + 7 * 86400).unwrap();
+        store
+            .record_quarantine_session(&manifest, 1700000000 + 7 * 86400)
+            .unwrap();
 
         let sessions = store.list_quarantine_sessions().unwrap();
         assert_eq!(sessions.len(), 1);
@@ -489,11 +526,23 @@ mod tests {
 
         assert!(store.get_rule_state("browser.cookies").unwrap().is_none());
 
-        store.set_rule_state("browser.cookies", false, Some("[keep_domains]\nlist = [\"github.com\"]")).unwrap();
+        store
+            .set_rule_state(
+                "browser.cookies",
+                false,
+                Some("[keep_domains]\nlist = [\"github.com\"]"),
+            )
+            .unwrap();
 
-        let state = store.get_rule_state("browser.cookies").unwrap().expect("Rule state must exist");
+        let state = store
+            .get_rule_state("browser.cookies")
+            .unwrap()
+            .expect("Rule state must exist");
         assert!(!state.enabled);
-        assert_eq!(state.custom_toml.as_deref(), Some("[keep_domains]\nlist = [\"github.com\"]"));
+        assert_eq!(
+            state.custom_toml.as_deref(),
+            Some("[keep_domains]\nlist = [\"github.com\"]")
+        );
 
         let _ = fs::remove_file(&db_path);
     }

@@ -125,7 +125,9 @@ impl Plan {
     }
 
     pub fn has_pending_approvals(&self) -> bool {
-        self.steps.iter().any(|s| s.status == StepStatus::WaitingApproval)
+        self.steps
+            .iter()
+            .any(|s| s.status == StepStatus::WaitingApproval)
     }
 
     pub fn is_executable(&self) -> bool {
@@ -161,8 +163,22 @@ mod tests {
     fn test_plan_approval_lifecycle() {
         let mut plan = Plan::new("p1", "Clean system caches and purge orphans");
 
-        let step1 = Step::new("s1", 0, "tuneup.scan_junk", RiskTier::Tier1Safe, "Scan caches", serde_json::json!({}));
-        let mut step2 = Step::new("s2", 1, "tuneup.purge_orphans", RiskTier::Tier3Destructive, "Purge 4 orphans", serde_json::json!({}));
+        let step1 = Step::new(
+            "s1",
+            0,
+            "tuneup.scan_junk",
+            RiskTier::Tier1Safe,
+            "Scan caches",
+            serde_json::json!({}),
+        );
+        let mut step2 = Step::new(
+            "s2",
+            1,
+            "tuneup.purge_orphans",
+            RiskTier::Tier3Destructive,
+            "Purge 4 orphans",
+            serde_json::json!({}),
+        );
 
         assert_eq!(step1.status, StepStatus::Pending);
         assert_eq!(step2.status, StepStatus::WaitingApproval);

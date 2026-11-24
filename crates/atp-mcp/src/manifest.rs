@@ -1,9 +1,9 @@
 #![allow(unsafe_code)]
 
+use atp_core::{CoreError, ErrorKind};
+use starship_plugin::{AppManifest, bridge_dir, manifest_dir};
 use std::fs;
 use std::path::{Path, PathBuf};
-use atp_core::{CoreError, ErrorKind};
-use starship_plugin::{bridge_dir, manifest_dir, AppManifest};
 
 /// Computes the default Starship manifest path:
 /// `$XDG_DATA_HOME/starship/plugins/atp.json` (fallback `~/.local/share/starship/plugins/atp.json`).
@@ -27,7 +27,10 @@ pub fn register_starship_manifest(socket_path: &Path) -> Result<PathBuf, CoreErr
                 ErrorKind::Mcp,
                 "mcp.manifest_dir_create_failed",
                 false,
-                format!("Failed creating Starship manifest directory {}: {e}", parent.display()),
+                format!(
+                    "Failed creating Starship manifest directory {}: {e}",
+                    parent.display()
+                ),
                 None,
             )
         })?;
@@ -67,7 +70,10 @@ pub fn register_starship_manifest(socket_path: &Path) -> Result<PathBuf, CoreErr
             ErrorKind::Mcp,
             "mcp.manifest_write_failed",
             false,
-            format!("Failed writing Starship manifest to {}: {e}", manifest_path.display()),
+            format!(
+                "Failed writing Starship manifest to {}: {e}",
+                manifest_path.display()
+            ),
             None,
         )
     })?;
@@ -76,7 +82,10 @@ pub fn register_starship_manifest(socket_path: &Path) -> Result<PathBuf, CoreErr
 }
 
 /// Unregisters the Starship manifest and cleans up the bridge socket.
-pub fn unregister_starship_manifest(manifest_path: &Path, socket_path: Option<&Path>) -> Result<(), CoreError> {
+pub fn unregister_starship_manifest(
+    manifest_path: &Path,
+    socket_path: Option<&Path>,
+) -> Result<(), CoreError> {
     if manifest_path.exists() {
         let _ = fs::remove_file(manifest_path);
     }
@@ -125,7 +134,10 @@ mod tests {
         let parsed = AppManifest::from_json(&content).unwrap();
         assert_eq!(parsed.app_id, "atp");
         assert_eq!(parsed.name, "Agentic Tuneup Pro");
-        assert_eq!(parsed.socket_path.as_deref(), Some(test_socket.to_string_lossy().as_ref()));
+        assert_eq!(
+            parsed.socket_path.as_deref(),
+            Some(test_socket.to_string_lossy().as_ref())
+        );
 
         let _ = unregister_starship_manifest(&registered_path, None);
         let _ = fs::remove_dir_all(&temp_dir);

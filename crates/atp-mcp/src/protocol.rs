@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use atp_core::{CoreError, ErrorKind};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct JsonRpcRequest {
@@ -147,7 +147,9 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
     vec![
         McpToolDefinition {
             name: "tuneup.get_health".into(),
-            description: "Returns System Health Score (0-100), telemetry status, and storage breakdown".into(),
+            description:
+                "Returns System Health Score (0-100), telemetry status, and storage breakdown"
+                    .into(),
             risk_tier: 1,
             parameters: serde_json::json!({
                 "type": "object",
@@ -156,7 +158,8 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.scan_junk".into(),
-            description: "Scans system, browser, package, and dev caches; returns reclaimable bytes".into(),
+            description:
+                "Scans system, browser, package, and dev caches; returns reclaimable bytes".into(),
             risk_tier: 1,
             parameters: serde_json::json!({
                 "type": "object",
@@ -173,7 +176,8 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.clean_junk".into(),
-            description: "Moves selected rule targets to quarantine. Generates an undo session ID.".into(),
+            description: "Moves selected rule targets to quarantine. Generates an undo session ID."
+                .into(),
             risk_tier: 2,
             parameters: serde_json::json!({
                 "type": "object",
@@ -188,7 +192,8 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.restore_quarantine".into(),
-            description: "Restores a previous quarantine session's files back to original paths".into(),
+            description: "Restores a previous quarantine session's files back to original paths"
+                .into(),
             risk_tier: 2,
             parameters: serde_json::json!({
                 "type": "object",
@@ -200,7 +205,9 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.purge_quarantine".into(),
-            description: "Permanently deletes quarantined files for a specific session or older than N days".into(),
+            description:
+                "Permanently deletes quarantined files for a specific session or older than N days"
+                    .into(),
             risk_tier: 3,
             parameters: serde_json::json!({
                 "type": "object",
@@ -212,7 +219,8 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.list_packages".into(),
-            description: "Lists installed packages across active backends (flatpak, native, appimage)".into(),
+            description:
+                "Lists installed packages across active backends (flatpak, native, appimage)".into(),
             risk_tier: 1,
             parameters: serde_json::json!({
                 "type": "object",
@@ -223,7 +231,8 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.list_orphans".into(),
-            description: "Scans package managers for unused dependencies and flatpak runtimes".into(),
+            description: "Scans package managers for unused dependencies and flatpak runtimes"
+                .into(),
             risk_tier: 1,
             parameters: serde_json::json!({
                 "type": "object",
@@ -248,7 +257,9 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.purge_orphans".into(),
-            description: "Removes unused package dependencies and unused Flatpak runtimes (Root action)".into(),
+            description:
+                "Removes unused package dependencies and unused Flatpak runtimes (Root action)"
+                    .into(),
             risk_tier: 3,
             parameters: serde_json::json!({
                 "type": "object",
@@ -263,7 +274,9 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "atp.system.clean_package_cache".into(),
-            description: "Purges obsolete package caches and orphaned libraries to reclaim disk space.".into(),
+            description:
+                "Purges obsolete package caches and orphaned libraries to reclaim disk space."
+                    .into(),
             risk_tier: 3,
             parameters: serde_json::json!({
                 "type": "object",
@@ -302,7 +315,8 @@ pub fn default_mcp_tools() -> Vec<McpToolDefinition> {
         },
         McpToolDefinition {
             name: "tuneup.get_audit_log".into(),
-            description: "Retrieves recent audit log entries of cleaner and administrative actions".into(),
+            description: "Retrieves recent audit log entries of cleaner and administrative actions"
+                .into(),
             risk_tier: 1,
             parameters: serde_json::json!({
                 "type": "object",

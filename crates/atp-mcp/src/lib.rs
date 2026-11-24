@@ -11,7 +11,7 @@ pub use manifest::{
     unregister_starship_manifest,
 };
 pub use protocol::{
-    default_mcp_tools, JsonRpcError, JsonRpcRequest, JsonRpcResponse, McpToolDefinition,
+    JsonRpcError, JsonRpcRequest, JsonRpcResponse, McpToolDefinition, default_mcp_tools,
 };
 pub use security::verify_peer_cred;
 pub use server::UnixSocketServer;

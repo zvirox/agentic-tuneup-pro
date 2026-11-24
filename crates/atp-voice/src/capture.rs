@@ -2,8 +2,8 @@
 
 use crate::vad::{VadConfig, VadDetector, VadState};
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::broadcast;
 
 /// Emitted by the audio capture stream for UI rendering and agent ingestion.

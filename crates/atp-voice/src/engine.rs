@@ -6,7 +6,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum VoiceError {
-    #[error("Whisper model file not found at {0}. Model must be downloaded to ~/.local/share/atp/models/")]
+    #[error(
+        "Whisper model file not found at {0}. Model must be downloaded to ~/.local/share/atp/models/"
+    )]
     ModelNotFound(PathBuf),
     #[error("Audio buffer too short to transcribe: {0} samples")]
     AudioTooShort(usize),
@@ -38,7 +40,9 @@ impl WhisperEngine {
 
     pub fn resolve_default_model_path() -> PathBuf {
         if let Ok(xdg_data) = std::env::var("XDG_DATA_HOME") {
-            PathBuf::from(xdg_data).join("atp/models").join(Self::DEFAULT_MODEL_NAME)
+            PathBuf::from(xdg_data)
+                .join("atp/models")
+                .join(Self::DEFAULT_MODEL_NAME)
         } else if let Ok(home) = std::env::var("HOME") {
             PathBuf::from(home)
                 .join(".local/share/atp/models")
@@ -98,8 +102,15 @@ mod tests {
     fn test_model_status_path_resolution() {
         let engine = WhisperEngine::new();
         let status = engine.check_model_status();
-        assert!(status.model_path.ends_with(WhisperEngine::DEFAULT_MODEL_NAME));
-        assert_eq!(status.expected_size_bytes, WhisperEngine::EXPECTED_BASE_SIZE);
+        assert!(
+            status
+                .model_path
+                .ends_with(WhisperEngine::DEFAULT_MODEL_NAME)
+        );
+        assert_eq!(
+            status.expected_size_bytes,
+            WhisperEngine::EXPECTED_BASE_SIZE
+        );
     }
 
     #[test]

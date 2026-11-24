@@ -1,8 +1,8 @@
-use atp_core::{CoreError, ErrorKind};
 use crate::appimage::AppImageBackend;
 use crate::backend::{PackageBackend, PackageInfo, PackagePlan, PackageUpdate};
 use crate::flatpak::FlatpakBackend;
 use crate::native::NativeBackend;
+use atp_core::{CoreError, ErrorKind};
 
 pub struct PackageManagerManager {
     backends: Vec<Box<dyn PackageBackend>>,
@@ -44,7 +44,10 @@ impl PackageManagerManager {
         &self.backends
     }
 
-    pub async fn list_all_installed(&self, backend_filter: Option<&str>) -> Result<Vec<PackageInfo>, CoreError> {
+    pub async fn list_all_installed(
+        &self,
+        backend_filter: Option<&str>,
+    ) -> Result<Vec<PackageInfo>, CoreError> {
         let mut all_packages = Vec::new();
 
         for backend in &self.backends {

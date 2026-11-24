@@ -1,15 +1,15 @@
 #![allow(unsafe_code)]
 
+use crate::protocol::{JsonRpcError, JsonRpcRequest, JsonRpcResponse, default_mcp_tools};
+use atp_cleaner::{CleanerExecutor, ParallelScanner, RuleEngine};
+use atp_core::{CoreError, ErrorKind};
+use atp_monitor::{HealthScore, Sampler};
+use atp_safety::{AuditStore, QuarantineStore};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
 use tokio_util::sync::CancellationToken;
-use atp_core::{CoreError, ErrorKind};
-use atp_cleaner::{CleanerExecutor, ParallelScanner, RuleEngine};
-use atp_monitor::{HealthScore, Sampler};
-use atp_safety::{AuditStore, QuarantineStore};
-use crate::protocol::{default_mcp_tools, JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 
 /// Central dispatcher for MCP and Starship JSON-RPC requests.
 pub struct McpDispatcher {
@@ -62,15 +62,9 @@ impl McpDispatcher {
                 });
                 JsonRpcResponse::success(req_id, payload)
             }
-            "ping" => {
-                JsonRpcResponse::success(req_id, serde_json::json!({}))
-            }
-            "tools/call" => {
-                self.handle_tool_call(req_id, req.params).await
-            }
-            "tools/cancel" => {
-                self.handle_tool_cancel(req_id, req.params).await
-            }
+            "ping" => JsonRpcResponse::success(req_id, serde_json::json!({})),
+            "tools/call" => self.handle_tool_call(req_id, req.params).await,
+            "tools/cancel" => self.handle_tool_cancel(req_id, req.params).await,
             unknown_method => {
                 JsonRpcResponse::error(req_id, JsonRpcError::method_not_found(unknown_method))
             }
@@ -87,7 +81,9 @@ impl McpDispatcher {
             None => {
                 return JsonRpcResponse::error(
                     req_id,
-                    JsonRpcError::invalid_params("Missing required 'name' field in tools/call params"),
+                    JsonRpcError::invalid_params(
+                        "Missing required 'name' field in tools/call params",
+                    ),
                 );
             }
         };
@@ -100,7 +96,10 @@ impl McpDispatcher {
             .unwrap_or(30_000);
 
         let cancel_token = CancellationToken::new();
-        let call_key = req_id.as_ref().map(|id| id.to_string()).unwrap_or_else(|| tool_name.to_string());
+        let call_key = req_id
+            .as_ref()
+            .map(|id| id.to_string())
+            .unwrap_or_else(|| tool_name.to_string());
 
         {
             let mut tokens = self.active_tokens.write().await;
@@ -141,7 +140,9 @@ impl McpDispatcher {
 
         match res {
             Ok(output) => JsonRpcResponse::success(req_id, output),
-            Err(core_err) => JsonRpcResponse::error(req_id, JsonRpcError::from_core_error(&core_err)),
+            Err(core_err) => {
+                JsonRpcResponse::error(req_id, JsonRpcError::from_core_error(&core_err))
+            }
         }
     }
 
@@ -155,7 +156,9 @@ impl McpDispatcher {
             None => {
                 return JsonRpcResponse::error(
                     req_id,
-                    JsonRpcError::invalid_params("Missing required 'callId' in tools/cancel params"),
+                    JsonRpcError::invalid_params(
+                        "Missing required 'callId' in tools/cancel params",
+                    ),
                 );
             }
         };
@@ -163,9 +166,15 @@ impl McpDispatcher {
         let tokens = self.active_tokens.read().await;
         if let Some(token) = tokens.get(&call_id) {
             token.cancel();
-            JsonRpcResponse::success(req_id, serde_json::json!({ "cancelled": true, "callId": call_id }))
+            JsonRpcResponse::success(
+                req_id,
+                serde_json::json!({ "cancelled": true, "callId": call_id }),
+            )
         } else {
-            JsonRpcResponse::success(req_id, serde_json::json!({ "cancelled": false, "reason": "call not active" }))
+            JsonRpcResponse::success(
+                req_id,
+                serde_json::json!({ "cancelled": false, "reason": "call not active" }),
+            )
         }
     }
 
@@ -215,13 +224,8 @@ impl McpDispatcher {
             0.0
         };
 
-        let health = HealthScore::calculate(
-            disk_pct,
-            mem_pct,
-            snapshot.cpu.temperature_celsius,
-            0,
-            0,
-        );
+        let health =
+            HealthScore::calculate(disk_pct, mem_pct, snapshot.cpu.temperature_celsius, 0, 0);
 
         Ok(serde_json::json!({
             "score": health.score,
@@ -231,7 +235,10 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_scan_junk(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_scan_junk(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         let engine = RuleEngine::discover_and_load()?;
         let mut rules = engine.rules().to_vec();
 
@@ -255,7 +262,10 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_clean_junk(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_clean_junk(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         let rule_ids = args
             .get("ruleIds")
             .and_then(|v| v.as_array())
@@ -305,7 +315,10 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_clean_package_cache(&self, _args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_clean_package_cache(
+        &self,
+        _args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         let engine = RuleEngine::discover_and_load()?;
         let pkg_rule_ids: Vec<serde_json::Value> = engine
             .rules()
@@ -327,7 +340,10 @@ impl McpDispatcher {
         self.tool_clean_junk(&clean_args).await
     }
 
-    async fn tool_restore_quarantine(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_restore_quarantine(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         let session_id = args
             .get("sessionId")
             .and_then(|v| v.as_str())
@@ -363,11 +379,15 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_purge_quarantine(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_purge_quarantine(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         let q_store = QuarantineStore::default_store();
         let audit_store = AuditStore::default_store()?;
 
-        let bytes_deleted = if let Some(session_id) = args.get("sessionId").and_then(|v| v.as_str()) {
+        let bytes_deleted = if let Some(session_id) = args.get("sessionId").and_then(|v| v.as_str())
+        {
             let bytes = q_store.purge_session(session_id)?;
             let details_json = serde_json::json!({ "bytes_deleted": bytes }).to_string();
             let _ = audit_store.record(
@@ -399,17 +419,17 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_list_processes(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_list_processes(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         let limit = args
             .get("limit")
             .and_then(|v| v.as_u64())
             .map(|v| v as usize)
             .unwrap_or(25);
 
-        let sort_by = args
-            .get("sortBy")
-            .and_then(|v| v.as_str())
-            .unwrap_or("cpu");
+        let sort_by = args.get("sortBy").and_then(|v| v.as_str()).unwrap_or("cpu");
 
         let mut sys = sysinfo::System::new();
         sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
@@ -449,19 +469,19 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_kill_process(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
-        let pid = args
-            .get("pid")
-            .and_then(|v| v.as_u64())
-            .ok_or_else(|| {
-                CoreError::new(
-                    ErrorKind::Mcp,
-                    "mcp.invalid_arguments",
-                    false,
-                    "tuneup.kill_process requires a numeric 'pid'.",
-                    None,
-                )
-            })? as u32;
+    async fn tool_kill_process(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
+        let pid = args.get("pid").and_then(|v| v.as_u64()).ok_or_else(|| {
+            CoreError::new(
+                ErrorKind::Mcp,
+                "mcp.invalid_arguments",
+                false,
+                "tuneup.kill_process requires a numeric 'pid'.",
+                None,
+            )
+        })? as u32;
 
         // Reject values that would wrap to pid 0 / -1 (process group / every process) after
         // the i32 cast, and PID 1; then go through the guarded ProcessManager path.
@@ -495,7 +515,10 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_get_audit_log(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_get_audit_log(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         let limit = args
             .get("limit")
             .and_then(|v| v.as_u64())
@@ -511,7 +534,10 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_list_packages(&self, _args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
+    async fn tool_list_packages(
+        &self,
+        _args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
         // Query flatpak if available on the system
         let mut packages = Vec::new();
 
@@ -552,7 +578,11 @@ impl McpDispatcher {
         let mut orphans = Vec::new();
 
         if let Ok(output) = tokio::process::Command::new("flatpak")
-            .args(["list", "--runtime", "--columns=application,name,version,size"])
+            .args([
+                "list",
+                "--runtime",
+                "--columns=application,name,version,size",
+            ])
             .output()
             .await
         {
@@ -578,10 +608,22 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_remove_packages(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
-        let package_ids = args.get("packageIds").and_then(|v| v.as_array()).ok_or_else(|| {
-            CoreError::new(ErrorKind::Mcp, "mcp.invalid_arguments", false, "Missing 'packageIds'", None)
-        })?;
+    async fn tool_remove_packages(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
+        let package_ids = args
+            .get("packageIds")
+            .and_then(|v| v.as_array())
+            .ok_or_else(|| {
+                CoreError::new(
+                    ErrorKind::Mcp,
+                    "mcp.invalid_arguments",
+                    false,
+                    "Missing 'packageIds'",
+                    None,
+                )
+            })?;
 
         Ok(serde_json::json!({
             "status": "prepared",
@@ -591,8 +633,14 @@ impl McpDispatcher {
         }))
     }
 
-    async fn tool_purge_orphans(&self, args: &serde_json::Value) -> Result<serde_json::Value, CoreError> {
-        let backend = args.get("backend").and_then(|v| v.as_str()).unwrap_or("flatpak");
+    async fn tool_purge_orphans(
+        &self,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, CoreError> {
+        let backend = args
+            .get("backend")
+            .and_then(|v| v.as_str())
+            .unwrap_or("flatpak");
 
         Ok(serde_json::json!({
             "status": "prepared",
@@ -637,10 +685,18 @@ mod tests {
 
         let resp = dispatcher.dispatch(req).await;
         let res = resp.result.expect("result");
-        let tools = res.get("tools").and_then(|v| v.as_array()).expect("tools array");
+        let tools = res
+            .get("tools")
+            .and_then(|v| v.as_array())
+            .expect("tools array");
         assert!(tools.len() >= 10);
-        let has_pkg_clean = tools.iter().any(|t| t.get("name").and_then(|n| n.as_str()) == Some("atp.system.clean_package_cache"));
-        assert!(has_pkg_clean, "Expected atp.system.clean_package_cache in tools list");
+        let has_pkg_clean = tools.iter().any(|t| {
+            t.get("name").and_then(|n| n.as_str()) == Some("atp.system.clean_package_cache")
+        });
+        assert!(
+            has_pkg_clean,
+            "Expected atp.system.clean_package_cache in tools list"
+        );
     }
 
     #[tokio::test]

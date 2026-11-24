@@ -1,8 +1,8 @@
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::{broadcast, RwLock};
 use crate::ring_buffer::RingBuffer;
 use crate::sampler::{Sampler, TelemetrySnapshot};
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::{RwLock, broadcast};
 
 #[derive(Clone)]
 pub struct TelemetryMonitor {

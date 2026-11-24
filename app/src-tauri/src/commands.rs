@@ -1,6 +1,7 @@
-use std::sync::Arc;
-use tauri::{command, State};
-use atp_cleaner::{CleanExecutionOutput, CleanerExecutor, ParallelScanner, RuleEngine, ScanSummary};
+use crate::agent::{AgentConfig, AgentEngine};
+use atp_cleaner::{
+    CleanExecutionOutput, CleanerExecutor, ParallelScanner, RuleEngine, ScanSummary,
+};
 use atp_core::{AuditEntry, ExecutionResult, Plan, QuarantineSessionRecord};
 use atp_monitor::{
     DiagnosticEngine, DiagnosticReport, HealthScore, TelemetryMonitor, TelemetrySnapshot,
@@ -11,10 +12,12 @@ use atp_procs::{
     SystemdManager,
 };
 use atp_safety::{
-    AuditStore, QuarantineStore, SnapshotCapability, SnapshotManager, SnapshotProvider, SnapshotRecord,
+    AuditStore, QuarantineStore, SnapshotCapability, SnapshotManager, SnapshotProvider,
+    SnapshotRecord,
 };
 use atp_voice::{AudioCaptureSession, WhisperEngine, WhisperModelStatus};
-use crate::agent::{AgentConfig, AgentEngine};
+use std::sync::Arc;
+use tauri::{State, command};
 
 #[command]
 pub async fn cleaner_scan(categories: Option<Vec<String>>) -> Result<ScanSummary, String> {
@@ -64,7 +67,9 @@ pub async fn cleaner_execute_clean(
 pub async fn cleaner_list_quarantine() -> Result<Vec<QuarantineSessionRecord>, String> {
     tokio::task::spawn_blocking(|| {
         let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
-        audit_store.list_quarantine_sessions().map_err(|e| e.to_string())
+        audit_store
+            .list_quarantine_sessions()
+            .map_err(|e| e.to_string())
     })
     .await
     .map_err(|e| e.to_string())?
@@ -76,7 +81,9 @@ pub async fn cleaner_restore_quarantine(session_id: String) -> Result<ExecutionR
         let q_store = QuarantineStore::default_store();
         let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
 
-        let res = q_store.restore_session(&session_id).map_err(|e| e.to_string())?;
+        let res = q_store
+            .restore_session(&session_id)
+            .map_err(|e| e.to_string())?;
         let _ = audit_store.mark_quarantine_restored(&session_id);
         let _ = audit_store.record(
             "user",
@@ -99,7 +106,9 @@ pub async fn cleaner_purge_quarantine(session_id: String) -> Result<u64, String>
         let q_store = QuarantineStore::default_store();
         let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
 
-        let bytes = q_store.purge_session(&session_id).map_err(|e| e.to_string())?;
+        let bytes = q_store
+            .purge_session(&session_id)
+            .map_err(|e| e.to_string())?;
         let _ = audit_store.mark_quarantine_purged(&session_id);
         let _ = audit_store.record(
             "user",
@@ -147,9 +156,7 @@ pub async fn telemetry_get_history(
 }
 
 #[command]
-pub async fn health_get_score(
-    monitor: State<'_, TelemetryMonitor>,
-) -> Result<HealthScore, String> {
+pub async fn health_get_score(monitor: State<'_, TelemetryMonitor>) -> Result<HealthScore, String> {
     let snapshot = monitor.get_latest().await;
     let disk_pct = if snapshot.disk.total_bytes > 0 {
         (snapshot.disk.used_bytes as f32 / snapshot.disk.total_bytes as f32) * 100.0
@@ -173,7 +180,9 @@ pub async fn health_get_score(
 // ======================== Package Management Commands ========================
 
 #[command]
-pub async fn pkg_list_installed(backend_filter: Option<String>) -> Result<Vec<PackageInfo>, String> {
+pub async fn pkg_list_installed(
+    backend_filter: Option<String>,
+) -> Result<Vec<PackageInfo>, String> {
     let manager = PackageManagerManager::new();
     manager
         .list_all_installed(backend_filter.as_deref())
@@ -211,7 +220,9 @@ pub async fn pkg_prepare_action(
 #[command]
 pub async fn proc_list(sort_by: Option<String>) -> Result<Vec<ProcessEntry>, String> {
     tokio::task::spawn_blocking(move || {
-        Ok(ProcessManager::list_processes(sort_by.as_deref().unwrap_or("cpu")))
+        Ok(ProcessManager::list_processes(
+            sort_by.as_deref().unwrap_or("cpu"),
+        ))
     })
     .await
     .map_err(|e| e.to_string())?
@@ -220,7 +231,9 @@ pub async fn proc_list(sort_by: Option<String>) -> Result<Vec<ProcessEntry>, Str
 #[command]
 pub async fn proc_list_groups(sort_by: Option<String>) -> Result<Vec<AppProcessGroup>, String> {
     tokio::task::spawn_blocking(move || {
-        Ok(ProcessManager::list_app_groups(sort_by.as_deref().unwrap_or("cpu")))
+        Ok(ProcessManager::list_app_groups(
+            sort_by.as_deref().unwrap_or("cpu"),
+        ))
     })
     .await
     .map_err(|e| e.to_string())?
@@ -280,7 +293,10 @@ pub async fn agent_send_prompt(
     prompt: String,
     engine: State<'_, Arc<AgentEngine>>,
 ) -> Result<Plan, String> {
-    engine.plan_from_prompt(&prompt).await.map_err(|e| e.to_string())
+    engine
+        .plan_from_prompt(&prompt)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[command]
@@ -316,17 +332,13 @@ pub async fn agent_reject_step(
 }
 
 #[command]
-pub async fn agent_abort(
-    engine: State<'_, Arc<AgentEngine>>,
-) -> Result<(), String> {
+pub async fn agent_abort(engine: State<'_, Arc<AgentEngine>>) -> Result<(), String> {
     engine.abort_plan().await;
     Ok(())
 }
 
 #[command]
-pub async fn agent_get_config(
-    engine: State<'_, Arc<AgentEngine>>,
-) -> Result<AgentConfig, String> {
+pub async fn agent_get_config(engine: State<'_, Arc<AgentEngine>>) -> Result<AgentConfig, String> {
     Ok(engine.get_config().await)
 }
 
@@ -358,13 +370,7 @@ pub async fn diagnostic_run_analysis(
     } else {
         0.0
     };
-    let health = HealthScore::calculate(
-        disk_pct,
-        mem_pct,
-        snapshot.cpu.temperature_celsius,
-        0,
-        0,
-    );
+    let health = HealthScore::calculate(disk_pct, mem_pct, snapshot.cpu.temperature_celsius, 0, 0);
 
     // Fetch top processes to correlate potential runaway hogs
     let procs = ProcessManager::list_processes("cpu")
@@ -373,7 +379,11 @@ pub async fn diagnostic_run_analysis(
         .map(|p| (p.name, p.pid, p.cpu_percent, p.memory_bytes))
         .collect::<Vec<_>>();
 
-    Ok(DiagnosticEngine::analyze(&snapshot, health.score.into(), &procs))
+    Ok(DiagnosticEngine::analyze(
+        &snapshot,
+        health.score.into(),
+        &procs,
+    ))
 }
 
 #[command]
@@ -384,9 +394,13 @@ pub async fn diagnostic_apply_fix(
     match action_type.as_str() {
         "kill_process" => {
             if let Some(pid_str) = target {
-                let pid: u32 = pid_str.parse().map_err(|e: std::num::ParseIntError| e.to_string())?;
+                let pid: u32 = pid_str
+                    .parse()
+                    .map_err(|e: std::num::ParseIntError| e.to_string())?;
                 ProcessManager::kill_process_tree(pid, 15).map_err(|e| e.to_string())?;
-                Ok(format!("Successfully terminated runaway process tree (PID {pid})"))
+                Ok(format!(
+                    "Successfully terminated runaway process tree (PID {pid})"
+                ))
             } else {
                 Err("Missing target PID for kill_process action".to_string())
             }
@@ -396,20 +410,25 @@ pub async fn diagnostic_apply_fix(
             let q_store = QuarantineStore::default_store();
             let audit_store = AuditStore::default_store().map_err(|e| e.to_string())?;
             let rule_ids: Vec<String> = engine.rules().iter().map(|r| r.id.clone()).collect();
-            let res = CleanerExecutor::execute_clean(&rule_ids, engine.rules(), &q_store, &audit_store)
-                .map_err(|e| e.to_string())?;
-            Ok(format!("Cleaned and quarantined {} files ({:.2} MB freed)", res.files_count, res.bytes_freed as f64 / 1_000_000.0))
+            let res =
+                CleanerExecutor::execute_clean(&rule_ids, engine.rules(), &q_store, &audit_store)
+                    .map_err(|e| e.to_string())?;
+            Ok(format!(
+                "Cleaned and quarantined {} files ({:.2} MB freed)",
+                res.files_count,
+                res.bytes_freed as f64 / 1_000_000.0
+            ))
         }
-        "reduce_effects" => {
-            Ok("Reduce effects mode recommendation confirmed".to_string())
-        }
+        "reduce_effects" => Ok("Reduce effects mode recommendation confirmed".to_string()),
         "lower_priority" => {
             if let Some(pid_str) = target {
                 // Renice PID to +10 (lower priority)
                 let _ = std::process::Command::new("renice")
                     .args(["+10", "-p", &pid_str])
                     .output();
-                Ok(format!("Lowered I/O and CPU priority for process {pid_str}"))
+                Ok(format!(
+                    "Lowered I/O and CPU priority for process {pid_str}"
+                ))
             } else {
                 Err("Missing target PID for lower_priority action".to_string())
             }
@@ -471,9 +490,7 @@ pub async fn voice_start_capture(
 }
 
 #[command]
-pub fn voice_stop_capture(
-    session: State<'_, Arc<AudioCaptureSession>>,
-) -> Result<String, String> {
+pub fn voice_stop_capture(session: State<'_, Arc<AudioCaptureSession>>) -> Result<String, String> {
     session.stop();
     let engine = WhisperEngine::new();
     let sample = vec![0.15f32; 16000 * 2]; // 2 seconds audio

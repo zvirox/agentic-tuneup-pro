@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use atp_core::{CoreError, ErrorKind};
+use serde::{Deserialize, Serialize};
 
 pub const PROTECTED_SERVICES: &[&str] = &[
     "dbus.service",
@@ -35,7 +35,13 @@ impl SystemdManager {
         if user_mode {
             cmd.arg("--user");
         }
-        cmd.args(["list-units", "--type=service", "--all", "--no-pager", "--plain"]);
+        cmd.args([
+            "list-units",
+            "--type=service",
+            "--all",
+            "--no-pager",
+            "--plain",
+        ]);
 
         let output = cmd.output().await.map_err(|e| {
             CoreError::new(
@@ -52,7 +58,10 @@ impl SystemdManager {
             let text = String::from_utf8_lossy(&output.stdout);
             for line in text.lines() {
                 let trimmed = line.trim();
-                if trimmed.is_empty() || trimmed.starts_with("LOAD") || trimmed.starts_with("To show") {
+                if trimmed.is_empty()
+                    || trimmed.starts_with("LOAD")
+                    || trimmed.starts_with("To show")
+                {
                     continue;
                 }
 
@@ -91,7 +100,9 @@ impl SystemdManager {
                 ErrorKind::Helper,
                 "helper.invalid_service_action",
                 false,
-                format!("Invalid service action '{action}'. Allowed: start, stop, restart, enable, disable, reload"),
+                format!(
+                    "Invalid service action '{action}'. Allowed: start, stop, restart, enable, disable, reload"
+                ),
                 None,
             ));
         }
@@ -101,7 +112,9 @@ impl SystemdManager {
                 ErrorKind::Safety,
                 "safety.protected_service_action",
                 false,
-                format!("Service '{unit_name}' is a protected core system service and cannot be stopped or disabled."),
+                format!(
+                    "Service '{unit_name}' is a protected core system service and cannot be stopped or disabled."
+                ),
                 Some(serde_json::json!({ "unitName": unit_name, "action": action })),
             ));
         }
@@ -131,7 +144,9 @@ impl SystemdManager {
                 "helper.service_action_failed",
                 false,
                 format!("systemctl {action} {unit_name} failed: {stderr}"),
-                Some(serde_json::json!({ "unitName": unit_name, "action": action, "stderr": stderr })),
+                Some(
+                    serde_json::json!({ "unitName": unit_name, "action": action, "stderr": stderr }),
+                ),
             ))
         }
     }
@@ -144,7 +159,9 @@ mod tests {
     #[test]
     fn test_protected_service_check() {
         assert!(SystemdManager::is_protected_service("dbus.service"));
-        assert!(SystemdManager::is_protected_service("systemd-logind.service"));
+        assert!(SystemdManager::is_protected_service(
+            "systemd-logind.service"
+        ));
         assert!(!SystemdManager::is_protected_service("cups.service"));
         assert!(!SystemdManager::is_protected_service("bluetooth.service"));
     }

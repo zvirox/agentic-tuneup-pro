@@ -265,11 +265,17 @@ impl DiagnosticEngine {
 
         let mut recommendations = Vec::new();
         if issues.is_empty() {
-            recommendations.push("Keep system packages updated to maintain peak driver efficiency.".to_string());
+            recommendations.push(
+                "Keep system packages updated to maintain peak driver efficiency.".to_string(),
+            );
         } else {
-            recommendations.push("Apply one-click remediations below to instantly relieve bottleneck pressure.".to_string());
+            recommendations.push(
+                "Apply one-click remediations below to instantly relieve bottleneck pressure."
+                    .to_string(),
+            );
             if mem_ratio > 0.80 {
-                recommendations.push("Consider closing unused browser tabs or electron apps.".to_string());
+                recommendations
+                    .push("Consider closing unused browser tabs or electron apps.".to_string());
             }
         }
 
@@ -289,7 +295,12 @@ mod tests {
     use super::*;
     use crate::sampler::{CpuSnapshot, DiskSnapshot, MemorySnapshot, NetworkSnapshot};
 
-    fn sample_snapshot(cpu: f32, mem_used: u64, mem_total: u64, temp: Option<f32>) -> TelemetrySnapshot {
+    fn sample_snapshot(
+        cpu: f32,
+        mem_used: u64,
+        mem_total: u64,
+        temp: Option<f32>,
+    ) -> TelemetrySnapshot {
         TelemetrySnapshot {
             timestamp: 1_700_000_000,
             cpu: CpuSnapshot {
@@ -333,7 +344,10 @@ mod tests {
     fn test_diagnostics_memory_pressure() {
         let snap = sample_snapshot(20.0, 15_000_000_000, 16_000_000_000, Some(50.0));
         let report = DiagnosticEngine::analyze(&snap, 60, &[]);
-        assert_eq!(report.primary_bottleneck, BottleneckCategory::MemoryPressure);
+        assert_eq!(
+            report.primary_bottleneck,
+            BottleneckCategory::MemoryPressure
+        );
         assert!(!report.issues.is_empty());
         assert!(report.issues.iter().any(|i| i.id == "memory_critical"));
     }
@@ -342,7 +356,10 @@ mod tests {
     fn test_diagnostics_thermal_throttling() {
         let snap = sample_snapshot(90.0, 4_000_000_000, 16_000_000_000, Some(89.0));
         let report = DiagnosticEngine::analyze(&snap, 45, &[]);
-        assert_eq!(report.primary_bottleneck, BottleneckCategory::ThermalThrottling);
+        assert_eq!(
+            report.primary_bottleneck,
+            BottleneckCategory::ThermalThrottling
+        );
         assert!(report.issues.iter().any(|i| i.id == "thermal_critical"));
     }
 
@@ -354,7 +371,15 @@ mod tests {
             ("code".to_string(), 5678, 10.0, 800_000_000),
         ];
         let report = DiagnosticEngine::analyze(&snap, 80, &procs);
-        assert_eq!(report.primary_bottleneck, BottleneckCategory::BackgroundIndexer);
-        assert!(report.issues.iter().any(|i| i.id.starts_with("indexer_hog_")));
+        assert_eq!(
+            report.primary_bottleneck,
+            BottleneckCategory::BackgroundIndexer
+        );
+        assert!(
+            report
+                .issues
+                .iter()
+                .any(|i| i.id.starts_with("indexer_hog_"))
+        );
     }
 }

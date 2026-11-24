@@ -1,8 +1,8 @@
-use std::fs;
-use std::path::{Path, PathBuf};
-use serde::{Deserialize, Serialize};
 use atp_core::{CoreError, ErrorKind, RiskTier};
 use atp_safety::ProtectedValidator;
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CleanerRule {
@@ -240,13 +240,19 @@ mod tests {
         "#;
 
         let res = RuleEngine::load_from_str(malicious_toml);
-        assert!(res.is_err(), "ProtectedValidator must block rule with password targets");
+        assert!(
+            res.is_err(),
+            "ProtectedValidator must block rule with password targets"
+        );
     }
 
     #[test]
     fn test_discover_rules_from_repo() {
         let engine = RuleEngine::discover_and_load().expect("Discover must succeed");
-        assert!(!engine.rules().is_empty(), "Must load rules from rules/ directory");
+        assert!(
+            !engine.rules().is_empty(),
+            "Must load rules from rules/ directory"
+        );
         assert!(engine.categories().contains(&"browser".to_string()));
         assert!(engine.categories().contains(&"system".to_string()));
     }
