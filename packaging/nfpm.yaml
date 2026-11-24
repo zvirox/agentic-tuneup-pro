@@ -1,0 +1,63 @@
+name: agentic-tuneup-pro
+arch: amd64
+platform: linux
+version: ${VERSION}
+release: "1"
+section: utils
+maintainer: Prakash <zvirox@proton.me>
+description: Sovereign agentic Linux system cleaner, package manager, and performance suite
+homepage: https://github.com/zvirox/agentic-tuneup-pro
+license: Apache-2.0
+
+contents:
+  - src: target/release/agentic-tuneup-pro
+    dst: /usr/bin/agentic-tuneup-pro
+    file_info: { mode: 0755 }
+  - src: target/release/atpd-helper
+    dst: /usr/bin/atpd-helper
+    file_info: { mode: 0755 }
+  - src: packaging/agentic-tuneup-pro.desktop
+    dst: /usr/share/applications/agentic-tuneup-pro.desktop
+  - src: packaging/atpd-helper.service
+    dst: /usr/lib/systemd/system/atpd-helper.service
+  - src: packaging/in.zvirox.agentic_tuneup.policy
+    dst: /usr/share/polkit-1/actions/in.zvirox.agentic_tuneup.policy
+  - src: packaging/in.zvirox.AgenticTuneupHelper.conf
+    dst: /usr/share/dbus-1/system.d/in.zvirox.AgenticTuneupHelper.conf
+  - src: packaging/icons/hicolor/32x32/apps/agentic-tuneup-pro.png
+    dst: /usr/share/icons/hicolor/32x32/apps/agentic-tuneup-pro.png
+  - src: packaging/icons/hicolor/64x64/apps/agentic-tuneup-pro.png
+    dst: /usr/share/icons/hicolor/64x64/apps/agentic-tuneup-pro.png
+  - src: packaging/icons/hicolor/128x128/apps/agentic-tuneup-pro.png
+    dst: /usr/share/icons/hicolor/128x128/apps/agentic-tuneup-pro.png
+  - src: packaging/icons/hicolor/512x512/apps/agentic-tuneup-pro.png
+    dst: /usr/share/icons/hicolor/512x512/apps/agentic-tuneup-pro.png
+  - src: LICENSE
+    dst: /usr/share/doc/agentic-tuneup-pro/LICENSE
+
+scripts:
+  postinstall: packaging/scripts/postinstall.sh
+  preremove: packaging/scripts/preremove.sh
+
+overrides:
+  deb:
+    depends:
+      - libwebkit2gtk-4.1-0
+      - libgtk-3-0
+      - libayatana-appindicator3-1
+      - polkit-1
+      - dbus
+  rpm:
+    depends:
+      - webkit2gtk4.1
+      - gtk3
+      - libappindicator-gtk3
+      - polkit
+      - dbus
+  archlinux:
+    depends:
+      - webkit2gtk-4.1
+      - gtk3
+      - libayatana-appindicator
+      - polkit
+      - dbus

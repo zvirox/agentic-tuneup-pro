@@ -3,7 +3,7 @@ Name=Agentic Tuneup Pro
 GenericName=System Optimizer and Cleaner
 Comment=Sovereign AI-orchestrated Linux system cleaner, package manager, and performance suite
 Exec=agentic-tuneup-pro %U
-Icon=in.zvirox.agentictuneuppro
+Icon=agentic-tuneup-pro
 Terminal=false
 Type=Application
 Categories=System;Filesystem;
@@ -16,9 +16,9 @@ Actions=Clean;Diagnostics;
 [Desktop Action Clean]
 Name=Scan and Clean Junk
 Exec=agentic-tuneup-pro --page clean
-Icon=in.zvirox.agentictuneuppro
+Icon=agentic-tuneup-pro
 
 [Desktop Action Diagnostics]
 Name=System Health & Diagnostics
 Exec=agentic-tuneup-pro --page dash
-Icon=in.zvirox.agentictuneuppro
+Icon=agentic-tuneup-pro

@@ -173,99 +173,36 @@ For comprehensive technical specifications, consult [ARCHITECTURE.md](ARCHITECTU
 
 ## Installation
 
-Pre-compiled production packages for **v0.0.4-alpha** are available in the repository under `dist/v0.0.4-alpha/` and on the [GitHub Releases page](https://github.com/zvirox/agentic-tuneup-pro/releases).
+Official Linux packages are available for every release on the [GitHub Releases page](https://github.com/zvirox/agentic-tuneup-pro/releases). Each release provides exactly three native packages plus cryptographic checksums.
 
-### Arch Linux / AUR
-
-ATP is packaged for Arch Linux, Manjaro, EndeavourOS, and CachyOS via pacman and AUR:
-
+### Ubuntu / Debian / Pop!_OS / Linux Mint (`.deb`)
 ```sh
-# Direct installation via pacman (built package):
-sudo pacman -U dist/v0.0.4-alpha/agentic-tuneup-pro-bin-0.0.4.alpha-1-x86_64.pkg.tar.zst
-
-# Or using paru / yay from AUR
-paru -S agentic-tuneup-pro-bin
-yay -S agentic-tuneup-pro-bin
+sudo apt install ./agentic-tuneup-pro_<version>_amd64.deb
 ```
-
-To install manually from the AUR source archive:
-
-```sh
-tar -xzf agentic-tuneup-pro-aur-0.0.4-alpha.tar.gz
-cd agentic-tuneup-pro-aur-0.0.4-alpha
-makepkg -si
-```
-
-Enable and start the privileged system helper:
-
-```sh
-sudo systemctl enable --now atpd-helper.service
-```
-
----
-
-### Debian / Ubuntu / Pop!_OS (`.deb`)
-
-Download the `.deb` package and install via `apt`:
-
-```sh
-sudo apt update
-sudo apt install ./dist/v0.0.4-alpha/agentic-tuneup-pro_0.0.4-alpha_amd64.deb
-```
-
-Or using `dpkg`:
-
-```sh
-sudo dpkg -i ./dist/v0.0.4-alpha/agentic-tuneup-pro_0.0.4-alpha_amd64.deb
-sudo apt-get install -f
-```
-
-The package automatically configures D-Bus permissions, installs desktop icons, and registers systemd helper units.
-
----
 
 ### Fedora / RHEL / openSUSE (`.rpm`)
-
-Install the RPM package via `dnf`:
-
 ```sh
-sudo dnf install ./dist/v0.0.4-alpha/agentic-tuneup-pro-0.0.4-alpha.1.x86_64.rpm
+sudo dnf install ./agentic-tuneup-pro-<version>-1.x86_64.rpm
 ```
 
-Enable the privileged helper:
-
+### Arch Linux / Manjaro / EndeavourOS (`.pkg.tar.zst`)
 ```sh
-sudo systemctl enable --now atpd-helper.service
+sudo pacman -U ./agentic-tuneup-pro-<version>-1-x86_64.pkg.tar.zst
 ```
 
----
-
-### Standalone / Portable AppImage
-
-For zero-installation portable execution on any Linux distro:
-
+### Verify Integrity
 ```sh
-# Unpack the portable AppDir bundle or run the AppImage
-tar -xzf dist/v0.0.4-alpha/agentic-tuneup-pro-0.0.4-alpha-x86_64.AppDir.tar.gz
-./AppDir/AppRun
+sha256sum -c SHA256SUMS
 ```
 
----
+> [!NOTE]
+> **Privileged System Helper (`atpd-helper`)**: The native packages automatically install and register the privileged companion daemon, polkit policy (`in.zvirox.agentic_tuneup.policy`), and D-Bus configuration. You can enable it immediately via:
+> ```sh
+> sudo systemctl enable --now atpd-helper.service
+> ```
 
-### Flatpak
-
-For sandboxed installations, unpack the Flatpak manifest bundle:
-
-```sh
-tar -xzf dist/v0.0.4-alpha/agentic-tuneup-pro-flatpak-0.0.4-alpha.tar.gz
-flatpak-builder --user --install --force-clean build-dir packaging/flatpak/in.zvirox.AgenticTuneupPro.yaml
-```
-
-Run via Flatpak:
-
-```sh
-flatpak run in.zvirox.AgenticTuneupPro
-```
+> [!WARNING]
+> **Deprecated Formats Notice**: AppImage, Flatpak, and AUR builds have been retired in favor of first-class native distribution packages. Existing AUR packages are deprecated and no longer updated; install directly via `sudo pacman -U` from the GitHub Release assets.
 
 ---
 

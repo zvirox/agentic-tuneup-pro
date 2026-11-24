@@ -31,8 +31,7 @@
     ]
   },
   "bundle": {
-    "active": true,
-    "targets": ["appimage", "deb", "rpm"],
+    "active": false,
     "icon": [
       "icons/32x32.png",
       "icons/64x64.png",
@@ -40,37 +39,6 @@
       "icons/128x128@2x.png",
       "icons/icon.png",
       "icons/icon.ico"
-    ],
-    "category": "Utility",
-    "license": "Apache-2.0",
-    "licenseFile": "../../LICENSE",
-    "shortDescription": "Agentic PC tuneup and system cleaning app for Linux",
-    "longDescription": "Agentic Tuneup Pro is a sovereign, agentic system cleaner, package manager, and performance suite for Linux.",
-    "linux": {
-      "deb": {
-        "depends": [
-          "libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37",
-          "libgtk-3-0",
-          "libayatana-appindicator3-1 | libappindicator3-1"
-        ],
-        "files": {
-          "/usr/share/polkit-1/actions/in.zvirox.agentic_tuneup.policy": "../../packaging/in.zvirox.agentic_tuneup.policy",
-          "/usr/share/dbus-1/system.d/in.zvirox.AgenticTuneupHelper.conf": "../../packaging/in.zvirox.AgenticTuneupHelper.conf",
-          "/usr/lib/systemd/system/atpd-helper.service": "../../packaging/atpd-helper.service"
-        }
-      },
-      "rpm": {
-        "depends": [
-          "webkit2gtk4.1",
-          "gtk3",
-          "libappindicator-gtk3"
-        ],
-        "files": {
-          "/usr/share/polkit-1/actions/in.zvirox.agentic_tuneup.policy": "../../packaging/in.zvirox.agentic_tuneup.policy",
-          "/usr/share/dbus-1/system.d/in.zvirox.AgenticTuneupHelper.conf": "../../packaging/in.zvirox.AgenticTuneupHelper.conf",
-          "/usr/lib/systemd/system/atpd-helper.service": "../../packaging/atpd-helper.service"
-        }
-      }
-    }
+    ]
   }
 }
