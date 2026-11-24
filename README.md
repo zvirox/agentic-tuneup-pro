@@ -1,111 +1,198 @@
-<p align="center">
-  <img src=".github/assets/logo.png" alt="Agentic Tuneup Pro Logo" width="160">
-  <h1 align="center">Agentic Tuneup Pro</h1>
-</p>
+<div align="center">
+  <a id="top"></a>
+  <p>
+    <img src=".github/assets/logo.png" alt="Agentic Tuneup Pro logo" width="140" height="140" />
+  </p>
+
+  <h1>Agentic Tuneup Pro</h1>
+
+  <h3>Safety-first Linux system cleaner, package manager, and health monitor</h3>
+
+  <p>
+    Reclaim disk space safely with a reversible SHA-256 quarantine, manage system packages in one view, and watch live system health without risky shell scripts.
+  </p>
+
+  <p>
+    <a href="https://www.zvirox.in">Website</a> ·
+    <a href="https://github.com/zvirox/agentic-tuneup-pro/releases">Download Packages</a> ·
+    <a href="#quick-installation">Quick Install</a> ·
+    <a href="#core-safety-principles">Safety Rules</a> ·
+    <a href="#starship-control-integration">Starship Control</a> ·
+    <a href="#maintainer-and-ecosystem">Maintainer</a> ·
+    <a href="#frequently-asked-questions">FAQ</a>
+  </p>
+
+  <p>
+    <a href="https://github.com/zvirox/agentic-tuneup-pro/actions/workflows/ci.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/zvirox/agentic-tuneup-pro/ci.yml?branch=main&style=flat-square&label=build&labelColor=17171c" alt="CI Build Status" />
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/license-AGPL--3.0-10b981?style=flat-square&labelColor=17171c" alt="License: AGPL-3.0" />
+    </a>
+    <img src="https://img.shields.io/badge/platform-Linux_(Wayland_%26_X11)-f97316?style=flat-square&labelColor=17171c" alt="Platform: Linux Wayland and X11" />
+    <img src="https://img.shields.io/badge/stack-Rust_%C2%B7_Tauri_2_%C2%B7_React_19-6366f1?style=flat-square&labelColor=17171c" alt="Stack: Rust, Tauri 2, React 19" />
+  </p>
+
+  <table>
+    <tr>
+      <td align="right"><b>Start</b></td>
+      <td align="center"><a href="#what-is-agentic-tuneup-pro">What It Is</a></td>
+      <td align="center"><a href="#workspace-previews">Previews</a></td>
+      <td align="center"><a href="#quick-installation">Install</a></td>
+    </tr>
+    <tr>
+      <td align="right"><b>Safety &amp; Features</b></td>
+      <td align="center"><a href="#core-safety-principles">Safety Principles</a></td>
+      <td align="center"><a href="#key-features">Key Capabilities</a></td>
+      <td align="center"><a href="#tech-stack">Tech Stack</a></td>
+    </tr>
+    <tr>
+      <td align="right"><b>Automation</b></td>
+      <td align="center"><a href="#starship-control-integration">Starship Control</a></td>
+      <td align="center"><a href="#real-world-use-cases">Use Cases</a></td>
+      <td align="center"><a href="#how-connection-works">Socket Setup</a></td>
+    </tr>
+    <tr>
+      <td align="right"><b>Community</b></td>
+      <td align="center"><a href="#frequently-asked-questions">FAQ</a></td>
+      <td align="center"><a href="#maintainer-and-ecosystem">Maintainer</a></td>
+      <td align="center"><a href="#license">License</a></td>
+    </tr>
+  </table>
+</div>
+
+<br />
 
 <p align="center">
-  <strong>Safety-first Linux system cleaner, package manager, and performance suite</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/zvirox/agentic-tuneup-pro/releases"><img src="https://img.shields.io/badge/Release-Latest_Packages-blue.svg" alt="Releases" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License" /></a>
-  <img src="https://img.shields.io/badge/Platform-Linux_(Wayland_&_X11)-orange.svg" alt="Platform" />
-  <img src="https://img.shields.io/badge/Stack-Rust_·_Tauri_2_·_React_19-indigo.svg" alt="Stack" />
-</p>
-
-<p align="center">
-  <a href="#what-is-agentic-tuneup-pro">What is it?</a> ·
-  <a href="#core-safety-principles">Safety Principles</a> ·
-  <a href="#key-features">Key Features</a> ·
-  <a href="#starship-control-integration">Starship Control Integration</a> ·
-  <a href="#installation">Installation</a> ·
-  <a href="#frequently-asked-questions">FAQ</a>
+  <img src=".github/assets/screenshots/hero-preview.svg" alt="Agentic Tuneup Pro system health dashboard preview placeholder" width="100%" />
+  <br />
+  <sub><b>Screenshot placeholder.</b> System Health Dashboard displaying 1 Hz live resource charts and safe scan targets.</sub>
 </p>
 
 ---
 
 ## What is Agentic Tuneup Pro?
 
-Agentic Tuneup Pro is an intelligent, safety-first desktop optimizer and system maintenance suite for Linux. Most traditional cleaning utilities run unchecked shell commands that permanently delete files without an undo option. One mistyped path or buggy script can break an entire system installation.
+Most Linux system cleaners permanently delete files using fragile shell scripts. One wrong wildcard or hurried click can wipe out active project caches or break system configuration files with zero undo path.
 
-Agentic Tuneup Pro redefines Linux maintenance around verifiable safety. It gives you a clear visual dashboard showing your system health, package statuses, process trees, and disk usage. Files are never deleted permanently during cleanups. Instead, they are moved to an encrypted local quarantine where they can be restored at any time with guaranteed byte-for-byte fidelity.
+Agentic Tuneup Pro is built around strict reversible safety. Its visual dashboard shows live CPU, memory, thermal, and disk trends alongside package lists and process trees. Cleaned files are moved into an encrypted local quarantine vault instead of being erased right away. If any application still needs a file, you can restore it in one click with verified byte-for-byte accuracy.
+
+---
+
+## Workspace Previews
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src=".github/assets/screenshots/feature-1.svg" alt="Parallel multi-target disk cleaner placeholder" width="100%" /><br />
+      <strong>Parallel Disk Cleaner</strong><br />
+      Scans browser caches, system logs, Python environments, <code>node_modules/</code>, and Rust <code>target/</code> folders safely in parallel.
+    </td>
+    <td width="50%" valign="top">
+      <img src=".github/assets/screenshots/feature-2.svg" alt="Two-phase reversible quarantine vault placeholder" width="100%" /><br />
+      <strong>Reversible Quarantine Vault</strong><br />
+      Restores past cleanup sessions bit-for-bit using SHA-256 verification and automatic retention timers.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src=".github/assets/screenshots/feature-3.svg" alt="Unified Linux package manager placeholder" width="100%" /><br />
+      <strong>Unified Package Manager</strong><br />
+      Inspects <code>apt</code>, <code>dnf</code>, <code>pacman</code>, and Flatpak apps in one calm list and flags leftover orphan dependencies.
+    </td>
+    <td width="50%" valign="top">
+      <img src=".github/assets/screenshots/feature-4.svg" alt="Why is my PC slow diagnostics view placeholder" width="100%" /><br />
+      <strong>Slowdown Diagnostics</strong><br />
+      Matches thermal throttling, high CPU load, and background disk indexers so you know why your fans sped up.
+    </td>
+  </tr>
+</table>
 
 ---
 
 ## Core Safety Principles
 
-1. **Zero Unquarantined Deletions**: Every cleaned file is moved to a local, reversible quarantine area. If an application needs a removed file, you can restore it with a single click.
-2. **Strict Zero-Shell Execution**: All system operations run directly through operating system process calls. The app never runs commands through a bash shell (`sh -c`), eliminating command injection vulnerabilities.
-3. **Signed Human Approval Gates**: Low-risk inspections run automatically, but any action that removes packages, halts services, or empties caches pauses and requests your explicit confirmation.
-4. **Hard Protected Paths**: System directories (`/etc`, `/boot`, `/usr`), user SSH and GPG keys, and browser credential vaults are completely blocked from deletion by native kernel checks.
+| Safety Guarantee | How It Works | What It Prevents |
+| :--- | :--- | :--- |
+| **Zero Direct Deletions** | Cleaned files move to a reversible quarantine folder first | Accidental permanent loss of needed caches or builds |
+| **Zero-Shell Execution** | All actions run through direct Rust OS calls without `sh -c` | Command injection or broken path expansion bugs |
+| **Hard Protected Paths** | Kernel-checked allowlists block `/etc`, `/boot`, `/usr`, SSH keys, and vaults | System damage or credential deletion |
+| **Explicit User Approval** | Removing packages or stopping services waits for your confirmation click | Unwanted system changes in the background |
 
 ---
 
 ## Key Features
 
-- **Parallel Multi-Target Disk Cleaner**: Scan and clean browser caches, development build artifacts (such as `target/`, `node_modules/`, and Python virtual environments), and system logs in parallel.
-- **Two-Phase Reversible Quarantine**: Restore past cleanup sessions with exact SHA-256 integrity verification. Set retention policies so old quarantined files automatically expire.
-- **Unified Package Management**: Manage native package managers (`apt`, `dnf`, `pacman`) alongside Flatpak runtimes in one unified list. Identify orphan dependencies safely.
-- **Process & Service Explorer**: View running applications grouped by process tree. Inspect live memory and CPU usage gauges, and gracefully stop runaway background processes.
-- **"Why is my PC slow?" Diagnostics**: Automatically correlate CPU saturation, memory pressure, thermal throttling, and background desktop indexers to diagnose system slowdowns.
-- **Real-Time System Telemetry**: A smooth 1 Hz monitor provides live CPU, memory, and disk I/O metrics alongside a composite 100-point system health score.
-- **Modern Linear-Style Design**: Sleek matte dark surfaces, keyboard navigation shortcuts (`Ctrl+K`), and smooth animations.
+- **Parallel Multi-Target Scanner**: Finds browser caches, old developer build folders (`target/`, `node_modules/`, Python venvs), and temporary logs fast without stalling the interface.
+- **Two-Phase Reversible Quarantine**: Keeps every cleaned item recoverable with original path permissions and SHA-256 checksum verification until your chosen expiry timer runs out.
+- **Unified Linux Package View**: Shows native system packages (`apt`, `dnf`, `pacman`) and Flatpaks side by side to help clean up orphan dependencies safely.
+- **Process and Service Explorer**: Displays active apps grouped by process tree with real-time CPU and RAM readouts and graceful stop actions.
+- **"Why Is My PC Slow?" Diagnostics**: Correlates temperature sensors, memory pressure, and background indexers into clear plain-English findings.
+- **1 Hz Live Telemetry**: Smooth Apache ECharts gauges track CPU, memory, disk I/O, and a 100-point composite health index.
+
+---
+
+## How Safety Quarantine Works
+
+```mermaid
+flowchart LR
+    Scan["Parallel Folder Scan"] -->|Checks Protected Paths| SafeCheck{"Allowlisted Cache?"}
+    SafeCheck -->|"/etc, /boot, ~/.ssh"| Blocked["Blocked by Kernel Check"]
+    SafeCheck -->|Safe cache / artifact| Quarantine["Phase 1: Move to Reversible Quarantine + SHA-256"]
+    Quarantine -->|User clicks Restore| Restore["Restore Original Path & Permissions"]
+    Quarantine -->|User approves Purge or Expiry| Purge["Phase 2: Permanent Space Reclaim"]
+    Starship["Starship Control (Optional)"] <-->|SO_PEERCRED Unix Socket| Scan
+```
 
 ---
 
 ## Starship Control Integration
 
-Agentic Tuneup Pro works fully as an independent desktop utility. You can scan, clean, and manage your machine without installing any other tools.
+Agentic Tuneup Pro runs completely as a standalone desktop application. You can scan, clean, inspect processes, and manage packages without installing anything else.
 
-To unlock hands-free maintenance, Agentic Tuneup Pro connects directly with [Starship Control](https://github.com/zvirox/starship-control) ([Releases](https://github.com/zvirox/starship-control/releases)), the unified Linux desktop AI assistant.
+To unlock natural-language maintenance, Agentic Tuneup Pro links directly with [Starship Control](https://github.com/zvirox/starship-control) ([Releases](https://github.com/zvirox/starship-control/releases)), the optional Linux desktop AI assistant.
 
 ### Why It Exists
 
-Keeping a Linux computer fast and clutter-free often involves remembering obscure package flags, tracking down runaway background tasks, and manually inspecting hidden directories. Connecting Agentic Tuneup Pro to Starship Control lets you manage your system using natural conversational queries.
+Remembering distro package flags, hunting down hidden cache folders, and digging through process trees takes effort. Pairing Agentic Tuneup Pro with Starship Control lets you ask ordinary questions about your computer health while keeping full human confirmation before anything changes.
 
 ### Real-World Use Cases
 
-- **Intelligent Diagnostics**: Ask Starship Control *"Why is my laptop fan spinning so loud?"* The agent checks CPU temperatures and high-usage background processes, and suggests safe actions.
-- **Developer Storage Recovery**: Say *"Find all old build directories in my Projects folder that have not been touched in 30 days and quarantine them to free up disk space."*
-- **Scheduled Maintenance**: Set up automated routines: *"Check my package repositories for orphan dependencies every Sunday morning and present a summary for my review."*
+- **Instant Slowdown Check**: Ask Starship Control *"Why is my laptop fan spinning so loudly right now?"* The agent inspects live CPU load, temperatures, and heavy background tasks for you.
+- **Developer Storage Recovery**: Say *"Find old build directories in my Projects folder untouched for 30 days and move them to quarantine for review."*
+- **Weekly Package Hygiene**: Ask *"Check my system packages for unused orphan dependencies and show me the list before removing anything."*
 
 ### How Connection Works
 
-Setup is completely automatic:
+Setup runs automatically on your local machine:
 
-1. **Automatic Discovery**: When Agentic Tuneup Pro starts, it registers its tool catalogue in `$XDG_DATA_HOME/starship/plugins/atp.json`.
-2. **Private Local Socket**: Communication flows over a private Unix domain socket at `$XDG_RUNTIME_DIR/starship/bridges/atp.sock`.
-3. **Operating System Peer Verification**: Security is enforced using Linux `SO_PEERCRED`. Only applications running under your exact user account can send commands. No web ports are opened, and no diagnostics leave your machine.
-4. **Instant Assistant Access**: Summon Starship Control with `Super+Shift+Space`. It immediately recognizes Agentic Tuneup Pro and is ready to diagnose and optimize your machine. For setup guides and downloads, visit the [Starship Control repository](https://github.com/zvirox/starship-control) and [releases](https://github.com/zvirox/starship-control/releases).
+1. **Local Discovery**: Agentic Tuneup Pro registers its plugin descriptor in `$XDG_DATA_HOME/starship/plugins/atp.json` when opened.
+2. **Private Unix Socket**: Data and plans travel across `$XDG_RUNTIME_DIR/starship/bridges/atp.sock`.
+3. **Kernel User Verification**: Connections check Linux peer credentials (`SO_PEERCRED`). Only processes running as your logged-in user ID can talk to the tool. Zero network ports open.
+4. **Instant Assistant Access**: Press `Super+Shift+Space` to summon Starship Control and manage your machine safely. For downloads and setup details, visit the [Starship Control repository](https://github.com/zvirox/starship-control) and [releases](https://github.com/zvirox/starship-control/releases).
 
 ---
 
-## Installation
+## Quick Installation
 
-Prebuilt Linux packages are available on the [Releases page](https://github.com/zvirox/agentic-tuneup-pro/releases).
+Prebuilt Linux packages and checksum files are published on the [Releases page](https://github.com/zvirox/agentic-tuneup-pro/releases).
 
-### Debian, Ubuntu, and Pop!_OS (`.deb`)
+| Distribution | Package Format | Install Command |
+| :--- | :--- | :--- |
+| **Debian / Ubuntu / Pop!_OS / Mint** | `.deb` | `sudo apt install ./agentic-tuneup-pro_*_amd64.deb` |
+| **Fedora / RHEL / openSUSE** | `.rpm` | `sudo dnf install ./agentic-tuneup-pro-*.x86_64.rpm` |
+| **Arch Linux / Manjaro / CachyOS** | `.pkg.tar.zst` | `sudo pacman -U ./agentic-tuneup-pro-*-x86_64.pkg.tar.zst` |
 
-```bash
-sudo apt install ./agentic-tuneup-pro_*_amd64.deb
-```
+<details>
+<summary><strong>Verify Checksums and Build From Source</strong></summary>
 
-### Fedora, RHEL, and openSUSE (`.rpm`)
-
-```bash
-sudo dnf install ./agentic-tuneup-pro-*.x86_64.rpm
-```
-
-### Arch Linux and Manjaro (`.pkg.tar.zst`)
+Verify downloaded files using `SHA256SUMS`:
 
 ```bash
-sudo pacman -U ./agentic-tuneup-pro-*-x86_64.pkg.tar.zst
+sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-### Building From Source
-
-Requirements: Rust stable, Node.js 22+, and standard Linux development libraries (`libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libayatana-appindicator3-dev`, `libssl-dev`, `pkg-config`).
+To build directly from source, install Rust stable, Node.js 22+, and standard Linux desktop dependencies (`libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libayatana-appindicator3-dev`, `libssl-dev`, `pkg-config`):
 
 ```bash
 git clone https://github.com/zvirox/agentic-tuneup-pro.git
@@ -114,24 +201,104 @@ cd app && npm install && npm run build && cd ..
 cargo build --release -p agentic-tuneup-pro
 ```
 
+</details>
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Role |
+| :--- | :--- | :--- |
+| **System Core** | Rust 2024 Workspace | Zero-shell scanners, SHA-256 quarantine, and telemetry sampler |
+| **Desktop Shell** | Tauri 2 | Native Linux windowing and scoped permission dialogs |
+| **Frontend UI** | React 19 + TypeScript + Tailwind CSS v4 | Solid matte dark surfaces and `Ctrl+K` quick actions |
+| **Charts and State** | Apache ECharts 6 + Zustand | Live 1 Hz CPU, memory, and disk usage visualizations |
+| **Automation Bridge** | `starship-plugin` SDK | Authenticated local Unix socket commands for Starship Control |
+
 ---
 
 ## Frequently Asked Questions
 
-#### Can Agentic Tuneup Pro accidentally break my system?
-No. The app uses a strict whitelist of cleanable cache folders and an absolute blacklist for system-critical paths. Furthermore, files are never permanently deleted on the first pass. They are safely quarantined and can be restored at any time.
+**Can Agentic Tuneup Pro accidentally break my Linux installation?**
+No. Protected system directories (`/etc`, `/boot`, `/usr`) and sensitive folders such as SSH keys are hardcoded as off-limits. Cleanups also move files into a reversible quarantine vault instead of erasing them directly.
 
-#### Does Agentic Tuneup Pro require root privileges?
-Most everyday operations, like clearing browser caches and developer build artifacts, run with standard user permissions. When an administrative task is required (like managing system-level packages), the app communicates with a tightly scoped helper service that asks for standard Linux authorization.
+**Does the app need root administrator rights?**
+Everyday cleanup of browser caches and developer build folders works with standard user permissions. Only administrative actions such as system package removal request standard Linux authorization.
 
-#### Is Starship Control required to use the cleaner?
-No. Agentic Tuneup Pro is a 100% standalone desktop application with its own visual interface and keyboard shortcuts. Starship Control is an optional companion for voice and automated agentic workflows.
+**Is Starship Control mandatory?**
+No. Agentic Tuneup Pro works completely on its own with a full visual interface. Starship Control is optional if you prefer voice or natural-language automation.
 
-#### How do I restore a file that was quarantined?
-Open the app, navigate to the Quarantine tab, select the cleanup session or individual file you want back, and click Restore. The file is placed back in its original folder with its original permissions.
+**How do I bring back a quarantined file?**
+Open the Quarantine tab, find your cleanup session or individual file, and click **Restore**. The file returns to its exact original folder and permissions.
+
+---
+
+## Maintainer and Ecosystem
+
+<p align="center">
+  <a href="https://www.zvirox.in">
+    <img src=".github/assets/zvirox-logo.png" alt="Zvirox Logo" width="220" />
+  </a>
+</p>
+
+<p align="center">
+  <strong>Prakashpuri Gauswami (<a href="https://github.com/zvirox">@zvirox</a>)</strong><br />
+  Cybersecurity Analyst &amp; SOC Practitioner · Agentic AI Builder · Blue Team &amp; SIEM · Patan, Gujarat, India
+</p>
+
+<p align="center">
+  <a href="https://github.com/sponsors/zvirox">
+    <img src="https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub Sponsors" />
+  </a>
+  <a href="https://ko-fi.com/zvirox">
+    <img src="https://img.shields.io/badge/Support-Ko--fi-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi" />
+  </a>
+</p>
+
+I build local-first open-source Linux and Android tools under **Zvirox**. Writing real software helps me study system boundaries and security architecture hands-on while giving creators and Linux users fast desktop tools free from subscriptions and telemetry.
+
+### Connect and Support
+
+- **GitHub Profile**: [github.com/zvirox](https://github.com/zvirox)
+- **Website**: [www.zvirox.in](https://www.zvirox.in)
+- **Email**: [info@zvirox.in](mailto:info@zvirox.in)
+- **Sponsor**: [GitHub Sponsors](https://github.com/sponsors/zvirox) · [Ko-fi](https://ko-fi.com/zvirox)
+- **Socials**: [LinkedIn (`in/plgsevala`)](https://www.linkedin.com/in/plgsevala) · [YouTube (`@zvirox_in`)](https://www.youtube.com/@zvirox_in) · [Instagram (`plg.sevala`)](https://www.instagram.com/plg.sevala) · [Facebook (`plg.sevala`)](https://www.facebook.com/plg.sevala)
+
+### Zvirox App Suite (Open-Source Project List)
+
+All six applications in the Zvirox desktop suite work standalone and connect together through Starship Control:
+
+| Logo | Application | Purpose | Repository | Releases |
+| :---: | :--- | :--- | :--- | :--- |
+| <img src="https://raw.githubusercontent.com/zvirox/starship-control/main/assets/logo.png" alt="Starship Control logo" width="32" height="32" /> | **Starship Control** | Local-first AI desktop cockpit and floating HUD | [github.com/zvirox/starship-control](https://github.com/zvirox/starship-control) | [Releases](https://github.com/zvirox/starship-control/releases) |
+| <img src="https://raw.githubusercontent.com/zvirox/screen-studio-pro/main/src/assets/screen-studio-pro-logo.png" alt="Screen Studio Pro logo" width="32" height="32" /> | **Screen Studio Pro** | Wayland and X11 screen recorder with PipeWire | [github.com/zvirox/screen-studio-pro](https://github.com/zvirox/screen-studio-pro) | [Releases](https://github.com/zvirox/screen-studio-pro/releases) |
+| <img src="https://raw.githubusercontent.com/zvirox/easy-edits-pro/main/docs/assets/easy-edits-pro-logo.png" alt="Easy Edits Pro logo" width="32" height="32" /> | **Easy Edits Pro** | Non-destructive multitrack video editor | [github.com/zvirox/easy-edits-pro](https://github.com/zvirox/easy-edits-pro) | [Releases](https://github.com/zvirox/easy-edits-pro/releases) |
+| <img src="https://raw.githubusercontent.com/zvirox/audio-labs-pro/main/packaging/branding/audio-labs-pro-logo.png" alt="Audio Labs Pro logo" width="32" height="32" /> | **Audio Labs Pro** | Offline voice studio and multitrack audio editor | [github.com/zvirox/audio-labs-pro](https://github.com/zvirox/audio-labs-pro) | [Releases](https://github.com/zvirox/audio-labs-pro/releases) |
+| <img src=".github/assets/logo.png" alt="Agentic Tuneup Pro logo" width="32" height="32" /> | **Agentic Tuneup Pro** | Safety-first disk cleaner and system optimizer | [github.com/zvirox/agentic-tuneup-pro](https://github.com/zvirox/agentic-tuneup-pro) | [Releases](https://github.com/zvirox/agentic-tuneup-pro/releases) |
+| <img src="https://raw.githubusercontent.com/zvirox/net-watch-pro/main/docs/assets/net-watch-pro-logo.png" alt="Net Watch Pro logo" width="32" height="32" /> | **Net Watch Pro** | Real-time network speed and per-app data tracker | [github.com/zvirox/net-watch-pro](https://github.com/zvirox/net-watch-pro) | [Releases](https://github.com/zvirox/net-watch-pro/releases) |
+
+---
+
+## Star History
+
+<p align="center">
+  <a href="https://www.star-history.com/#zvirox/agentic-tuneup-pro&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=zvirox/agentic-tuneup-pro&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=zvirox/agentic-tuneup-pro&type=Date" />
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=zvirox/agentic-tuneup-pro&type=Date" width="100%" />
+    </picture>
+  </a>
+</p>
 
 ---
 
 ## License
 
-Agentic Tuneup Pro is open-source software licensed under the [Apache License, Version 2.0](LICENSE).
+Agentic Tuneup Pro is free, open-source software licensed under the [GNU Affero General Public License v3.0](LICENSE).
+
+<div align="center">
+  <br />
+  <a href="#top"><strong>Back to top</strong></a> · Built in public by <a href="https://www.zvirox.in">Zvirox</a>
+</div>
