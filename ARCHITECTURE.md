@@ -119,7 +119,7 @@ agentic-tuneup-pro/
 │   ├── package_caches.toml          # apt, pacman, dnf, flatpak caches
 │   ├── dev_artifacts.toml           # node_modules, target, venv, docker
 │   └── app_caches.toml              # Electron, Discord, Slack, Spotify
-├── packaging/                       # Linux packaging scripts (AppImage, deb, rpm, PKGBUILD)
+├── packaging/                       # Locked nfpm packaging (.deb, .rpm, .pkg.tar.zst)
 ├── app/                             # Tauri 2 Desktop Application
 │   ├── Cargo.toml
 │   ├── tauri.conf.json              # Window settings, permissions, Wayland flags

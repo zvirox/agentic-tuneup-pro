@@ -16,7 +16,7 @@
 - [x] **Phase 4 — Starship MCP Server & Bridge** (Unified Binary `--mcp` / Unix Socket, `SO_PEERCRED`, Tools)
 - [ ] **Phase 5 — Package & Process Manager** [IN PROGRESS — P0-4, P1-A: Real D-Bus package execution pending]
 - [ ] **Phase 6 — In-App Agent Cockpit Drawer** [IN PROGRESS — P0-5, P0-7, P1-D: Backend nonce tokens & real LLM tool-calling pending]
-- [x] **Milestone v0.0.1-alpha — Multi-Distro Release Pipeline** (.deb, .rpm, Flatpak, AUR PKGBUILD)
+- [x] **Milestone v0.0.1-alpha — Multi-Distro Release Pipeline** (Superseded by locked `nfpm` `.deb`, `.rpm`, `.pkg.tar.zst` release pipeline)
 - [x] **Milestone v0.0.2-alpha — Standalone Embedded UI & Async GTK Runtime Hotfix** (Release on GitHub)
 - [x] **Milestone v0.0.3-alpha — UI Non-Blocking Async IPC & Resilient Staging** (Release on GitHub)
 - [ ] **Phase 7 — Voice Dictation & Advanced Diagnostics** [IN PROGRESS — P0-6, P0-8, P1-C, P1-D: Real Whisper/CPAL & diagnostic scoping]
@@ -414,11 +414,10 @@ Test status: 90 Rust tests pass across all workspace crates (`cargo test --works
   - Implement GitHub Actions CI running `cargo test --workspace`, `clippy`, and `npm run build`.
   - Automated distro matrix verification (`scripts/test-distro-matrix.sh`) across Arch, Fedora, and Ubuntu.
   - *Verify:* All package backends, polkit rules, dbus configs, and cleaner rules pass automated integration tests in CI.
-- [x] **8.3 Linux Distro Packaging Pipeline**
-  - Standalone **AppImage** and portable AppDir bundle (`packaging/appimage/AppRun`).
-  - Debian/Ubuntu `.deb` package with systemd helper unit and Polkit policy.
-  - Fedora `.rpm` package and Arch Linux `PKGBUILD`.
-  - *Verify:* AppImage, .deb, .rpm, Flatpak, and AUR packages generate cleanly via `build-packages.sh`.
+- [x] **8.3 Linux Distro Packaging Pipeline (Locked Format)**
+  - Unified `packaging/nfpm.yaml` + maintainer scripts (`postinstall.sh`, `preremove.sh`) with systemd helper unit, Polkit policy, and D-Bus config.
+  - Reusable CI workflow `.github/workflows/release.yml` (`zvirox/release-workflows`) producing exclusively `.deb`, `.rpm`, and `.pkg.tar.zst` + `SHA256SUMS` (+ `.sig`), verified in clean CI containers (`ubuntu:22.04`, `ubuntu:24.04`, `fedora:latest`, `archlinux:latest`).
+  - *Policy:* AppImage, Flatpak, tarballs, AUR packages, and manual VM package tests are permanently retired and excluded from future milestones.
 - [ ] **8.4 Documentation, Assets & Stable Release v1.0**
   - Author `docs/<crate>.md` architecture docs for all 9 workspace crates.
   - Benchmark idle CPU (<1.0%) and frame rates (60 fps) across Wayland and X11 with reproducible scripts.

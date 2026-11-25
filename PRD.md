@@ -271,7 +271,7 @@ Following **Approach 1 (Safety-First Foundation)**:
 | **Phase 5** | Package & Process Manager | `atp-pkg` (Flatpak + native `pacman`/`apt`/`dnf` + AppImage); orphan dependency auditor; `atp-procs` process tree kill and systemd unit control. |
 | **Phase 6** | In-App Agent Cockpit Drawer | Collapsible right-side agent drawer; local Ollama and Anthropic API adapters; plan preview cards matching Starship Control task sheets. |
 | **Phase 7** | Voice Dictation & Advanced Diagnostics | Local Whisper dictation via global shortcut (`Ctrl+Space`); "Why is my PC slow?" system diagnosis; Timeshift/btrfs snapshot hooks. |
-| **Phase 8** | Packaging, Polishing & Release | AppImage, `.deb`, `.rpm`, PKGBUILD packaging; documentation; release v1.0. |
+| **Phase 8** | Packaging, Polishing & Release | Locked `nfpm` packaging (`.deb`, `.rpm`, `.pkg.tar.zst` via `zvirox/release-workflows`), container smoke tests, documentation; release v1.0. (AppImage, Flatpak, AUR, and VM tests retired.) |
 
 ---
 
