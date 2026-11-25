@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Undo2, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Undo2 } from "lucide-react";
 import { restoreQuarantine } from "../lib/ipc";
 import { ExecutionResult } from "../types";
+import { LinearButton } from "./linear";
 
 interface UndoButtonProps {
   sessionId: string;
@@ -38,9 +39,7 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
     try {
       const result = await restoreQuarantine(sessionId);
       setRestored(true);
-      if (onRestored) {
-        onRestored(result);
-      }
+      onRestored?.(result);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMsg(msg);
@@ -54,9 +53,9 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
       <div
         role="status"
         aria-live="polite"
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-signal-success-bg border border-signal-success/30 text-signal-success text-xs font-semibold ${className}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--tint-green)] border border-[var(--tint-green-border)] text-[var(--color-green)] text-xs font-medium ${className}`}
       >
-        <CheckCircle2 size={14} className="shrink-0" />
+        <CheckCircle2 className="size-3.5 shrink-0" aria-hidden="true" />
         <span>Restored successfully</span>
       </div>
     );
@@ -64,16 +63,18 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
 
   return (
     <div className="inline-flex flex-col gap-1">
-      <button
+      <LinearButton
+        variant="primary"
+        size="sm"
         onClick={handleRestore}
         disabled={loading}
         aria-label={`Undo and restore quarantine session ${sessionId}`}
-        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-accent hover:bg-accent-hover active:bg-accent-active disabled:opacity-50 text-accent-text text-xs font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-canvas ${className}`}
+        className={className}
       >
         {loading ? (
-          <Loader2 size={14} className="animate-spin shrink-0" />
+          <Loader2 className="size-3.5 animate-spin shrink-0" aria-hidden="true" />
         ) : (
-          <Undo2 size={14} className="shrink-0" />
+          <Undo2 className="size-3.5 shrink-0" aria-hidden="true" />
         )}
         <span>
           {loading
@@ -83,17 +84,17 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
             : "Instant Undo"}
         </span>
         {filesCount !== undefined && !loading && (
-          <span className="font-mono text-[10px] opacity-75">· {filesCount} files</span>
+          <span className="text-[11px] opacity-80 tabular-nums">· {filesCount} files</span>
         )}
-      </button>
+      </LinearButton>
 
       {errorMsg && (
         <div
           role="alert"
           aria-live="assertive"
-          className="flex items-center gap-1 text-[11px] text-signal-gate font-medium"
+          className="flex items-center gap-1 text-xs text-[var(--color-red)] font-medium"
         >
-          <AlertCircle size={12} className="shrink-0" />
+          <AlertCircle className="size-3 shrink-0" aria-hidden="true" />
           <span>{errorMsg}</span>
         </div>
       )}

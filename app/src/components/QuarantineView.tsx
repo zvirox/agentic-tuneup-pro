@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ShieldAlert,
+  AlertTriangle,
   Archive,
-  RotateCcw,
-  Trash,
   Clock,
   Layers,
-  AlertTriangle,
   RefreshCw,
+  RotateCcw,
+  ShieldAlert,
+  Trash,
 } from "lucide-react";
 import { listQuarantineSessions, purgeQuarantine } from "../lib/ipc";
 import { QuarantineSessionRecord } from "../types";
 import { UndoButton } from "./UndoButton";
+import { LinearButton, LinearCard, LinearDialog, StatusPill } from "./linear";
 
 interface QuarantineViewProps {
   onNotify?: (msg: string) => void;
@@ -82,14 +83,17 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
   return (
     <div className="flex flex-col gap-5">
       {/* Overview Banner */}
-      <div className="glass-panel p-5 rounded-2xl flex items-center justify-between border-l-4 border-l-accent">
+      <LinearCard
+        level={1}
+        className="p-5 flex items-center justify-between border-l-4 border-l-[var(--accent)]"
+      >
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-accent-muted flex items-center justify-center text-accent">
-            <Archive size={20} />
+          <div className="size-10 rounded-md bg-[var(--tint-blue)] text-[var(--color-blue)] flex items-center justify-center shrink-0">
+            <Archive className="size-5" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-sm font-medium text-text-primary">Quarantine Vault</h2>
-            <p className="text-xs text-text-secondary mt-0.5">
+            <h2 className="text-sm font-semibold text-[var(--text)]">Quarantine Vault</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               Isolated storage for reversible deletion. Files are held for 7 days before automated purge.
             </p>
           </div>
@@ -97,53 +101,58 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
 
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <span className="text-[10px] font-semibold text-text-secondary tracking-wider block">
+            <span className="text-xs font-medium text-[var(--text-muted)] block">
               Quarantined Space
             </span>
-            <span className="font-mono text-base font-medium text-accent">
+            <span className="text-base font-semibold text-[var(--accent)] tabular-nums">
               {formatBytes(totalActiveBytes)}
             </span>
           </div>
 
-          <button
+          <LinearButton
+            variant="secondary"
+            size="sm"
             onClick={fetchSessions}
             disabled={loading}
             aria-label="Refresh quarantine sessions"
-            className="p-2 rounded-xl border border-border-glass text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors"
           >
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          </button>
+            <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
+            <span>Refresh</span>
+          </LinearButton>
         </div>
-      </div>
+      </LinearCard>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-border-subtle pb-2">
+      <div className="flex items-center gap-1 border-b border-[var(--border)] pb-2.5">
         <button
+          type="button"
           onClick={() => setFilter("all")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 cursor-pointer border ${
             filter === "all"
-              ? "bg-surface-glass-strong text-text-primary border border-border-glass shadow-sm"
-              : "text-text-secondary hover:text-text-primary"
+              ? "bg-[var(--bg-surface-2)] text-[var(--text)] border-[var(--border-strong)]"
+              : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
           }`}
         >
           All Sessions ({sessions.length})
         </button>
         <button
+          type="button"
           onClick={() => setFilter("active")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 cursor-pointer border ${
             filter === "active"
-              ? "bg-surface-glass-strong text-accent border border-accent/20 shadow-sm"
-              : "text-text-secondary hover:text-text-primary"
+              ? "bg-[var(--bg-surface-2)] text-[var(--accent)] border-[var(--border-strong)]"
+              : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
           }`}
         >
           Active Quarantined ({sessions.filter((s) => s.status === "active").length})
         </button>
         <button
+          type="button"
           onClick={() => setFilter("restored")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 cursor-pointer border ${
             filter === "restored"
-              ? "bg-surface-glass-strong text-text-primary border border-border-glass shadow-sm"
-              : "text-text-secondary hover:text-text-primary"
+              ? "bg-[var(--bg-surface-2)] text-[var(--text)] border-[var(--border-strong)]"
+              : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
           }`}
         >
           Restored &amp; Purged ({sessions.filter((s) => s.status !== "active").length})
@@ -152,13 +161,13 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
 
       {/* Sessions List */}
       {filtered.length === 0 ? (
-        <div className="glass-panel p-8 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <ShieldAlert size={32} className="text-text-disabled" />
-          <h3 className="text-sm font-semibold text-text-primary">No quarantine sessions found</h3>
-          <p className="text-xs text-text-secondary max-w-sm">
+        <LinearCard level={1} className="p-8 flex flex-col items-center justify-center text-center gap-2">
+          <ShieldAlert className="size-8 text-[var(--text-faint)]" aria-hidden="true" />
+          <h3 className="text-sm font-semibold text-[var(--text)]">No quarantine sessions found</h3>
+          <p className="text-xs text-[var(--text-muted)] max-w-sm">
             Files moved by the cleaner will appear here with instant one-click restoration.
           </p>
-        </div>
+        </LinearCard>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((s) => {
@@ -170,55 +179,54 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
             }
 
             return (
-              <div
+              <LinearCard
                 key={s.session_id}
-                className="glass-panel p-4 rounded-2xl flex flex-col gap-3 transition-colors hover:border-border-focus/40"
+                level={1}
+                className="p-4 flex flex-col gap-3"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-medium text-text-primary">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono text-xs font-medium text-[var(--text)]">
                       {s.session_id}
                     </span>
-                    <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-medium ${
+                    <StatusPill
+                      label={s.status}
+                      status={
                         s.status === "active"
-                          ? "bg-accent-muted text-accent border border-accent/30"
+                          ? "active"
                           : s.status === "restored"
-                          ? "bg-signal-success-bg text-signal-success border border-signal-success/30"
-                          : "bg-white/10 text-text-disabled"
-                      }`}
-                    >
-                      {s.status}
-                    </span>
+                          ? "online"
+                          : "idle"
+                      }
+                    />
                   </div>
 
-                  <div className="flex items-center gap-3 font-mono text-xs">
-                    <span className="font-medium text-text-primary">
+                  <div className="flex items-center gap-2 text-xs tabular-nums">
+                    <span className="font-semibold text-[var(--text)]">
                       {formatBytes(s.bytes_reclaimed)}
                     </span>
-                    <span className="text-text-secondary">· {s.file_count} files</span>
+                    <span className="text-[var(--text-muted)]">· {s.file_count} files</span>
                   </div>
                 </div>
 
-                {/* Details & Rules */}
-                <div className="flex items-center justify-between text-xs text-text-secondary pt-2 border-t border-border-subtle">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5">
-                      <Clock size={13} className="text-text-disabled" />
+                {/* Details & Actions */}
+                <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-2.5 border-t border-[var(--border)] gap-3">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Clock className="size-3.5 text-[var(--text-faint)]" aria-hidden="true" />
                       <span>{formatTimeRemaining(s.expires_at)}</span>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      <Layers size={13} className="text-text-disabled" />
-                      <span className="font-mono text-[11px] truncate max-w-xs">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Layers className="size-3.5 text-[var(--text-faint)] shrink-0" aria-hidden="true" />
+                      <span className="font-mono truncate max-w-xs">
                         {ruleIds.join(", ")}
                       </span>
                     </div>
                   </div>
 
-                  {/* Actions */}
                   {s.status === "active" && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <UndoButton
                         sessionId={s.session_id}
                         bytesCount={s.bytes_reclaimed}
@@ -229,64 +237,61 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
                         }}
                       />
 
-                      <button
+                      <LinearButton
+                        variant="danger"
+                        size="sm"
                         onClick={() => setPurgeTarget(s.session_id)}
                         aria-label={`Permanently purge session ${s.session_id}`}
-                        className="px-2.5 py-1.5 rounded-xl border border-signal-gate/20 hover:bg-signal-gate-bg text-signal-gate text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
                       >
-                        <Trash size={13} />
+                        <Trash className="size-3.5" aria-hidden="true" />
                         <span>Purge</span>
-                      </button>
+                      </LinearButton>
                     </div>
                   )}
 
                   {s.status === "restored" && (
-                    <span className="text-[11px] text-signal-success font-medium flex items-center gap-1">
-                      <RotateCcw size={12} />
+                    <span className="text-xs text-[var(--color-green)] font-medium inline-flex items-center gap-1 shrink-0">
+                      <RotateCcw className="size-3.5" aria-hidden="true" />
                       Restored to original location
                     </span>
                   )}
                 </div>
-              </div>
+              </LinearCard>
             );
           })}
         </div>
       )}
 
       {/* Confirmation Dialog for Permanent Purge */}
-      {purgeTarget && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
-        >
-          <div className="glass-panel-strong p-5 rounded-2xl max-w-md w-full border border-signal-gate/40 shadow-2xl flex flex-col gap-4">
-            <div className="flex items-center gap-3 text-signal-gate font-medium text-sm">
-              <AlertTriangle size={20} />
-              <span>Confirm Permanent Deletion</span>
-            </div>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Are you sure you want to permanently delete session{" "}
-              <strong className="text-text-primary font-mono">{purgeTarget}</strong>? This action
-              is destructive and cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setPurgeTarget(null)}
-                className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-text-primary transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handlePurge(purgeTarget)}
-                className="px-4 py-1.5 rounded-xl bg-signal-gate hover:bg-signal-gate/90 text-white text-xs font-medium shadow-lg transition-colors cursor-pointer"
-              >
-                Permanently Delete
-              </button>
-            </div>
-          </div>
+      <LinearDialog
+        open={Boolean(purgeTarget)}
+        onClose={() => setPurgeTarget(null)}
+        ariaLabel="Confirm Permanent Deletion"
+        maxWidthClass="max-w-md"
+        className="p-5 flex flex-col gap-4 border-[var(--tint-red-border)]"
+      >
+        <div className="flex items-center gap-2.5 text-[var(--color-red)] font-semibold text-sm">
+          <AlertTriangle className="size-5 shrink-0" aria-hidden="true" />
+          <span>Confirm Permanent Deletion</span>
         </div>
-      )}
+        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+          Are you sure you want to permanently delete session{" "}
+          <strong className="text-[var(--text)] font-mono">{purgeTarget}</strong>? This action is
+          destructive and cannot be undone.
+        </p>
+        <div className="flex justify-end gap-2 pt-2">
+          <LinearButton variant="secondary" size="sm" onClick={() => setPurgeTarget(null)}>
+            Cancel
+          </LinearButton>
+          <LinearButton
+            variant="danger"
+            size="sm"
+            onClick={() => purgeTarget && handlePurge(purgeTarget)}
+          >
+            Permanently Delete
+          </LinearButton>
+        </div>
+      </LinearDialog>
     </div>
   );
 };

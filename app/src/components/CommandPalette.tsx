@@ -1,22 +1,23 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Search,
-  LayoutDashboard,
-  Trash2,
-  Package,
-  Cpu,
-  Sliders,
-  Sparkles,
-  RotateCcw,
-  Zap,
   Bot,
   Camera,
-  Layers,
-  Mic,
   CornerDownLeft,
+  Cpu,
+  LayoutDashboard,
+  Mic,
+  Package,
+  RotateCcw,
+  Search,
+  Sliders,
+  Sparkles,
+  Sun,
+  Trash2,
   X,
+  Zap,
 } from "lucide-react";
 import { Page } from "../types";
+import { LinearDialog } from "./linear";
 
 export interface CommandItem {
   id: string;
@@ -38,8 +39,7 @@ interface CommandPaletteProps {
   onOpenDiagnostics: () => void;
   onToggleAgent: () => void;
   onCreateSnapshot: () => void;
-  onToggleReduceEffects: () => void;
-  reduceEffects: boolean;
+  onToggleTheme: () => void;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -51,25 +51,22 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onOpenDiagnostics,
   onToggleAgent,
   onCreateSnapshot,
-  onToggleReduceEffects,
-  reduceEffects,
+  onToggleTheme,
 }) => {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  // Command Definitions
   const commands: CommandItem[] = useMemo(
     () => [
-      // Navigation
       {
         id: "nav-dashboard",
         title: "Go to Dashboard",
         description: "View real-time hardware telemetry and system health score",
         category: "Navigation",
         icon: LayoutDashboard,
-        shortcut: "1",
+        shortcut: "Alt+1",
         action: () => onNavigate("dash"),
       },
       {
@@ -78,16 +75,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         description: "Review reclaimable application caches, logs, and dev artifacts",
         category: "Navigation",
         icon: Trash2,
-        shortcut: "2",
+        shortcut: "Alt+2",
         action: () => onNavigate("clean"),
       },
       {
         id: "nav-apps",
         title: "Go to Application Manager",
-        description: "Inspect Flatpaks, native packages, and find orphan dependencies",
+        description: "Inspect Flatpaks, native packages, and orphan dependencies",
         category: "Navigation",
         icon: Package,
-        shortcut: "3",
+        shortcut: "Alt+3",
         action: () => onNavigate("apps"),
       },
       {
@@ -96,20 +93,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         description: "Investigate process trees, CPU/RAM hogs, and systemd units",
         category: "Navigation",
         icon: Cpu,
-        shortcut: "4",
+        shortcut: "Alt+4",
         action: () => onNavigate("proc"),
       },
       {
         id: "nav-settings",
         title: "Go to Settings & Audit",
-        description: "Review immutable SQLite audit logs and system bridge settings",
+        description: "Review SQLite audit logs and Starship bridge settings",
         category: "Navigation",
         icon: Sliders,
-        shortcut: "5",
+        shortcut: "Alt+5",
         action: () => onNavigate("set"),
       },
-
-      // Actions
       {
         id: "action-scan",
         title: "Smart Scan & Clean",
@@ -125,7 +120,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: "action-undo",
         title: "Quarantine Vault & Undo",
-        description: "Instantly restore quarantined files with byte-level SHA-256 parity",
+        description: "Restore quarantined files with byte-level SHA-256 parity",
         category: "Actions",
         icon: RotateCcw,
         badge: "Safety",
@@ -143,8 +138,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         badge: "Safety",
         action: () => onCreateSnapshot(),
       },
-
-      // Diagnostics & AI
       {
         id: "diag-pc-slow",
         title: "Why is my PC slow?",
@@ -157,7 +150,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: "ai-toggle-agent",
         title: "Toggle Starship Agent Drawer",
-        description: "Open the sovereign AI cockpit and autonomous task planner",
+        description: "Open the AI cockpit and task planner drawer",
         category: "Diagnostics",
         icon: Bot,
         shortcut: "Ctrl+Shift+A",
@@ -165,25 +158,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       },
       {
         id: "ai-voice-dictation",
-        title: "Voice Dictation / Push-to-Talk",
-        description: "Capture voice instruction with local offline Whisper STT",
+        title: "Voice Dictation Preview",
+        description: "Open simulated voice dictation controls inside agent drawer",
         category: "Diagnostics",
         icon: Mic,
         shortcut: "Ctrl+Space",
-        action: () => {
-          onToggleAgent();
-        },
+        action: () => onToggleAgent(),
       },
-
-      // System & Preferences
       {
-        id: "pref-reduce-effects",
-        title: reduceEffects ? "Disable Reduce Effects (Glass Blur ON)" : "Enable Reduce Effects (Solid Obsidian)",
-        description: "Optimize rendering performance for low-end GPUs or remote X11",
+        id: "pref-toggle-theme",
+        title: "Toggle Dark / Light Theme",
+        description: "Switch between solid Linear Dark and Linear Light palettes",
         category: "System",
-        icon: Layers,
-        badge: reduceEffects ? "Solid" : "Glass",
-        action: () => onToggleReduceEffects(),
+        icon: Sun,
+        badge: "Theme",
+        action: () => onToggleTheme(),
       },
     ],
     [
@@ -193,12 +182,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       onOpenDiagnostics,
       onToggleAgent,
       onCreateSnapshot,
-      onToggleReduceEffects,
-      reduceEffects,
+      onToggleTheme,
     ]
   );
 
-  // Filter commands by search query
   const filteredCommands = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return commands;
@@ -210,12 +197,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     );
   }, [query, commands]);
 
-  // Reset selection index when query changes
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);
 
-  // Focus management on open/close
   useEffect(() => {
     if (isOpen) {
       setQuery("");
@@ -225,23 +210,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   }, [isOpen]);
 
-  // Scroll active item into view
   useEffect(() => {
     if (!listRef.current) return;
-    const activeItem = listRef.current.children[selectedIndex] as HTMLElement;
+    const activeItem = listRef.current.children[selectedIndex] as HTMLElement | undefined;
     if (activeItem) {
       activeItem.scrollIntoView({ block: "nearest" });
     }
   }, [selectedIndex]);
 
-  // Keyboard navigation within palette
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev + 1) % Math.max(1, filteredCommands.length));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % Math.max(1, filteredCommands.length));
+      setSelectedIndex(
+        (prev) => (prev - 1 + filteredCommands.length) % Math.max(1, filteredCommands.length)
+      );
     } else if (e.key === "Enter") {
       e.preventDefault();
       const selected = filteredCommands[selectedIndex];
@@ -255,143 +240,141 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-start justify-center pt-20 px-4 animate-in fade-in duration-150"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Universal Command Palette"
+    <LinearDialog
+      open={isOpen}
+      onClose={onClose}
+      ariaLabel="Universal Command Palette"
+      maxWidthClass="max-w-xl"
+      className="overflow-hidden flex flex-col max-h-[75vh] p-0"
     >
-      <div
-        className="w-full max-w-xl rounded-2xl glass-panel-strong border border-border-glass shadow-2xl overflow-hidden flex flex-col max-h-[75vh] animate-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
+      {/* Search Input Header */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-surface-2)]">
+        <Search className="size-4 text-[var(--accent)] shrink-0" aria-hidden="true" />
+        <input
+          ref={inputRef}
+          type="text"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="command-listbox"
+          aria-activedescendant={filteredCommands[selectedIndex]?.id}
+          placeholder="Search commands"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-full bg-transparent border-0 outline-none text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)]"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="text-[var(--text-muted)] hover:text-[var(--text)] p-1 rounded cursor-pointer"
+            aria-label="Clear search input"
+          >
+            <X className="size-3.5" aria-hidden="true" />
+          </button>
+        )}
+        <kbd className="font-mono text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-2 py-0.5 rounded text-[var(--text-muted)] shrink-0">
+          ESC
+        </kbd>
+      </div>
+
+      {/* Command List */}
+      <ul
+        id="command-listbox"
+        ref={listRef}
+        role="listbox"
+        className="flex-1 overflow-y-auto p-2 space-y-1"
       >
-        {/* Search Input Header */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border-subtle bg-canvas/40">
-          <Search size={18} className="text-accent shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            role="combobox"
-            aria-expanded="true"
-            aria-controls="command-listbox"
-            aria-activedescendant={filteredCommands[selectedIndex]?.id}
-            placeholder="Search commands"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="w-full bg-transparent border-0 outline-none text-sm text-text-primary placeholder:text-text-disabled"
-          />
-          {query && (
-            <button
-              onClick={() => setQuery("")}
-              className="text-text-muted hover:text-text-primary p-1 rounded-md"
-              aria-label="Clear search input"
-            >
-              <X size={14} />
-            </button>
-          )}
-          <kbd className="font-mono text-[10px] bg-white/5 border border-white/10 px-2 py-0.5 rounded text-text-muted">
-            ESC to close
-          </kbd>
-        </div>
-
-        {/* Command List */}
-        <ul
-          id="command-listbox"
-          ref={listRef}
-          role="listbox"
-          className="flex-1 overflow-y-auto p-2 space-y-1 divide-y-0"
-        >
-          {filteredCommands.length === 0 ? (
-            <li className="py-12 text-center text-xs text-text-muted">
-              No matching commands found for &ldquo;{query}&rdquo;
-            </li>
-          ) : (
-            filteredCommands.map((cmd, index) => {
-              const Icon = cmd.icon;
-              const isSelected = index === selectedIndex;
-              return (
-                <li
-                  key={cmd.id}
-                  id={cmd.id}
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    cmd.action();
-                    onClose();
-                  }}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                  className={`flex items-center justify-between p-2.5 rounded-xl text-xs transition-colors cursor-pointer ${
-                    isSelected
-                      ? "bg-accent/15 border border-accent/40 text-text-primary"
-                      : "hover:bg-white/5 text-text-secondary border border-transparent"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`p-2 rounded-lg shrink-0 ${
-                        isSelected
-                          ? "bg-accent text-accent-text"
-                          : "bg-surface-glass border border-border-subtle text-accent"
-                      }`}
-                    >
-                      <Icon size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-text-primary truncate">
-                          {cmd.title}
+        {filteredCommands.length === 0 ? (
+          <li className="py-12 text-center text-xs text-[var(--text-muted)]">
+            No matching commands found for &ldquo;{query}&rdquo;
+          </li>
+        ) : (
+          filteredCommands.map((cmd, index) => {
+            const Icon = cmd.icon;
+            const isSelected = index === selectedIndex;
+            return (
+              <li
+                key={cmd.id}
+                id={cmd.id}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  cmd.action();
+                  onClose();
+                }}
+                onMouseEnter={() => setSelectedIndex(index)}
+                className={`flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors duration-150 cursor-pointer border ${
+                  isSelected
+                    ? "bg-[var(--tint-blue)] border-[var(--tint-blue-border)] text-[var(--text)]"
+                    : "hover:bg-[var(--bg-surface-2)] text-[var(--text-muted)] border-transparent"
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={`p-1.5 rounded-md shrink-0 ${
+                      isSelected
+                        ? "bg-[var(--accent)] text-[var(--accent-fg)]"
+                        : "bg-[var(--bg-surface-2)] border border-[var(--border)] text-[var(--accent)]"
+                    }`}
+                  >
+                    <Icon size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[var(--text)] truncate">
+                        {cmd.title}
+                      </span>
+                      {cmd.badge && (
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--bg-surface-2)] text-[var(--text-muted)] border border-[var(--border)] leading-none">
+                          {cmd.badge}
                         </span>
-                        {cmd.badge && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-text-secondary border border-white/10">
-                            {cmd.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-text-disabled truncate">
-                        {cmd.description}
-                      </p>
+                      )}
                     </div>
+                    <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+                      {cmd.description}
+                    </p>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    {cmd.shortcut && (
-                      <kbd className="font-mono text-[10px] bg-black/40 border border-border-subtle px-1.5 py-0.5 rounded text-text-muted">
-                        {cmd.shortcut}
-                      </kbd>
-                    )}
-                    {isSelected && (
-                      <CornerDownLeft size={13} className="text-accent" />
-                    )}
-                  </div>
-                </li>
-              );
-            })
-          )}
-        </ul>
+                <div className="flex items-center gap-2 shrink-0 ml-3">
+                  {cmd.shortcut && (
+                    <kbd className="font-mono text-[11px] bg-[var(--bg-surface-2)] border border-[var(--border)] px-1.5 py-0.5 rounded text-[var(--text-muted)]">
+                      {cmd.shortcut}
+                    </kbd>
+                  )}
+                  {isSelected && (
+                    <CornerDownLeft className="size-3.5 text-[var(--accent)]" aria-hidden="true" />
+                  )}
+                </div>
+              </li>
+            );
+          })
+        )}
+      </ul>
 
-        {/* Footer Navigation Hints */}
-        <div className="px-4 py-2 border-t border-border-subtle bg-canvas/60 flex items-center justify-between text-[11px] text-text-disabled">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <kbd className="font-mono text-[10px] bg-white/5 border border-white/10 px-1 rounded">↑</kbd>
-              <kbd className="font-mono text-[10px] bg-white/5 border border-white/10 px-1 rounded">↓</kbd>
-              <span>navigate</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="font-mono text-[10px] bg-white/5 border border-white/10 px-1 rounded">↵</kbd>
-              <span>select</span>
-            </span>
-          </div>
-          <span className="font-mono text-[10px] text-accent">
-            Mother Ship · Starship Ecosystem
+      {/* Footer Hints */}
+      <div className="px-4 py-2 border-t border-[var(--border)] bg-[var(--bg-surface-2)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1">
+            <kbd className="font-mono text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-1 rounded">
+              ↑
+            </kbd>
+            <kbd className="font-mono text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-1 rounded">
+              ↓
+            </kbd>
+            <span>navigate</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <kbd className="font-mono text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-1 rounded">
+              ↵
+            </kbd>
+            <span>select</span>
           </span>
         </div>
+        <span className="text-[var(--accent)] font-medium">Mother Ship · Starship Bridge</span>
       </div>
-    </div>
+    </LinearDialog>
   );
 };

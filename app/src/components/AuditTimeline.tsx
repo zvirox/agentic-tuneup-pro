@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from "react";
-import {
-  Bot,
-  User,
-  ChevronDown,
-  ChevronUp,
-  RefreshCw,
-  Terminal,
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Bot, ChevronDown, ChevronUp, RefreshCw, Terminal, User } from "lucide-react";
 import { getAuditLog } from "../lib/ipc";
 import { AuditEntry } from "../types";
+import { LinearButton, LinearCard, StatusPill } from "./linear";
 
 export const AuditTimeline: React.FC = () => {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
@@ -53,19 +47,19 @@ export const AuditTimeline: React.FC = () => {
     switch (tier) {
       case 1:
         return (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-medium bg-signal-success-bg text-signal-success border border-signal-success/30">
+          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-[var(--tint-green)] text-[var(--color-green)] border border-[var(--tint-green-border)]">
             Tier 1 · Safe
           </span>
         );
       case 2:
         return (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-medium bg-accent-muted text-accent border border-accent/30">
+          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-[var(--tint-blue)] text-[var(--color-blue)] border border-[var(--tint-blue-border)]">
             Tier 2 · Reversible
           </span>
         );
       case 3:
         return (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-medium bg-signal-gate-bg text-signal-gate border border-signal-gate/30">
+          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-[var(--tint-red)] text-[var(--color-red)] border border-[var(--tint-red-border)]">
             Tier 3 · Destructive
           </span>
         );
@@ -75,73 +69,78 @@ export const AuditTimeline: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {/* Header & Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-medium text-text-primary">Audit Log &amp; Governance</h2>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Cryptographically tracked trail of every system mutation, quarantine operation, and agent plan.
+          <h2 className="text-base font-semibold text-[var(--text)]">
+            Audit Log &amp; Governance
+          </h2>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            Tracked trail of every system mutation, quarantine operation, and agent plan.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Filter Pills */}
-          <div className="flex items-center bg-black/40 p-1 rounded-xl border border-border-subtle text-xs font-medium">
+          <div className="flex items-center bg-[var(--bg-surface-2)] p-0.5 rounded-md border border-[var(--border)] text-xs font-medium">
             <button
+              type="button"
               onClick={() => setInitiatorFilter("all")}
-              className={`px-2.5 py-1 rounded-lg transition-colors ${
+              className={`px-2.5 py-1 rounded transition-colors duration-150 cursor-pointer border ${
                 initiatorFilter === "all"
-                  ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass"
-                  : "text-text-secondary hover:text-text-primary"
+                  ? "bg-[var(--bg-surface)] text-[var(--text)] border-[var(--border)]"
+                  : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
               }`}
             >
               All
             </button>
             <button
+              type="button"
               onClick={() => setInitiatorFilter("starship")}
-              className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded transition-colors duration-150 inline-flex items-center gap-1 cursor-pointer border ${
                 initiatorFilter === "starship"
-                  ? "bg-surface-glass-strong text-accent shadow-sm border border-accent/20"
-                  : "text-text-secondary hover:text-text-primary"
+                  ? "bg-[var(--bg-surface)] text-[var(--accent)] border-[var(--border)]"
+                  : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
               }`}
             >
-              <Bot size={12} />
+              <Bot className="size-3" aria-hidden="true" />
               <span>Agent</span>
             </button>
             <button
+              type="button"
               onClick={() => setInitiatorFilter("user")}
-              className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded transition-colors duration-150 inline-flex items-center gap-1 cursor-pointer border ${
                 initiatorFilter === "user"
-                  ? "bg-surface-glass-strong text-text-primary shadow-sm border border-border-glass"
-                  : "text-text-secondary hover:text-text-primary"
+                  ? "bg-[var(--bg-surface)] text-[var(--text)] border-[var(--border)]"
+                  : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
               }`}
             >
-              <User size={12} />
+              <User className="size-3" aria-hidden="true" />
               <span>User</span>
             </button>
           </div>
 
-          <button
+          <LinearButton
+            variant="secondary"
+            size="sm"
             onClick={fetchLogs}
             disabled={loading}
             aria-label="Refresh audit entries"
-            className="p-2 rounded-xl border border-border-glass text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors"
           >
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          </button>
+            <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
+          </LinearButton>
         </div>
       </div>
 
       {/* Timeline List */}
       {entries.length === 0 ? (
-        <div className="glass-panel p-8 rounded-2xl flex flex-col items-center justify-center text-center gap-2">
-          <Terminal size={32} className="text-text-disabled" />
-          <h3 className="text-sm font-semibold text-text-primary">No audit records</h3>
-          <p className="text-xs text-text-secondary max-w-sm">
-            Operations executed by you or the Starship agent will be logged here with immutable timestamps.
+        <LinearCard level={1} className="p-8 flex flex-col items-center justify-center text-center gap-2">
+          <Terminal className="size-7 text-[var(--text-faint)]" aria-hidden="true" />
+          <h3 className="text-sm font-semibold text-[var(--text)]">No audit records</h3>
+          <p className="text-xs text-[var(--text-muted)] max-w-sm">
+            Operations executed by you or the Starship agent will be logged here with timestamps.
           </p>
-        </div>
+        </LinearCard>
       ) : (
         <div className="flex flex-col gap-2.5">
           {entries.map((entry) => {
@@ -149,79 +148,72 @@ export const AuditTimeline: React.FC = () => {
             const isAgent = entry.initiator === "starship" || entry.initiator === "agent";
 
             return (
-              <div
-                key={entry.entry_id}
-                className="glass-panel p-3.5 rounded-xl flex flex-col gap-2 transition-colors hover:border-border-focus/40"
-              >
-                <div
+              <LinearCard key={entry.entry_id} level={1} className="p-3.5 flex flex-col gap-2">
+                <button
+                  type="button"
                   onClick={() => toggleExpand(entry.entry_id)}
-                  className="flex items-center justify-between cursor-pointer select-none"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      toggleExpand(entry.entry_id);
-                    }
-                  }}
                   aria-expanded={isExpanded}
+                  className="flex items-center justify-between w-full text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--accent)] rounded"
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <div
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center ${
-                        isAgent ? "bg-accent-muted text-accent" : "bg-white/10 text-text-primary"
+                      className={`size-6 rounded flex items-center justify-center shrink-0 ${
+                        isAgent
+                          ? "bg-[var(--tint-blue)] text-[var(--color-blue)]"
+                          : "bg-[var(--bg-surface-2)] text-[var(--text)]"
                       }`}
                       title={isAgent ? "Starship Agent Initiated" : "User Initiated"}
                     >
-                      {isAgent ? <Bot size={13} /> : <User size={13} />}
+                      {isAgent ? (
+                        <Bot className="size-3.5" aria-hidden="true" />
+                      ) : (
+                        <User className="size-3.5" aria-hidden="true" />
+                      )}
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-medium text-text-primary">
+                        <span className="font-mono text-xs font-medium text-[var(--text)] truncate">
                           {entry.action_type}
                         </span>
-                        <span className="text-[11px] text-text-secondary">→ {entry.target}</span>
+                        <span className="text-xs text-[var(--text-muted)] truncate">
+                          → {entry.target}
+                        </span>
                       </div>
-                      <span className="text-[10px] text-text-disabled font-mono block">
+                      <span className="text-[11px] text-[var(--text-faint)] font-mono block tabular-nums">
                         {formatTimestamp(entry.timestamp)} · #{entry.entry_id}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2 shrink-0">
                     {getRiskBadge(entry.risk_tier)}
-                    <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded font-medium ${
-                        entry.status === "success"
-                          ? "bg-signal-success-bg text-signal-success"
-                          : "bg-signal-gate-bg text-signal-gate"
-                      }`}
-                    >
-                      {entry.status}
-                    </span>
+                    <StatusPill
+                      label={entry.status}
+                      status={entry.status === "success" ? "online" : "alert"}
+                    />
                     {isExpanded ? (
-                      <ChevronUp size={14} className="text-text-secondary" />
+                      <ChevronUp className="size-3.5 text-[var(--text-muted)]" aria-hidden="true" />
                     ) : (
-                      <ChevronDown size={14} className="text-text-secondary" />
+                      <ChevronDown className="size-3.5 text-[var(--text-muted)]" aria-hidden="true" />
                     )}
                   </div>
-                </div>
+                </button>
 
-                {/* Expanded Details JSON */}
                 {isExpanded && (
-                  <div className="mt-2 pt-2 border-t border-border-subtle flex flex-col gap-1.5 animate-in fade-in">
-                    <div className="flex items-center justify-between text-[11px] text-text-secondary">
+                  <div className="mt-2 pt-2.5 border-t border-[var(--border)] flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
                       <span>Execution Details Payload</span>
-                      <span className="font-mono text-[10px]">
+                      <span className="font-mono text-[11px]">
                         Initiator: {entry.initiator}
                       </span>
                     </div>
-                    <pre className="p-2.5 rounded-lg bg-black/60 border border-border-subtle font-mono text-[11px] text-text-primary overflow-x-auto">
+                    <pre className="p-2.5 rounded-md bg-[var(--bg-surface-2)] border border-[var(--border)] font-mono text-xs text-[var(--text)] overflow-x-auto select-text">
                       {JSON.stringify(JSON.parse(entry.details_json || "{}"), null, 2)}
                     </pre>
                   </div>
                 )}
-              </div>
+              </LinearCard>
             );
           })}
         </div>

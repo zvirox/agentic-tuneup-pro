@@ -120,8 +120,8 @@ Agentic Tuneup Pro is built around strict reversible safety. Its visual dashboar
 | :--- | :--- | :--- |
 | **Zero Direct Deletions** | Cleaned files move to a reversible quarantine folder first | Accidental permanent loss of needed caches or builds |
 | **Zero-Shell Execution** | All actions run through direct Rust OS calls without `sh -c` | Command injection or broken path expansion bugs |
-| **Hard Protected Paths** | Kernel-checked allowlists block `/etc`, `/boot`, `/usr`, SSH keys, and vaults | System damage or credential deletion |
-| **Explicit User Approval** | Removing packages or stopping services waits for your confirmation click | Unwanted system changes in the background |
+| **Hard Protected Paths** | Component-aware checks block `/etc`, `/boot`, `/usr`, `/dev`, SSH keys, and vaults | System damage or credential deletion |
+| **Honest Error Reporting** | In-app IPC (`safeInvoke`) surfaces real backend failures and avoids silent fake successes | Masked backend errors disguised as completed actions |
 
 ---
 
@@ -129,7 +129,7 @@ Agentic Tuneup Pro is built around strict reversible safety. Its visual dashboar
 
 - **Parallel Multi-Target Scanner**: Finds browser caches, old developer build folders (`target/`, `node_modules/`, Python venvs), and temporary logs fast without stalling the interface.
 - **Two-Phase Reversible Quarantine**: Keeps every cleaned item recoverable with original path permissions and SHA-256 checksum verification until your chosen expiry timer runs out.
-- **Unified Linux Package View**: Shows native system packages (`apt`, `dnf`, `pacman`) and Flatpaks side by side to help clean up orphan dependencies safely.
+- **Unified Linux Package View**: Shows native system packages (`apt`, `dnf`, `pacman`), Flatpaks, and AppImages side by side *(package mutations currently show plan previews pending D-Bus helper execution wiring)*.
 - **Process and Service Explorer**: Displays active apps grouped by process tree with real-time CPU and RAM readouts and graceful stop actions.
 - **"Why Is My PC Slow?" Diagnostics**: Correlates temperature sensors, memory pressure, and background indexers into clear plain-English findings.
 - **1 Hz Live Telemetry**: Smooth Apache ECharts gauges track CPU, memory, disk I/O, and a 100-point composite health index.
@@ -201,8 +201,9 @@ To build directly from source, install Rust stable, Node.js 22+, and standard Li
 ```bash
 git clone https://github.com/zvirox/agentic-tuneup-pro.git
 cd agentic-tuneup-pro
-cd app && npm install && npm run build && cd ..
-cargo build --release -p agentic-tuneup-pro
+cd app && npm ci && npm run check:linear && npm run build && cd ..
+cargo test --workspace
+cargo build --release -p agentic-tuneup-pro -p atpd-helper
 ```
 
 </details>
@@ -217,7 +218,7 @@ Official Linux releases ship exclusively as native `.deb`, `.rpm`, and `.pkg.tar
 | :--- | :--- | :--- |
 | **System Core** | Rust 2024 Workspace | Zero-shell scanners, SHA-256 quarantine, and telemetry sampler |
 | **Desktop Shell** | Tauri 2 | Native Linux windowing and scoped permission dialogs |
-| **Frontend UI** | React 19 + TypeScript + Tailwind CSS v4 | Solid matte dark surfaces and `Ctrl+K` quick actions |
+| **Frontend UI** | React 19 + TypeScript + Tailwind CSS v4 + Inter | Solid matte Dark & Light Linear UI (`check:linear` gated) with `Ctrl+K` quick actions |
 | **Charts and State** | Apache ECharts 6 + Zustand | Live 1 Hz CPU, memory, and disk usage visualizations |
 | **Automation Bridge** | `starship-plugin` SDK | Authenticated local Unix socket commands for Starship Control |
 

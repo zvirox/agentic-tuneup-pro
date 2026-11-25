@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
-import { X, FileCode, HardDrive } from "lucide-react";
-import { LinearCard } from "./linear/LinearCard";
-import { LinearButton } from "./linear/LinearButton";
+import React from "react";
+import { FileCode, HardDrive, X } from "lucide-react";
+import { LinearButton, LinearDialog } from "./linear";
 import { RuleScanResult } from "../types";
 
 interface SamplePathsModalProps {
@@ -10,87 +9,68 @@ interface SamplePathsModalProps {
 }
 
 export const SamplePathsModal: React.FC<SamplePathsModalProps> = ({ rule, onClose }) => {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
   if (!rule) return null;
 
   const paths = rule.sample_paths.length > 0 ? rule.sample_paths : rule.matched_paths;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Sample paths for ${rule.name}`}
-      className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 animate-in fade-in"
-      onClick={onClose}
+    <LinearDialog
+      open={Boolean(rule)}
+      onClose={onClose}
+      ariaLabel={`Sample paths for ${rule.name}`}
+      maxWidthClass="max-w-2xl"
+      className="p-5 flex flex-col gap-4 max-h-[80vh]"
     >
-      <LinearCard
-        level="modal"
-        className="p-5 max-w-2xl w-full flex flex-col gap-4 max-h-[80vh]"
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-accent-muted flex items-center justify-center text-accent">
-              <HardDrive size={16} />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-text-primary">{rule.name}</h3>
-              <p className="text-xs text-text-secondary">
-                Rule ID: <span className="font-mono text-accent">{rule.rule_id}</span> · Showing up
-                to {paths.length} sample target paths
-              </p>
-            </div>
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="size-8 rounded-md bg-[var(--tint-blue)] text-[var(--color-blue)] flex items-center justify-center shrink-0">
+            <HardDrive className="size-4" aria-hidden="true" />
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close dialog"
-            className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-white/10 transition-colors cursor-pointer"
-          >
-            <X size={16} />
-          </button>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-[var(--text)] truncate">{rule.name}</h3>
+            <p className="text-xs text-[var(--text-muted)] truncate">
+              Rule: <span className="font-mono text-[var(--accent)]">{rule.rule_id}</span> · Showing up to{" "}
+              {paths.length} target paths
+            </p>
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close dialog"
+          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-colors duration-150 cursor-pointer"
+        >
+          <X className="size-4" aria-hidden="true" />
+        </button>
+      </div>
 
-        {/* Path List */}
-        <div className="overflow-y-auto flex flex-col gap-2 p-1">
-          {paths.length === 0 ? (
-            <div className="text-center py-8 text-xs text-text-secondary">
-              No matching files currently present on disk.
+      {/* Path List */}
+      <div className="overflow-y-auto flex flex-col gap-1.5">
+        {paths.length === 0 ? (
+          <div className="text-center py-8 text-xs text-[var(--text-muted)]">
+            No matching files currently present on disk.
+          </div>
+        ) : (
+          paths.map((path, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-md bg-[var(--bg-surface-2)] border border-[var(--border)] text-xs font-mono break-all"
+            >
+              <FileCode className="size-3.5 text-[var(--accent)] shrink-0" aria-hidden="true" />
+              <span className="text-[var(--text)] select-all">{String(path)}</span>
             </div>
-          ) : (
-            paths.map((path, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-border-subtle text-xs font-mono break-all hover:bg-white/10 transition-colors"
-              >
-                <FileCode size={13} className="text-accent shrink-0" />
-                <span className="text-text-primary select-all text-[11px]">{String(path)}</span>
-              </div>
-            ))
-          )}
-        </div>
+          ))
+        )}
+      </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-border-subtle text-xs text-text-secondary">
-          <span>Protected credential paths are automatically excluded.</span>
-          <LinearButton
-            variant="primary"
-            size="sm"
-            onClick={onClose}
-          >
-            Done
-          </LinearButton>
-        </div>
-      </LinearCard>
-    </div>
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
+        <span>Protected credential paths are automatically excluded.</span>
+        <LinearButton variant="primary" size="sm" onClick={onClose}>
+          Done
+        </LinearButton>
+      </div>
+    </LinearDialog>
   );
 };

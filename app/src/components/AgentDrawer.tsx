@@ -1,33 +1,35 @@
-import { useState, useEffect, useRef } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import {
-  X,
-  Send,
-  Settings,
-  Bot,
   AlertTriangle,
-  Play,
-  RotateCw,
-  Trash2,
+  Bot,
   Cpu,
-  RefreshCw,
-  ShieldCheck,
   Mic,
   MicOff,
+  Play,
+  RefreshCw,
+  RotateCw,
+  Send,
+  Settings,
+  ShieldCheck,
+  Trash2,
+  X,
 } from "lucide-react";
 import {
-  agentSendPrompt,
-  agentGetActivePlan,
-  agentApproveStep,
-  agentRejectStep,
   agentAbort,
+  agentApproveStep,
+  agentGetActivePlan,
   agentGetConfig,
+  agentRejectStep,
+  agentSendPrompt,
   agentUpdateConfig,
+  voiceStartCapture,
+  voiceStopCapture,
 } from "../lib/ipc";
-import { TaskPlan, AgentConfig, LlmProviderType } from "../types";
+import { AgentConfig, LlmProviderType, TaskPlan } from "../types";
 import { PlanStepCard } from "./PlanStepCard";
 import { VoiceWaveform } from "./VoiceWaveform";
+import { LinearButton, LinearCard } from "./linear";
 
 function formatBytes(bytes?: number | null): string {
   if (!bytes || bytes === 0) return "0 B";
@@ -65,27 +67,29 @@ export function AgentDrawer({
 
   useEffect(() => {
     if (isOpen) {
-      agentGetConfig().then(setConfig);
-      agentGetActivePlan().then(setActivePlan);
+      agentGetConfig().then(setConfig).catch(() => {});
+      agentGetActivePlan().then(setActivePlan).catch(() => {});
       setTimeout(() => inputRef.current?.focus(), 150);
     } else if (isListening) {
-      invoke<string>("voice_stop_capture").catch(() => {});
+      voiceStopCapture().catch(() => {});
       setIsListening(false);
     }
   }, [isOpen]);
 
-  // Real-time voice stream listener
   useEffect(() => {
+    const inTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    if (!inTauri) return;
+
     let unlisten: (() => void) | undefined;
-    listen<any>("evt://voice/event", (event) => {
-      if (event.payload?.type === "Waveform") {
+    listen<{ type?: string; payload?: number[] }>("evt://voice/event", (event) => {
+      if (event.payload?.type === "Waveform" && Array.isArray(event.payload.payload)) {
         setAudioLevels(event.payload.payload);
       } else if (event.payload?.type === "UtteranceReady") {
-        invoke<string>("voice_stop_capture")
+        voiceStopCapture()
           .then((text) => {
             if (text && text.trim()) {
               setPrompt(text);
-              onTriggerToast(`Voice recognized: "${text}"`);
+              onTriggerToast(`Voice preview: "${text}"`);
             }
           })
           .catch(() => {})
@@ -105,10 +109,10 @@ export function AgentDrawer({
   const handleToggleVoice = async () => {
     if (isListening) {
       try {
-        const text = await invoke<string>("voice_stop_capture");
+        const text = await voiceStopCapture();
         if (text && text.trim()) {
           setPrompt(text);
-          onTriggerToast(`Voice captured: "${text}"`);
+          onTriggerToast(`Voice preview captured: "${text}"`);
         }
       } catch (err: unknown) {
         onTriggerToast(`Voice stop error: ${err}`);
@@ -117,9 +121,9 @@ export function AgentDrawer({
       }
     } else {
       try {
-        await invoke("voice_start_capture");
+        await voiceStartCapture();
         setIsListening(true);
-        onTriggerToast("Listening for voice command... (Ctrl+Space to stop)");
+        onTriggerToast("Voice preview active (Ctrl+Space to stop)");
       } catch (err: unknown) {
         onTriggerToast(`Voice capture error: ${err}`);
         setIsListening(false);
@@ -127,7 +131,6 @@ export function AgentDrawer({
     }
   };
 
-  // Push-to-talk hotkey (Ctrl + Space)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === "Space" && isOpen) {
@@ -229,17 +232,21 @@ export function AgentDrawer({
   if (!isOpen) return null;
 
   return (
-    <aside className="w-96 border-l border-border-subtle bg-raised/95 flex flex-col select-none h-full z-40 shadow-2xl animate-in slide-in-from-right duration-200">
+    <aside
+      aria-label="Starship Agent Drawer"
+      className="w-96 shrink-0 border-l border-[var(--border)] bg-[var(--bg-surface)] flex flex-col select-none h-full z-40"
+    >
       {/* Header */}
-      <div className="h-14 border-b border-border-subtle px-4 flex items-center justify-between bg-raised/80">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-          <span className="text-xs font-medium text-text-primary tracking-wide">
+      <div className="h-11 shrink-0 border-b border-[var(--border)] px-4 flex items-center justify-between bg-[var(--bg-surface-2)]">
+        <div className="flex items-center gap-2">
+          <span className="size-2 rounded-full bg-[var(--color-green)]" aria-hidden="true" />
+          <span className="text-[13px] font-semibold text-[var(--text)]">
             Starship Agent
           </span>
           <button
+            type="button"
             onClick={() => setSettingsOpen(!settingsOpen)}
-            className="flex items-center gap-1 text-[10px] font-mono bg-black/40 border border-border-subtle px-2 py-0.5 rounded-full text-accent hover:border-accent transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-2 py-0.5 rounded text-[var(--accent)] hover:border-[var(--border-strong)] transition-colors duration-150 cursor-pointer"
           >
             <span>
               {config.provider === "sovereign_offline"
@@ -248,52 +255,55 @@ export function AgentDrawer({
                 ? "Ollama"
                 : config.provider}
             </span>
-            <Settings size={10} />
+            <Settings className="size-3" aria-hidden="true" />
           </button>
         </div>
 
         <button
+          type="button"
           onClick={onClose}
-          className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors cursor-pointer"
+          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-bar-idle)] transition-colors duration-150 cursor-pointer"
           aria-label="Close drawer"
         >
-          <X size={16} />
+          <X className="size-4" aria-hidden="true" />
         </button>
       </div>
 
-      {/* Settings Overlay Dropdown */}
+      {/* Settings Dropdown */}
       {settingsOpen && (
-        <div className="p-4 border-b border-border-subtle bg-black/60 space-y-3 text-xs animate-in fade-in duration-150">
-          <div className="font-medium text-text-primary flex items-center justify-between">
+        <div className="p-4 border-b border-[var(--border)] bg-[var(--bg-surface-2)] space-y-3 text-xs">
+          <div className="font-semibold text-[var(--text)] flex items-center justify-between">
             <span>LLM Provider Configuration</span>
-            <span className="text-[10px] text-text-disabled font-mono">Secret Service Integrated</span>
+            <span className="text-[11px] text-[var(--text-muted)] font-mono">Local Config</span>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] text-text-secondary">Provider Engine:</label>
+            <label className="text-xs text-[var(--text-muted)] block">Provider Engine:</label>
             <div className="grid grid-cols-2 gap-2">
               <button
+                type="button"
                 onClick={() => handleSaveConfig("sovereign_offline", "offline-planner")}
-                className={`p-2 rounded-xl border text-left cursor-pointer transition-colors ${
+                className={`p-2.5 rounded-md border text-left cursor-pointer transition-colors duration-150 ${
                   config.provider === "sovereign_offline"
-                    ? "bg-accent/20 border-accent text-accent font-medium"
-                    : "bg-surface-glass border-border-subtle text-text-secondary hover:text-text-primary"
+                    ? "bg-[var(--tint-blue)] border-[var(--tint-blue-border)] text-[var(--color-blue)] font-medium"
+                    : "bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
                 }`}
               >
-                <div className="font-semibold text-[11px]">Sovereign Rule-based</div>
-                <div className="text-[9px] text-text-disabled">Offline · Sub-second</div>
+                <div className="font-semibold text-xs">Sovereign Rule-based</div>
+                <div className="text-[11px] text-[var(--text-faint)]">Offline · Sub-second</div>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleSaveConfig("ollama", "llama3.1:latest")}
-                className={`p-2 rounded-xl border text-left cursor-pointer transition-colors ${
+                className={`p-2.5 rounded-md border text-left cursor-pointer transition-colors duration-150 ${
                   config.provider === "ollama"
-                    ? "bg-accent/20 border-accent text-accent font-medium"
-                    : "bg-surface-glass border-border-subtle text-text-secondary hover:text-text-primary"
+                    ? "bg-[var(--tint-blue)] border-[var(--tint-blue-border)] text-[var(--color-blue)] font-medium"
+                    : "bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
                 }`}
               >
-                <div className="font-semibold text-[11px]">Local Ollama</div>
-                <div className="text-[9px] text-text-disabled">localhost:11434</div>
+                <div className="font-semibold text-xs">Local Ollama</div>
+                <div className="text-[11px] text-[var(--text-faint)]">localhost:11434</div>
               </button>
             </div>
           </div>
@@ -302,56 +312,55 @@ export function AgentDrawer({
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* If no plan is active, display welcoming starter guide */}
         {!activePlan && (
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-surface-glass border border-border-subtle space-y-2">
-              <div className="flex items-center gap-2 text-text-primary font-medium text-xs">
-                <Bot size={14} className="text-text-secondary" />
-                <span>Maintenance companion</span>
+            <LinearCard level={1} className="p-4 space-y-2.5 bg-[var(--bg-surface-2)]">
+              <div className="flex items-center gap-2 text-[var(--text)] font-semibold text-xs">
+                <Bot className="size-4 text-[var(--accent)]" aria-hidden="true" />
+                <span>Maintenance Companion</span>
               </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Type what you need in plain English. I decompose your intent into structured Task Sheets with safety gates before touching your disk.
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                Describe what you need in plain English. Intents decompose into structured Task
+                Sheets with approval gates before touching your disk.
               </p>
-              <div className="pt-2 flex items-center gap-1.5 text-[10px] text-text-muted font-mono">
-                <ShieldCheck size={12} className="text-signal-success" />
-                <span>Protected paths &amp; browser passwords strictly shielded</span>
+              <div className="pt-1 flex items-center gap-1.5 text-[11px] text-[var(--color-green)]">
+                <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
+                <span>Protected paths &amp; browser passwords shielded</span>
               </div>
-            </div>
+            </LinearCard>
 
-            {/* Quick Action Chips */}
+            {/* Suggested Action Chips */}
             <div className="space-y-1.5">
-              <div className="text-[11px] font-semibold text-text-muted tracking-wider px-1">
-                Suggested actions
+              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] px-1">
+                Suggested Actions
               </div>
               <div className="space-y-1.5">
                 {[
                   {
-                    icon: <Trash2 size={14} className="text-text-muted" />,
+                    icon: <Trash2 className="size-3.5 text-[var(--color-blue)]" />,
                     text: "Free up 5 GB of disk space",
                   },
                   {
-                    icon: <AlertTriangle size={14} className="text-text-muted" />,
+                    icon: <AlertTriangle className="size-3.5 text-[var(--color-amber)]" />,
                     text: "Audit and purge orphan packages",
                   },
                   {
-                    icon: <Cpu size={14} className="text-text-muted" />,
+                    icon: <Cpu className="size-3.5 text-[var(--color-sky)]" />,
                     text: "Check why my machine is running hot",
                   },
                   {
-                    icon: <RefreshCw size={14} className="text-text-muted" />,
+                    icon: <RefreshCw className="size-3.5 text-[var(--color-green)]" />,
                     text: "Restore files from last cleanup",
                   },
                 ].map((item) => (
                   <button
                     key={item.text}
+                    type="button"
                     onClick={() => handleSend(item.text)}
-                    className="w-full p-2.5 rounded-xl bg-surface-glass border border-border-subtle hover:border-accent text-left text-xs flex items-center gap-2.5 transition-colors cursor-pointer group"
+                    className="w-full px-3 py-2.5 rounded-md bg-[var(--bg-surface-2)] border border-[var(--border)] hover:border-[var(--border-strong)] text-left text-xs flex items-center gap-2.5 transition-colors duration-150 cursor-pointer text-[var(--text-muted)] hover:text-[var(--text)]"
                   >
                     {item.icon}
-                    <span className="text-text-secondary group-hover:text-text-primary transition-colors">
-                      {item.text}
-                    </span>
+                    <span>{item.text}</span>
                   </button>
                 ))}
               </div>
@@ -359,27 +368,24 @@ export function AgentDrawer({
           </div>
         )}
 
-        {/* Active Task Sheet */}
         {activePlan && (
           <div className="space-y-3.5">
-            {/* Task Sheet Header */}
-            <div className="p-3.5 rounded-2xl bg-black/40 border border-border-subtle space-y-2 font-mono">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-accent font-medium">
+            <LinearCard level={1} className="p-3.5 space-y-2 bg-[var(--bg-surface-2)]">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-[var(--accent)] font-medium">
                   Task Sheet #{activePlan.plan_id}
                 </span>
                 {activePlan.total_disk_delta_bytes !== 0 && (
-                  <span className="text-emerald-400 font-medium">
+                  <span className="text-[var(--color-green)] font-medium tabular-nums">
                     Est. {formatBytes(activePlan.total_disk_delta_bytes)}
                   </span>
                 )}
               </div>
-              <div className="text-xs text-text-secondary line-clamp-2 font-sans">
+              <div className="text-xs text-[var(--text-muted)] line-clamp-2 font-sans">
                 "{activePlan.user_intent}"
               </div>
-            </div>
+            </LinearCard>
 
-            {/* Steps List */}
             <div className="space-y-2.5">
               {activePlan.steps.map((step) => (
                 <PlanStepCard
@@ -393,49 +399,45 @@ export function AgentDrawer({
               ))}
             </div>
 
-            {/* Plan Execution Controls */}
             <div className="pt-2 flex items-center justify-between gap-2">
-              <button
-                onClick={handleAbort}
-                className="px-3 py-2 rounded-xl bg-surface-glass border border-border-subtle text-[11px] font-semibold text-text-secondary hover:text-red-400 hover:border-red-900 transition-colors cursor-pointer"
-              >
+              <LinearButton variant="danger" size="sm" onClick={handleAbort}>
                 Abort Plan
-              </button>
+              </LinearButton>
 
-              <button
+              <LinearButton
+                variant="primary"
+                size="sm"
                 onClick={handleExecuteAllApproved}
                 disabled={executing}
-                className="px-4 py-2 rounded-xl bg-accent text-accent-text text-xs font-medium hover:bg-accent-active transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
                 {executing ? (
-                  <RotateCw size={13} className="animate-spin" />
+                  <RotateCw className="size-3.5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Play size={13} />
+                  <Play className="size-3.5" aria-hidden="true" />
                 )}
                 <span>Execute Approved</span>
-              </button>
+              </LinearButton>
             </div>
           </div>
         )}
       </div>
 
       {/* Input / Chat Bar */}
-      <div className="p-3 border-t border-border-subtle bg-raised/80 space-y-2">
-        {/* Live Audio Waveform when recording */}
+      <div className="p-3 border-t border-[var(--border)] bg-[var(--bg-surface-2)] space-y-2">
         {isListening && (
-          <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-raised border border-border-glass animate-fadeIn">
-            <div className="flex items-center gap-2 text-xs font-medium text-text-primary">
-              <span className="w-2 h-2 rounded-full bg-signal-gate" />
-              <span>Listening</span>
+          <div className="flex items-center justify-between gap-3 p-2 rounded-md bg-[var(--bg-surface)] border border-[var(--border)]">
+            <div className="flex items-center gap-2 text-xs font-medium text-[var(--text)]">
+              <span className="size-2 rounded-full bg-[var(--color-red)]" aria-hidden="true" />
+              <span>Preview</span>
             </div>
-            <VoiceWaveform levels={audioLevels} isActive={isListening} className="flex-1 max-w-[200px]" />
-            <button
-              type="button"
-              onClick={handleToggleVoice}
-              className="text-[11px] font-medium px-2 py-0.5 rounded bg-surface-glass text-text-primary hover:bg-surface-solid transition-colors"
-            >
+            <VoiceWaveform
+              levels={audioLevels}
+              isActive={isListening}
+              className="flex-1 max-w-[180px]"
+            />
+            <LinearButton variant="secondary" size="sm" onClick={handleToggleVoice}>
               Done
-            </button>
+            </LinearButton>
           </div>
         )}
 
@@ -444,21 +446,21 @@ export function AgentDrawer({
             e.preventDefault();
             handleSend();
           }}
-          className="flex items-center gap-1.5 bg-black/40 border border-border-subtle rounded-2xl p-1.5 focus-within:border-accent transition-colors"
+          className="flex items-center gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-1 focus-within:border-[var(--accent)] transition-colors duration-150"
         >
           <button
             type="button"
             onClick={handleToggleVoice}
             disabled={planning}
-            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+            className={`size-8 rounded-md flex items-center justify-center transition-colors duration-150 cursor-pointer border ${
               isListening
-                ? "bg-signal-gate-bg border border-signal-gate/40 text-signal-gate"
-                : "bg-surface-glass border border-border-subtle text-text-secondary hover:text-accent hover:border-accent/40"
+                ? "bg-[var(--tint-red)] border-[var(--tint-red-border)] text-[var(--color-red)]"
+                : "bg-[var(--bg-surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
             }`}
-            title="Push to talk (Ctrl + Space)"
-            aria-label={isListening ? "Stop listening" : "Start voice dictation"}
+            title="Voice Dictation Preview (Ctrl + Space)"
+            aria-label={isListening ? "Stop voice preview" : "Start voice dictation preview"}
           >
-            {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+            {isListening ? <MicOff className="size-3.5" /> : <Mic className="size-3.5" />}
           </button>
 
           <input
@@ -468,34 +470,40 @@ export function AgentDrawer({
             disabled={planning}
             placeholder={
               isListening
-                ? "Listening to speech..."
+                ? "Voice preview active..."
                 : planning
                 ? "Generating Task Sheet..."
                 : "Ask the agent"
             }
-            className="flex-1 bg-transparent border-0 outline-none px-2 text-xs text-text-primary placeholder:text-text-disabled"
+            aria-label="Prompt input"
+            className="flex-1 bg-transparent border-0 outline-none px-2 text-xs text-[var(--text)] placeholder:text-[var(--text-faint)]"
           />
 
           <button
             type="submit"
             disabled={planning || !prompt.trim()}
-            className="w-8 h-8 rounded-xl bg-accent text-accent-text flex items-center justify-center hover:bg-accent-active disabled:opacity-40 transition-colors cursor-pointer shadow-sm"
+            aria-label="Send prompt"
+            className="size-8 rounded-md bg-[var(--accent)] text-[var(--accent-fg)] flex items-center justify-center hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors duration-150 cursor-pointer"
           >
-            {planning ? <RotateCw size={14} className="animate-spin" /> : <Send size={14} />}
+            {planning ? (
+              <RotateCw className="size-3.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <Send className="size-3.5" aria-hidden="true" />
+            )}
           </button>
         </form>
 
-        <div className="flex items-center justify-between text-[10px] text-text-disabled px-1">
+        <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-faint)] px-0.5 whitespace-nowrap">
           <div className="flex items-center gap-1.5">
-            <span>Voice:</span>
-            <kbd className="font-mono text-[9px] border border-border-subtle px-1 rounded">
-              Ctrl + Space
+            <span>Voice (Preview):</span>
+            <kbd className="font-mono border border-[var(--border)] px-1 rounded bg-[var(--bg-surface)]">
+              Ctrl+Space
             </kbd>
           </div>
           <div className="flex items-center gap-1.5">
-            <span>Drawer:</span>
-            <kbd className="font-mono text-[9px] border border-border-subtle px-1 rounded">
-              Ctrl + Shift + A
+            <span>Toggle:</span>
+            <kbd className="font-mono border border-[var(--border)] px-1 rounded bg-[var(--bg-surface)]">
+              Ctrl+Shift+A
             </kbd>
           </div>
         </div>

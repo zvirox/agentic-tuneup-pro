@@ -1,21 +1,16 @@
 import React from "react";
 
 interface VoiceWaveformProps {
-  levels: number[]; // 16 normalized frequency/amplitude values between 0.0 and 1.0
+  levels: number[];
   isActive: boolean;
   className?: string;
 }
 
-/**
- * 16-band audio waveform visualizer for real-time speech capture.
- * One accent, no glow — the live signal is the only thing moving.
- */
 export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
   levels,
   isActive,
   className = "",
 }) => {
-  // Ensure we always have 16 bars
   const bars = React.useMemo(() => {
     if (levels.length >= 16) {
       return levels.slice(0, 16);
@@ -30,19 +25,16 @@ export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
   return (
     <div
       role="img"
-      aria-label="Live voice input waveform"
-      className={`flex items-center justify-center gap-1 h-8 px-3 py-1 bg-raised/80 rounded-lg border border-border-subtle ${className}`}
+      aria-label="Voice preview waveform"
+      className={`flex items-center justify-center gap-1 h-7 px-2.5 py-1 bg-[var(--bg-surface-2)] rounded-md border border-[var(--border)] ${className}`}
     >
       {bars.map((amplitude, index) => {
-        // Scale the bar from its centre so only the transform animates
-        const scale = isActive
-          ? Math.max(0.12, Math.min(1, amplitude))
-          : 0.12;
+        const scale = isActive ? Math.max(0.12, Math.min(1, amplitude)) : 0.12;
 
         return (
           <div
             key={index}
-            className="w-1 h-full rounded-full bg-accent origin-center transition-transform duration-75 ease-out"
+            className="w-1 h-full rounded-[2px] bg-[var(--accent)] origin-center transition-transform duration-150 ease-out"
             style={{ transform: `scaleY(${scale})` }}
           />
         );

@@ -17,6 +17,10 @@ import {
   AutostartEntry,
   TaskPlan,
   AgentConfig,
+  DiagnosticReport,
+  SnapshotCapability,
+  SnapshotRecord,
+  WhisperModelStatus,
 } from "../types";
 
 export async function safeInvoke<T>(
@@ -201,22 +205,23 @@ export async function getHealthScore(): Promise<HealthScore> {
 export async function subscribeTelemetry(
   callback: (snapshot: TelemetrySnapshot) => void
 ): Promise<UnlistenFn> {
-  try {
+  const inTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  if (inTauri) {
     return await listen<TelemetrySnapshot>("evt://telemetry/tick", (event) => {
       callback(event.payload);
     });
-  } catch {
-    // In browser dev mode, use interval simulation
-    const interval = setInterval(() => {
-      const snap = createMockTelemetrySnapshot();
-      snap.cpu.aggregate_usage_percent = Math.max(
-        12,
-        Math.min(88, Math.round(24 + (Math.random() - 0.5) * 10))
-      );
-      callback(snap);
-    }, 1000);
-    return () => clearInterval(interval);
   }
+
+  // In plain-browser preview mode, emit simulated 1.0 Hz ticks without Tauri internals
+  const interval = setInterval(() => {
+    const snap = createMockTelemetrySnapshot();
+    snap.cpu.aggregate_usage_percent = Math.max(
+      12,
+      Math.min(88, Math.round(24 + (Math.random() - 0.5) * 10))
+    );
+    callback(snap);
+  }, 1000);
+  return () => clearInterval(interval);
 }
 
 export async function cleanerScan(categories?: string[]): Promise<ScanSummary> {
@@ -652,4 +657,91 @@ export async function agentGetConfig(): Promise<AgentConfig> {
 
 export async function agentUpdateConfig(config: AgentConfig): Promise<void> {
   return safeInvoke<void>("agent_update_config", { config });
+}
+
+// ================= Diagnostics, Snapshot & Voice Preview IPC =================
+
+export async function diagnosticRunAnalysis(): Promise<DiagnosticReport> {
+  const mockFallback: DiagnosticReport = {
+    timestamp: Math.floor(Date.now() / 1000),
+    health_score: 86,
+    primary_bottleneck: "disk_pressure",
+    headline: "System storage is carrying 4.2 GB of safe reclaimable browser and build caches.",
+    issues: [
+      {
+        id: "cache-bloat",
+        severity: "warning",
+        title: "Accumulated Application & Build Caches",
+        description: "Browser caches and stale build artifacts are consuming 4.2 GB.",
+        metric: "4.2 GB",
+        remediation: {
+          action_type: "clean_caches",
+          label: "Inspect Cleaner",
+          description: "Move safe cache targets to reversible quarantine",
+          target: "caches",
+        },
+      },
+    ],
+    recommendations: ["Run a reversible cleaner pass to reclaim cached storage."],
+  };
+  return safeInvoke<DiagnosticReport>("diagnostic_run_analysis", undefined, mockFallback);
+}
+
+export async function diagnosticApplyFix(
+  actionType: string,
+  target?: string | null
+): Promise<string> {
+  return safeInvoke<string>(
+    "diagnostic_apply_fix",
+    { actionType, target: target ?? null },
+    `Preview action '${actionType}' acknowledged.`
+  );
+}
+
+export async function snapshotDetect(): Promise<SnapshotCapability> {
+  return safeInvoke<SnapshotCapability>("snapshot_detect", undefined, {
+    available_providers: ["timeshift"],
+    recommended_provider: "timeshift",
+    auto_snapshot_enabled: false,
+    btrfs_root_detected: false,
+  });
+}
+
+export async function snapshotCreate(
+  description: string,
+  provider?: string | null
+): Promise<SnapshotRecord> {
+  return safeInvoke<SnapshotRecord>(
+    "snapshot_create",
+    { description, provider: provider ?? null },
+    {
+      id: `snap_${Math.floor(Date.now() / 1000)}`,
+      provider: "timeshift",
+      timestamp: Math.floor(Date.now() / 1000),
+      description,
+      success: true,
+      output_or_error: "Preview snapshot record",
+    }
+  );
+}
+
+export async function voiceStartCapture(): Promise<void> {
+  return safeInvoke<void>("voice_start_capture", undefined, undefined);
+}
+
+export async function voiceStopCapture(): Promise<string> {
+  return safeInvoke<string>(
+    "voice_stop_capture",
+    undefined,
+    "Clean my package cache (preview)"
+  );
+}
+
+export async function voiceGetStatus(): Promise<WhisperModelStatus> {
+  return safeInvoke<WhisperModelStatus>("voice_get_status", undefined, {
+    model_name: "ggml-base.en.bin",
+    is_downloaded: false,
+    model_path: "~/.local/share/atp/models/ggml-base.en.bin",
+    expected_size_bytes: 147951408,
+  });
 }

@@ -1,11 +1,7 @@
 import React, { useState } from "react";
-import {
-  ChevronDown,
-  ChevronRight,
-  Eye,
-  AlertCircle,
-} from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronRight, Eye } from "lucide-react";
 import { CategoryScanResult, RuleScanResult, ScanSummary } from "../types";
+import { LinearButton, LinearCard, ProgressRow } from "./linear";
 
 interface CategoryTreeProps {
   summary: ScanSummary;
@@ -53,6 +49,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
     }
   }
   const uniqueBlockingApps = Array.from(new Set(allBlockingApps));
+  const totalBytes = Math.max(summary.total_reclaimable_bytes, 1);
 
   return (
     <div className="flex flex-col gap-4">
@@ -61,21 +58,52 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
         <div
           role="alert"
           aria-live="polite"
-          className="p-4 rounded-2xl bg-signal-thinking-bg border border-signal-thinking/30 flex items-start gap-3.5 text-signal-thinking animate-in fade-in"
+          className="p-4 rounded-lg bg-[var(--tint-amber)] border border-[var(--tint-amber-border)] flex items-start gap-3 text-[var(--color-amber)]"
         >
-          <AlertCircle size={18} className="shrink-0 mt-0.5" />
+          <AlertCircle className="size-4 shrink-0 mt-0.5" aria-hidden="true" />
           <div className="text-xs leading-relaxed">
-            <span className="font-medium block text-sm">
+            <span className="font-semibold block text-[13px] text-[var(--text)]">
               Applications In Use ({uniqueBlockingApps.join(", ")})
             </span>
-            <span>
+            <span className="text-[var(--text-muted)]">
               These applications are currently running. To protect active browser tabs and
-              database locks, rules requiring these apps will be skipped or blocked until the
+              database locks, rules requiring these apps will be skipped until the
               application is closed.
             </span>
           </div>
         </div>
       )}
+
+      {/* Cleanable Breakdown Summary Progress Card */}
+      <LinearCard level={1} className="p-5 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
+            Cleanable Disk Distribution
+          </span>
+          <span className="text-xs font-medium text-[var(--text)] tabular-nums">
+            {formatBytes(summary.total_reclaimable_bytes)} · {summary.total_file_count} files
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {summary.categories.map((cat, idx) => (
+            <ProgressRow
+              key={cat.category_id}
+              label={cat.display_name}
+              value={(cat.reclaimable_bytes / totalBytes) * 100}
+              displayValue={formatBytes(cat.reclaimable_bytes)}
+              color={
+                idx % 4 === 0
+                  ? "var(--color-blue)"
+                  : idx % 4 === 1
+                  ? "var(--color-sky)"
+                  : idx % 4 === 2
+                  ? "var(--color-green)"
+                  : "var(--color-amber)"
+              }
+            />
+          ))}
+        </div>
+      </LinearCard>
 
       {/* Categories Accordion */}
       {summary.categories.map((cat) => {
@@ -86,19 +114,23 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
         const someChecked = checkedCount > 0 && checkedCount < ruleIds.length;
 
         return (
-          <div
-            key={cat.category_id}
-            className="glass-panel rounded-2xl overflow-hidden transition-colors border border-border-glass"
-          >
+          <LinearCard key={cat.category_id} level={1} className="overflow-hidden">
             {/* Category Header */}
-            <div className="flex items-center justify-between p-3.5 bg-white/5 border-b border-border-subtle select-none">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-4 py-3 bg-[var(--bg-surface-2)] border-b border-[var(--border)] select-none">
+              <div className="flex items-center gap-3 min-w-0">
                 <button
+                  type="button"
                   onClick={() => toggleCollapse(cat.category_id)}
-                  aria-label={isCollapsed ? `Expand ${cat.display_name}` : `Collapse ${cat.display_name}`}
-                  className="p-1 rounded text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                  aria-label={
+                    isCollapsed ? `Expand ${cat.display_name}` : `Collapse ${cat.display_name}`
+                  }
+                  className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-colors duration-150 cursor-pointer"
                 >
-                  {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                  {isCollapsed ? (
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  ) : (
+                    <ChevronDown className="size-4" aria-hidden="true" />
+                  )}
                 </button>
 
                 <input
@@ -109,20 +141,24 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                   }}
                   onChange={() => onToggleCategory(cat)}
                   aria-label={`Select all rules in ${cat.display_name}`}
-                  className="w-4 h-4 accent-accent rounded cursor-pointer"
+                  className="size-4 accent-[var(--accent)] rounded cursor-pointer"
                 />
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-text-primary">{cat.display_name}</span>
-                  <span className="text-[10px] font-mono text-text-secondary bg-white/10 px-1.5 py-0.5 rounded">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[13px] font-semibold text-[var(--text)] truncate">
+                    {cat.display_name}
+                  </span>
+                  <span className="text-[11px] text-[var(--text-muted)] bg-[var(--bg-surface)] px-1.5 py-0.5 rounded border border-[var(--border)] tabular-nums">
                     {checkedCount} / {cat.rules.length} selected
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 font-mono text-xs">
-                <span className="font-medium text-accent">{formatBytes(cat.reclaimable_bytes)}</span>
-                <span className="text-text-secondary">· {cat.file_count} files</span>
+              <div className="flex items-center gap-2 text-xs tabular-nums shrink-0">
+                <span className="font-semibold text-[var(--accent)]">
+                  {formatBytes(cat.reclaimable_bytes)}
+                </span>
+                <span className="text-[var(--text-muted)]">· {cat.file_count} files</span>
               </div>
             </div>
 
@@ -136,11 +172,13 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                   return (
                     <div
                       key={rule.rule_id}
-                      className={`flex items-center justify-between p-3 rounded-xl transition-colors border ${
-                        isChecked
-                          ? "bg-white/5 border-border-glass"
-                          : "bg-transparent border-transparent opacity-60"
-                      } ${isBlocked ? "border-signal-thinking/40 bg-signal-thinking-bg/20" : ""}`}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-md border transition-colors duration-150 ${
+                        isBlocked
+                          ? "bg-[var(--tint-amber)] border-[var(--tint-amber-border)]"
+                          : isChecked
+                          ? "bg-[var(--bg-surface-2)] border-[var(--border)]"
+                          : "bg-[var(--bg-surface)] border-transparent opacity-60"
+                      }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <input
@@ -148,45 +186,46 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                           checked={isChecked}
                           onChange={() => onToggleRule(rule.rule_id)}
                           aria-label={`Toggle rule ${rule.name}`}
-                          className="w-4 h-4 accent-accent rounded cursor-pointer shrink-0"
+                          className="size-4 accent-[var(--accent)] rounded cursor-pointer shrink-0"
                         />
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-text-primary">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[13px] font-medium text-[var(--text)]">
                               {rule.name}
                             </span>
-                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-text-secondary border border-border-subtle">
+                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border)] tabular-nums">
                               Tier {rule.risk_tier}
                             </span>
 
                             {isBlocked && (
-                              <span className="text-[10px] font-mono text-signal-thinking bg-signal-thinking-bg px-1.5 py-0.5 rounded font-medium border border-signal-thinking/30">
+                              <span className="text-[11px] text-[var(--color-amber)] bg-[var(--bg-surface)] px-1.5 py-0.5 rounded font-medium border border-[var(--tint-amber-border)]">
                                 App Running ({rule.running_apps_blocking.join(", ")})
                               </span>
                             )}
                           </div>
-                          <span className="text-[11px] text-text-secondary font-mono truncate block">
+                          <span className="text-xs text-[var(--text-faint)] font-mono truncate block mt-0.5">
                             {rule.rule_id}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 shrink-0">
-                        <button
+                      <div className="flex items-center gap-3 shrink-0">
+                        <LinearButton
+                          variant="secondary"
+                          size="sm"
                           onClick={() => onInspectRule(rule)}
-                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-text-secondary hover:text-text-primary text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
                           title="Inspect sample matching paths"
                         >
-                          <Eye size={12} />
+                          <Eye className="size-3.5" aria-hidden="true" />
                           <span>Samples ({rule.sample_paths.length})</span>
-                        </button>
+                        </LinearButton>
 
-                        <div className="text-right font-mono text-xs min-w-[70px]">
-                          <span className="font-medium text-text-primary block">
+                        <div className="text-right text-xs min-w-[76px] tabular-nums">
+                          <span className="font-semibold text-[var(--text)] block">
                             {formatBytes(rule.reclaimable_bytes)}
                           </span>
-                          <span className="text-[10px] text-text-secondary block">
+                          <span className="text-[var(--text-muted)] block">
                             {rule.file_count} files
                           </span>
                         </div>
@@ -196,7 +235,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                 })}
               </div>
             )}
-          </div>
+          </LinearCard>
         );
       })}
     </div>

@@ -1,5 +1,13 @@
-import { CheckCircle2, XCircle, RotateCw, ShieldAlert, Sparkles, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  RotateCw,
+  ShieldAlert,
+  Sparkles,
+  XCircle,
+} from "lucide-react";
 import { PlanStep } from "../types";
+import { LinearButton, LinearCard } from "./linear";
 
 export function PlanStepCard({
   step,
@@ -19,41 +27,37 @@ export function PlanStepCard({
   const isRejected = step.status === "rejected";
   const isExecuting = step.status === "executing";
 
+  const cardBorder = isWaiting
+    ? "border-[var(--tint-amber-border)] bg-[var(--tint-amber)]"
+    : isDone
+    ? "border-[var(--tint-green-border)]"
+    : isFailed
+    ? "border-[var(--tint-red-border)] bg-[var(--tint-red)]"
+    : isRejected
+    ? "opacity-60 line-through"
+    : "";
+
+  const tierTag =
+    step.risk_tier === 1
+      ? "bg-[var(--tint-green)] text-[var(--color-green)] border-[var(--tint-green-border)]"
+      : step.risk_tier === 2
+      ? "bg-[var(--tint-sky)] text-[var(--color-sky)] border-[var(--tint-sky-border)]"
+      : "bg-[var(--tint-red)] text-[var(--color-red)] border-[var(--tint-red-border)] font-semibold";
+
   return (
-    <div
-      className={`p-3.5 rounded-2xl border transition-colors text-xs ${
-        isWaiting
-          ? "bg-amber-950/20 border-amber-500/50"
-          : isDone
-          ? "bg-surface-glass border-emerald-500/30 text-text-primary"
-          : isFailed
-          ? "bg-red-950/30 border-red-500/40 text-text-primary"
-          : isRejected
-          ? "bg-surface-glass/40 border-border-subtle opacity-60 line-through"
-          : "bg-surface-glass border-border-subtle text-text-primary"
-      }`}
-    >
-      {/* Top Header: Step Number, Tool Name, Risk Tier Badge */}
+    <LinearCard level={1} className={`p-3.5 text-xs ${cardBorder}`}>
+      {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-black/40 border border-border-subtle flex items-center justify-center font-mono text-[10px] text-text-muted">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="size-5 rounded bg-[var(--bg-surface-2)] border border-[var(--border)] flex items-center justify-center font-mono text-[11px] text-[var(--text-muted)] shrink-0 tabular-nums">
             {step.step_index + 1}
           </span>
-          <span className="font-mono text-[11px] font-medium text-accent truncate">
+          <span className="font-mono text-xs font-medium text-[var(--accent)] truncate">
             {step.tool_name}
           </span>
         </div>
 
-        {/* Risk Tier Badge */}
-        <span
-          className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
-            step.risk_tier === 1
-              ? "bg-emerald-950/40 text-emerald-300 border-emerald-800/40"
-              : step.risk_tier === 2
-              ? "bg-sky-950/40 text-sky-300 border-sky-800/40"
-              : "bg-red-950/50 text-red-300 border-red-800/50 font-medium"
-          }`}
-        >
+        <span className={`text-[11px] px-2 py-0.5 rounded border shrink-0 ${tierTag}`}>
           {step.risk_tier === 1
             ? "Tier 1 · Safe"
             : step.risk_tier === 2
@@ -63,74 +67,73 @@ export function PlanStepCard({
       </div>
 
       {/* Description */}
-      <div className="mt-2 text-text-secondary leading-relaxed">
-        {step.description}
-      </div>
+      <div className="mt-2 text-[var(--text-muted)] leading-relaxed">{step.description}</div>
 
-      {/* Diff / Storage summary */}
+      {/* Diff summary */}
       {step.diff_summary && (
-        <div className="mt-2 px-2.5 py-1.5 rounded-xl bg-black/40 border border-border-subtle font-mono text-[11px] text-accent flex items-center gap-1.5">
-          <ArrowRight size={12} className="text-accent" />
+        <div className="mt-2 px-2.5 py-1.5 rounded-md bg-[var(--bg-surface-2)] border border-[var(--border)] font-mono text-xs text-[var(--accent)] flex items-center gap-1.5">
+          <ArrowRight className="size-3 shrink-0" aria-hidden="true" />
           <span>{step.diff_summary}</span>
         </div>
       )}
 
-      {/* Footer State & Interactive Approval Gate */}
-      <div className="mt-3 pt-2.5 border-t border-border-subtle/50 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium">
+      {/* Footer State & Approval Gate */}
+      <div className="mt-3 pt-2.5 border-t border-[var(--border)] flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-xs font-medium">
           {isDone && (
-            <span className="text-emerald-400 flex items-center gap-1">
-              <CheckCircle2 size={13} /> Completed
+            <span className="text-[var(--color-green)] inline-flex items-center gap-1">
+              <CheckCircle2 className="size-3.5" aria-hidden="true" /> Completed
             </span>
           )}
           {isExecuting && (
-            <span className="text-accent flex items-center gap-1">
-              <RotateCw size={13} className="animate-spin" /> Executing step...
+            <span className="text-[var(--accent)] inline-flex items-center gap-1">
+              <RotateCw className="size-3.5 animate-spin" aria-hidden="true" /> Executing step...
             </span>
           )}
           {isFailed && (
-            <span className="text-red-400 flex items-center gap-1">
-              <XCircle size={13} /> Step execution failed
+            <span className="text-[var(--color-red)] inline-flex items-center gap-1">
+              <XCircle className="size-3.5" aria-hidden="true" /> Step failed
             </span>
           )}
           {isRejected && (
-            <span className="text-text-disabled flex items-center gap-1">
-              <XCircle size={13} /> Rejected by user
+            <span className="text-[var(--text-faint)] inline-flex items-center gap-1">
+              <XCircle className="size-3.5" aria-hidden="true" /> Rejected by user
             </span>
           )}
           {step.status === "pending" && (
-            <span className="text-text-muted flex items-center gap-1 font-mono text-[10px]">
+            <span className="text-[var(--text-muted)] font-mono text-[11px]">
               Ready to dispatch
             </span>
           )}
           {isWaiting && (
-            <span className="text-amber-400 flex items-center gap-1 font-semibold">
-              <ShieldAlert size={14} /> Awaiting approval
+            <span className="text-[var(--color-amber)] inline-flex items-center gap-1 font-semibold">
+              <ShieldAlert className="size-3.5" aria-hidden="true" /> Awaiting approval
             </span>
           )}
         </div>
 
-        {/* Approval buttons when WaitingApproval */}
         {isWaiting && (
-          <div className="flex items-center gap-2">
-            <button
+          <div className="flex items-center gap-1.5">
+            <LinearButton
+              variant="secondary"
+              size="sm"
               onClick={() => onReject(step.step_index)}
               disabled={executing}
-              className="px-2.5 py-1 rounded-lg border border-border-subtle bg-surface-glass text-[11px] text-text-secondary hover:text-red-400 hover:border-red-900 transition-colors cursor-pointer disabled:opacity-50"
             >
               Reject
-            </button>
-            <button
+            </LinearButton>
+            <LinearButton
+              variant="primary"
+              size="sm"
               onClick={() => onApprove(step.step_index)}
               disabled={executing}
-              className="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
             >
-              <Sparkles size={11} />
+              <Sparkles className="size-3" aria-hidden="true" />
               <span>Approve</span>
-            </button>
+            </LinearButton>
           </div>
         )}
       </div>
-    </div>
+    </LinearCard>
   );
 }

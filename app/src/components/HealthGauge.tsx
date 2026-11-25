@@ -1,7 +1,7 @@
 import React from "react";
-import { HealthScore } from "../types";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { LinearCard } from "./linear/LinearCard";
+import { HealthScore } from "../types";
+import { DonutLegend, LinearCard, StatusPill } from "./linear";
 
 interface HealthGaugeProps {
   health: HealthScore;
@@ -11,55 +11,87 @@ interface HealthGaugeProps {
 export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) => {
   const { score, rating, deductions } = health;
 
-  // Gauge calculations for SVG circle
-  const size = 140;
+  const size = 148;
   const strokeWidth = 10;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  // Use a 270-degree arc for dashboard speedometer look
-  const arcPercentage = 0.75;
+  const arcPercentage = 0.78;
   const maxArcLength = circumference * arcPercentage;
   const strokeDashoffset = maxArcLength - (score / 100) * maxArcLength;
 
-  // Colors based on score
-  const getThemeColor = () => {
-    if (score >= 85) return "#10B981"; // Emerald
-    if (score >= 65) return "#F59E0B"; // Amber
-    return "#F43F5E"; // Rose
-  };
+  const strokeToken =
+    score >= 85
+      ? "var(--color-green)"
+      : score >= 65
+      ? "var(--color-amber)"
+      : "var(--color-red)";
 
-  const themeColor = getThemeColor();
+  const statusTone =
+    score >= 85 ? "online" : score >= 65 ? "warning" : "alert";
+
+  const legendItems =
+    deductions.length > 0
+      ? deductions.map((d, idx) => ({
+          label: d.category,
+          value: `−${d.points} pts`,
+          color:
+            idx === 0
+              ? "var(--color-amber)"
+              : idx === 1
+              ? "var(--color-sky)"
+              : "var(--color-red)",
+        }))
+      : [
+          {
+            label: "System headroom",
+            value: `${score}%`,
+            color: "var(--color-green)",
+          },
+          {
+            label: "Active deductions",
+            value: "0 pts",
+            color: "var(--color-blue)",
+          },
+        ];
 
   return (
-    <LinearCard level="raised" className="p-5 flex flex-col justify-between">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium tracking-wider text-text-secondary">
-          System health score
+    <LinearCard level={1} className="p-5 flex flex-col justify-between">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
+          System Health Score
         </span>
-        <span className="text-[11px] font-mono font-medium" style={{ color: themeColor }}>
-          {rating}
-        </span>
+        <StatusPill label={rating.toUpperCase()} status={statusTone} />
       </div>
 
-      <div className="flex items-center gap-6 my-2">
-        {/* Radial Gauge SVG */}
+      <div className="flex items-center gap-6">
+        {/* Donut Gauge with thin tick ring & rounded arc ends */}
         <div className="relative flex items-center justify-center shrink-0">
           <svg
             width={size}
             height={size}
-            className="transform -rotate-135"
+            className="transform -rotate-[140deg]"
             role="progressbar"
             aria-valuenow={score}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-label={`System health score: ${score} out of 100 (${rating})`}
           >
+            {/* Outer subtle tick ring */}
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius + 6}
+              stroke="var(--border)"
+              strokeWidth={1}
+              strokeDasharray="2 5"
+              fill="transparent"
+            />
             {/* Background Track */}
             <circle
               cx={size / 2}
               cy={size / 2}
               r={radius}
-              stroke="rgba(255, 255, 255, 0.08)"
+              stroke="var(--bg-bar-idle)"
               strokeWidth={strokeWidth}
               fill="transparent"
               strokeDasharray={`${maxArcLength} ${circumference}`}
@@ -70,60 +102,62 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
               cx={size / 2}
               cy={size / 2}
               r={radius}
-              stroke={themeColor}
+              stroke={strokeToken}
               strokeWidth={strokeWidth}
               fill="transparent"
               strokeDasharray={`${maxArcLength} ${circumference}`}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
-              className="transition-[stroke-dashoffset] duration-500 ease-out"
+              className="transition-[stroke-dashoffset] duration-150 ease-out"
             />
           </svg>
 
-          {/* Centered Readout */}
+          {/* Centered Metric */}
           <div className="absolute flex flex-col items-center justify-center text-center">
             <span
-              className="font-mono text-3xl font-semibold tracking-tight"
-              style={{ color: themeColor }}
+              className="text-[28px] font-semibold tracking-tight tabular-nums leading-none"
+              style={{ color: strokeToken }}
             >
               {score}
             </span>
-            <span className="text-[10px] text-text-secondary font-semibold">
+            <span className="text-xs text-[var(--text-muted)] font-medium mt-1">
               / 100
             </span>
           </div>
         </div>
 
-        {/* Deductions / Opportunities */}
-        <div className="flex-1 flex flex-col gap-2 min-w-0">
+        {/* Legend + Actionable Deductions */}
+        <div className="flex-1 flex flex-col gap-3 min-w-0">
+          <DonutLegend items={legendItems} />
+
           {deductions.length === 0 ? (
-            <div className="flex items-center gap-2 text-xs text-signal-success font-medium">
-              <CheckCircle2 size={16} />
-              <span>Optimal system state. Zero performance deductions.</span>
+            <div className="flex items-center gap-2 text-xs text-[var(--color-green)] font-medium pt-1">
+              <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+              <span>Optimal system state. Zero deductions.</span>
             </div>
           ) : (
-            deductions.map((d, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-border-subtle text-xs gap-2"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-mono text-[11px] text-signal-gate shrink-0 tabular-nums">
-                    −{d.points}
-                  </span>
-                  <span className="truncate text-text-secondary text-[11px]" title={d.reason}>
+            <div className="flex flex-col gap-1.5">
+              {deductions.map((d, idx) => (
+                <div
+                  key={d.category + idx}
+                  className="flex flex-col gap-1 px-2.5 py-2 rounded-md bg-[var(--bg-surface-2)] border border-[var(--border)] text-xs"
+                >
+                  <span className="text-[var(--text-muted)] leading-snug">
                     {d.reason}
                   </span>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => onNavigate?.(d.target_page)}
+                      className="text-xs font-medium text-[var(--accent)] hover:underline inline-flex items-center gap-1 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[var(--accent)] rounded cursor-pointer"
+                    >
+                      <span>{d.action_label}</span>
+                      <ArrowRight className="size-3" aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => onNavigate?.(d.target_page)}
-                  className="text-[11px] font-semibold text-accent hover:text-accent-hover flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
-                >
-                  <span>{d.action_label}</span>
-                  <ArrowRight size={11} />
-                </button>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>
