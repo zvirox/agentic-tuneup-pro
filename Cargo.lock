@@ -10,7 +10,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agentic-tuneup-pro"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-cleaner",
  "atp-core",
@@ -136,7 +136,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atp-cleaner"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-core",
  "atp-safety",
@@ -152,7 +152,7 @@ dependencies = [
 
 [[package]]
 name = "atp-core"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "serde",
  "serde_json",
@@ -161,7 +161,7 @@ dependencies = [
 
 [[package]]
 name = "atp-mcp"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-cleaner",
  "atp-core",
@@ -181,7 +181,7 @@ dependencies = [
 
 [[package]]
 name = "atp-monitor"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-core",
  "serde",
@@ -193,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "atp-pkg"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "async-trait",
  "atp-core",
@@ -206,7 +206,7 @@ dependencies = [
 
 [[package]]
 name = "atp-procs"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-core",
  "libc",
@@ -220,7 +220,7 @@ dependencies = [
 
 [[package]]
 name = "atp-safety"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-core",
  "hex",
@@ -233,7 +233,7 @@ dependencies = [
 
 [[package]]
 name = "atp-voice"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-core",
  "fastrand",
@@ -246,7 +246,7 @@ dependencies = [
 
 [[package]]
 name = "atpd-helper"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "atp-core",
  "regex",

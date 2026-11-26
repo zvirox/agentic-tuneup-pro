@@ -9,6 +9,11 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.0-beta.4] - 2026-11-26
+
+### Fixed
+- **Release Asset Embedding (`tauri/custom-protocol`)**: Set `build_cmd` in `.github/workflows/release.yml` to compile `agentic-tuneup-pro` with `--features tauri/custom-protocol`, fixing release packages built with `cargo build --release --locked` from defaulting to `devUrl` (`http://localhost:1420`) with empty embedded frontend assets.
+
 ## [0.1.0-beta.3] - 2026-11-26
 
 ### Changed
