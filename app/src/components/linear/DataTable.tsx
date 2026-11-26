@@ -29,12 +29,12 @@ export function DataTable<T>({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
+            <tr className="bg-surface-2 border-b border-border">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   scope="col"
-                  className={`py-2.5 px-4 text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] ${
+                  className={`py-2.5 px-4 text-xs font-medium uppercase tracking-wider text-muted ${
                     col.align === "right" ? "text-right" : "text-left"
                   } ${col.className ?? ""}`}
                 >
@@ -43,12 +43,12 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[var(--border)]">
+          <tbody className="divide-y divide-border">
             {data.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="py-10 px-4 text-center text-xs text-[var(--text-muted)]"
+                  className="py-10 px-4 text-center text-xs text-muted"
                 >
                   {emptyMessage}
                 </td>
@@ -57,12 +57,12 @@ export function DataTable<T>({
               data.map((row) => (
                 <tr
                   key={rowKey(row)}
-                  className="hover:bg-[var(--bg-surface-2)] transition-colors duration-150 ease-out"
+                  className="hover:bg-hover transition-colors duration-150 ease-out"
                 >
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className={`py-3 px-4 text-[13px] text-[var(--text)] ${
+                      className={`py-3 px-4 text-[13px] text-fg-2 ${
                         col.align === "right" ? "text-right" : "text-left"
                       } ${col.className ?? ""}`}
                     >

@@ -85,15 +85,15 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
       {/* Overview Banner */}
       <LinearCard
         level={1}
-        className="p-5 flex items-center justify-between border-l-4 border-l-[var(--accent)]"
+        className="p-5 flex items-center justify-between border-l-4 border-l-[var(--primary)]"
       >
         <div className="flex items-center gap-3.5">
-          <div className="size-10 rounded-md bg-[var(--tint-blue)] text-[var(--color-blue)] flex items-center justify-center shrink-0">
+          <div className="size-10 rounded-md bg-primary-tint text-primary-text flex items-center justify-center shrink-0">
             <Archive className="size-5" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-[var(--text)]">Quarantine Vault</h2>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            <h2 className="text-sm font-semibold text-fg">Quarantine Vault</h2>
+            <p className="text-xs text-muted mt-0.5">
               Isolated storage for reversible deletion. Files are held for 7 days before automated purge.
             </p>
           </div>
@@ -101,10 +101,10 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
 
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <span className="text-xs font-medium text-[var(--text-muted)] block">
+            <span className="text-xs font-medium text-muted block">
               Quarantined Space
             </span>
-            <span className="text-base font-semibold text-[var(--accent)] tabular-nums">
+            <span className="text-base font-semibold text-primary-text tabular-nums">
               {formatBytes(totalActiveBytes)}
             </span>
           </div>
@@ -140,8 +140,8 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
           onClick={() => setFilter("active")}
           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 cursor-pointer border ${
             filter === "active"
-              ? "bg-[var(--bg-surface-2)] text-[var(--accent)] border-[var(--border-strong)]"
-              : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
+              ? "bg-active text-primary-text border-border-strong"
+              : "bg-transparent text-muted hover:text-fg border-transparent"
           }`}
         >
           Active Quarantined ({sessions.filter((s) => s.status === "active").length})
@@ -250,7 +250,7 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
                   )}
 
                   {s.status === "restored" && (
-                    <span className="text-xs text-[var(--color-green)] font-medium inline-flex items-center gap-1 shrink-0">
+                    <span className="text-xs text-sky-text font-medium inline-flex items-center gap-1 shrink-0">
                       <RotateCcw className="size-3.5" aria-hidden="true" />
                       Restored to original location
                     </span>
@@ -268,9 +268,9 @@ export const QuarantineView: React.FC<QuarantineViewProps> = ({ onNotify }) => {
         onClose={() => setPurgeTarget(null)}
         ariaLabel="Confirm Permanent Deletion"
         maxWidthClass="max-w-md"
-        className="p-5 flex flex-col gap-4 border-[var(--tint-red-border)]"
+        className="p-5 flex flex-col gap-4 border-red"
       >
-        <div className="flex items-center gap-2.5 text-[var(--color-red)] font-semibold text-sm">
+        <div className="flex items-center gap-2.5 text-red-text font-semibold text-sm">
           <AlertTriangle className="size-5 shrink-0" aria-hidden="true" />
           <span>Confirm Permanent Deletion</span>
         </div>

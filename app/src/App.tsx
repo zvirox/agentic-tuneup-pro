@@ -29,7 +29,7 @@ import { AriaAnnouncer } from "./components/AriaAnnouncer";
 import { TuneupTelemetryChart } from "./components/TuneupTelemetryChart";
 import {
   Breadcrumb,
-  LINEAR_SERIES_ORDER,
+  LINEAR_SERIES_TOKENS,
   LinearButton,
   LinearCard,
   ProgressRow,
@@ -488,7 +488,7 @@ export default function App() {
                     title="Health Score"
                     value={health.score}
                     unit="/ 100"
-                    tone={health.score >= 85 ? "green" : health.score >= 65 ? "amber" : "red"}
+                    tone={health.score >= 85 ? "sky" : health.score >= 65 ? "amber" : "red"}
                     icon={<HeartPulse className="size-4" aria-hidden="true" />}
                     delta={{
                       value: health.rating.toUpperCase(),
@@ -503,7 +503,7 @@ export default function App() {
                     title="Disk Used"
                     value={diskUsedGb}
                     unit={`of ${diskTotalGb} GB`}
-                    tone="blue"
+                    tone="primary"
                     icon={<HardDrive className="size-4" aria-hidden="true" />}
                     delta={{
                       value: `${diskPct}%`,
@@ -518,7 +518,7 @@ export default function App() {
                     title="Memory Used"
                     value={memUsedGb}
                     unit={`of ${memTotalGb} GB`}
-                    tone="sky"
+                    tone="orange"
                     icon={<MemoryStick className="size-4" aria-hidden="true" />}
                     delta={{
                       value: `${memPctNow}%`,
@@ -566,7 +566,7 @@ export default function App() {
                       subValue={tempC}
                       dataPoints={cpuHistory}
                       maxValue={100}
-                      color="var(--color-blue)"
+                      color="var(--primary)"
                     />
                     <TelemetrySparkline
                       title="Memory"
@@ -575,14 +575,14 @@ export default function App() {
                       subValue={`of ${memTotalGb} GB`}
                       dataPoints={memHistory}
                       maxValue={100}
-                      color="var(--color-sky)"
+                      color="var(--orange)"
                     />
                     <TelemetrySparkline
                       title="Network In"
                       currentValue={netDownKb}
                       subValue={telemetry?.network.interface_name || "eth0"}
                       dataPoints={netHistory}
-                      color="var(--color-green)"
+                      color="var(--sky)"
                     />
                   </div>
                 </div>
@@ -595,17 +595,17 @@ export default function App() {
                     {
                       name: "CPU Aggregate (%)",
                       data: cpuHistory,
-                      color: LINEAR_SERIES_ORDER[0],
+                      color: "var(--primary)",
                     },
                     {
                       name: "Memory Used (%)",
                       data: memHistory,
-                      color: LINEAR_SERIES_ORDER[1],
+                      color: "var(--orange)",
                     },
                     {
                       name: "Disk Utilization (%)",
                       data: diskHistory,
-                      color: LINEAR_SERIES_ORDER[2],
+                      color: "var(--purple)",
                     },
                   ]}
                 />
@@ -614,20 +614,20 @@ export default function App() {
                 <div className={`grid grid-cols-1 ${agentOpen ? "" : "lg:grid-cols-2"} gap-4`}>
                   <LinearCard level={1} className="p-5 flex flex-col justify-between gap-4">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] truncate">
+                      <h3 className="text-xs font-medium uppercase tracking-wider text-muted truncate">
                         Disk Analyzer &amp; Cache Breakdown
                       </h3>
                       <button
                         type="button"
                         onClick={() => setActivePage("clean")}
-                        className="text-xs font-medium text-[var(--accent)] hover:underline cursor-pointer whitespace-nowrap shrink-0"
+                        className="text-xs font-medium text-primary-text hover:underline cursor-pointer whitespace-nowrap shrink-0"
                       >
                         Inspect &amp; Clean →
                       </button>
                     </div>
 
                     {/* Stacked Allocation Bar */}
-                    <div className="h-2 w-full rounded-[2px] bg-[var(--bg-bar-idle)] overflow-hidden flex gap-0.5">
+                    <div className="h-2 w-full rounded-[2px] bg-track overflow-hidden flex gap-0.5">
                       {categoriesForAnalyzer.map((cat, idx) => {
                         const pct =
                           totalReclaimable > 0 ? (cat.bytes / analyzerTotal) * 100 : 0;
@@ -637,8 +637,7 @@ export default function App() {
                             key={cat.id}
                             style={{
                               width: `${pct}%`,
-                              backgroundColor:
-                                LINEAR_SERIES_ORDER[idx % LINEAR_SERIES_ORDER.length],
+                              backgroundColor: `var(${LINEAR_SERIES_TOKENS[idx % LINEAR_SERIES_TOKENS.length]})`,
                             }}
                             title={`${cat.name}: ${formatBytes(cat.bytes)}`}
                           />
@@ -655,7 +654,7 @@ export default function App() {
                             totalReclaimable > 0 ? (cat.bytes / analyzerTotal) * 100 : 0
                           }
                           displayValue={formatBytes(cat.bytes)}
-                          color={LINEAR_SERIES_ORDER[idx % LINEAR_SERIES_ORDER.length]}
+                          color={`var(${LINEAR_SERIES_TOKENS[idx % LINEAR_SERIES_TOKENS.length]})`}
                         />
                       ))}
                     </div>
@@ -728,7 +727,7 @@ export default function App() {
                     <Trash2 className="size-3.5" aria-hidden="true" />
                     <span>Scan &amp; Clean Preview</span>
                     {scanSummary && (
-                      <span className="text-[11px] bg-[var(--tint-blue)] text-[var(--color-blue)] border border-[var(--tint-blue-border)] px-1.5 py-0.5 rounded leading-none tabular-nums">
+                      <span className="text-[11px] bg-primary-tint text-primary-text border border-border px-1.5 py-0.5 rounded leading-none tabular-nums">
                         {formatBytes(selectedBytes)}
                       </span>
                     )}
@@ -825,7 +824,7 @@ export default function App() {
                     <div>
                       <div className="text-[13px] font-semibold text-[var(--text)] flex items-center gap-2">
                         <span>Pre-change Snapshot Hooks</span>
-                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[var(--tint-blue)] border border-[var(--tint-blue-border)] text-[var(--color-blue)]">
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-primary-tint border border-border text-primary-text">
                           {snapshotCap?.recommended_provider
                             ? snapshotCap.recommended_provider
                             : snapshotCap?.btrfs_root_detected
@@ -901,9 +900,9 @@ export default function App() {
       {toastMsg && (
         <LinearCard
           level="overlay"
-          className="fixed bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 text-xs font-medium text-[var(--text)] flex items-center gap-2 z-50 border-[var(--tint-blue-border)]"
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 text-xs font-medium text-fg flex items-center gap-2 z-50 border-primary"
         >
-          <span className="size-2 rounded-full bg-[var(--accent)] shrink-0" aria-hidden="true" />
+          <span className="size-2 rounded-full bg-primary shrink-0" aria-hidden="true" />
           <span>{toastMsg}</span>
         </LinearCard>
       )}

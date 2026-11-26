@@ -147,9 +147,9 @@ export function ProcessExplorer({
       header: "Application",
       render: (grp) => (
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-[var(--text)]">{grp.appName}</span>
+          <span className="font-semibold text-fg">{grp.appName}</span>
           {grp.isCritical && (
-            <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--tint-red)] text-[var(--color-red)] border border-[var(--tint-red-border)] font-medium">
+            <span className="text-[11px] px-1.5 py-0.5 rounded bg-chip-red text-red-text border border-red font-medium">
               System core
             </span>
           )}
@@ -174,7 +174,7 @@ export function ProcessExplorer({
           label=""
           value={Math.min(100, grp.totalCpuPercent)}
           displayValue={`${grp.totalCpuPercent.toFixed(1)}%`}
-          color="var(--color-blue)"
+          color="var(--primary)"
         />
       ),
     },
@@ -187,7 +187,7 @@ export function ProcessExplorer({
           label=""
           value={(grp.totalMemoryBytes / maxGroupMem) * 100}
           displayValue={formatBytes(grp.totalMemoryBytes)}
-          color="var(--color-sky)"
+          color="var(--sky)"
         />
       ),
     },
@@ -229,9 +229,9 @@ export function ProcessExplorer({
       header: "Name",
       render: (proc) => (
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-[var(--text)]">{proc.name}</span>
+          <span className="font-semibold text-fg">{proc.name}</span>
           {proc.isCritical && (
-            <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--tint-red)] text-[var(--color-red)] border border-[var(--tint-red-border)] font-medium">
+            <span className="text-[11px] px-1.5 py-0.5 rounded bg-chip-red text-red-text border border-red font-medium">
               System core
             </span>
           )}
@@ -247,7 +247,7 @@ export function ProcessExplorer({
           label=""
           value={Math.min(100, proc.cpuPercent)}
           displayValue={`${proc.cpuPercent.toFixed(1)}%`}
-          color="var(--color-blue)"
+          color="var(--primary)"
         />
       ),
     },
@@ -260,7 +260,7 @@ export function ProcessExplorer({
           label=""
           value={(proc.memoryBytes / maxProcMem) * 100}
           displayValue={formatBytes(proc.memoryBytes)}
-          color="var(--color-sky)"
+          color="var(--sky)"
         />
       ),
     },
@@ -342,7 +342,7 @@ export function ProcessExplorer({
                 size="sm"
                 onClick={() => handleServiceAction(svc.unitName, "start")}
               >
-                <Play className="size-3 text-[var(--color-green)]" aria-hidden="true" />
+                <Play className="size-3 text-sky" aria-hidden="true" />
                 <span>Start</span>
               </LinearButton>
             )}
@@ -360,10 +360,10 @@ export function ProcessExplorer({
   ];
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[var(--bg-app)] text-[var(--text)] overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-app text-fg overflow-hidden">
       {/* Subheader Navigation */}
-      <div className="h-12 shrink-0 border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--bg-surface)]">
-        <div className="flex items-center gap-1 bg-[var(--bg-surface-2)] p-0.5 rounded-md border border-[var(--border)] text-xs font-medium">
+      <div className="h-12 shrink-0 border-b border-border flex items-center justify-between px-6 bg-app">
+        <div className="flex items-center gap-1 bg-surface-2 p-0.5 rounded-md border border-border text-xs font-medium">
           {[
             { id: "groups", label: "App Groups", icon: <Layers className="size-3.5" /> },
             { id: "procs", label: "All Processes", icon: <Cpu className="size-3.5" /> },
@@ -376,8 +376,8 @@ export function ProcessExplorer({
               onClick={() => setTab(item.id as typeof tab)}
               className={`flex items-center gap-1.5 px-3 py-1 rounded transition-colors duration-150 cursor-pointer border ${
                 tab === item.id
-                  ? "bg-[var(--bg-surface)] text-[var(--text)] border-[var(--border)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
+                  ? "bg-active text-fg border-border-strong"
+                  : "text-muted hover:text-fg border-transparent"
               }`}
             >
               {item.icon}
@@ -388,14 +388,14 @@ export function ProcessExplorer({
 
         <div className="flex items-center gap-2.5">
           {(tab === "groups" || tab === "procs") && (
-            <div className="flex items-center bg-[var(--bg-surface-2)] p-0.5 rounded-md border border-[var(--border)] text-xs">
+            <div className="flex items-center bg-surface-2 p-0.5 rounded-md border border-border text-xs">
               <button
                 type="button"
                 onClick={() => setSortBy("cpu")}
                 className={`px-2.5 py-1 rounded font-medium cursor-pointer transition-colors duration-150 ${
                   sortBy === "cpu"
-                    ? "bg-[var(--accent)] text-[var(--accent-fg)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text)]"
+                    ? "bg-primary text-primary-fg"
+                    : "text-muted hover:text-fg"
                 }`}
               >
                 Sort: CPU%
@@ -405,8 +405,8 @@ export function ProcessExplorer({
                 onClick={() => setSortBy("memory")}
                 className={`px-2.5 py-1 rounded font-medium cursor-pointer transition-colors duration-150 ${
                   sortBy === "memory"
-                    ? "bg-[var(--accent)] text-[var(--accent-fg)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text)]"
+                    ? "bg-primary text-primary-fg"
+                    : "text-muted hover:text-fg"
                 }`}
               >
                 Sort: RAM
@@ -425,15 +425,15 @@ export function ProcessExplorer({
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">
+            <h1 className="text-xl font-semibold tracking-tight text-fg">
               Processes &amp; Services
             </h1>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               Monitor live application process trees, systemd units, and session autostart entries.
             </p>
           </div>
 
-          <div className="h-8 flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 w-80 text-xs text-[var(--text-muted)] focus-within:border-[var(--accent)]">
+          <div className="h-8 flex items-center gap-2 bg-surface-2 border border-border rounded-md px-3 w-80 text-xs text-muted focus-within:border-[var(--primary)]">
             <Search className="size-3.5 shrink-0" aria-hidden="true" />
             <input
               value={searchQuery}
@@ -499,8 +499,8 @@ export function ProcessExplorer({
                   onClick={() => handleAutostartToggle(item.fileName, item.enabled)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors duration-150 cursor-pointer shrink-0 ${
                     item.enabled
-                      ? "bg-[var(--tint-green)] text-[var(--color-green)] border-[var(--tint-green-border)]"
-                      : "bg-[var(--bg-surface-2)] text-[var(--text-muted)] border-[var(--border)]"
+                      ? "bg-chip-sky text-sky-text border-border"
+                      : "bg-surface-2 text-muted border-border"
                   }`}
                 >
                   {item.enabled ? (
@@ -533,41 +533,41 @@ export function ProcessExplorer({
                 </h3>
                 <p className="text-xs text-[var(--text-muted)] mt-1">
                   Are you sure you want to terminate{" "}
-                  <strong className="text-[var(--accent)]">{targetKillPid.name}</strong> (PID{" "}
+                  <strong className="text-primary-text">{targetKillPid.name}</strong> (PID{" "}
                   <span className="font-mono">{targetKillPid.pid}</span>)?
                 </p>
               </div>
-              <div className="p-2 rounded-md bg-[var(--tint-red)] text-[var(--color-red)] border border-[var(--tint-red-border)]">
+              <div className="p-2 rounded-md bg-chip-red text-red-text border border-red">
                 <AlertOctagon className="size-5" aria-hidden="true" />
               </div>
             </div>
 
             {targetKillPid.isCritical && (
-              <div className="p-3 rounded-md bg-[var(--tint-red)] border border-[var(--tint-red-border)] flex items-center gap-2 text-[var(--color-red)] text-xs">
+              <div className="p-3 rounded-md bg-chip-red border border-red flex items-center gap-2 text-red-text text-xs">
                 <ShieldAlert className="size-4 shrink-0" aria-hidden="true" />
                 <span>This is a protected system core process and cannot be killed.</span>
               </div>
             )}
 
             <div className="space-y-2 text-xs">
-              <label className="flex items-center gap-2 text-[var(--text-muted)] cursor-pointer">
+              <label className="flex items-center gap-2 text-muted cursor-pointer">
                 <input
                   type="checkbox"
                   checked={killTree}
                   onChange={(e) => setKillTree(e.target.checked)}
-                  className="rounded border-[var(--border)] accent-[var(--accent)]"
+                  className="rounded border-border accent-[var(--primary)]"
                 />
                 <span>Terminate full process tree (all worker and child PIDs)</span>
               </label>
 
-              <label className="flex items-center gap-2 text-[var(--text-muted)] cursor-pointer">
+              <label className="flex items-center gap-2 text-muted cursor-pointer">
                 <input
                   type="checkbox"
                   checked={forceKill}
                   onChange={(e) => setForceKill(e.target.checked)}
-                  className="rounded border-[var(--border)] accent-[var(--color-red)]"
+                  className="rounded border-border accent-[var(--red)]"
                 />
-                <span className="text-[var(--color-red)]">
+                <span className="text-red-text">
                   Force Kill (SIGKILL -9 instead of graceful SIGTERM)
                 </span>
               </label>

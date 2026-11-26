@@ -1,88 +1,86 @@
-export const LINEAR_COLORS = {
-  blue: "#3355FF",
-  sky: "#38B6F0",
-  green: "#22C55E",
-  red: "#F43F5E",
-  amber: "#EAB308",
-  teal: "#1FB5A5",
-  pink: "#EC4899",
-  purple: "#7C5CE6",
-  orange: "#F97316",
-  idleDark: "#202128",
-  idleLight: "#EAF0FF",
-  borderDark: "#1F2125",
-  borderLight: "#E5E7EB",
-  textDark: "#8A8B91",
-  textLight: "#6B7280",
-  surfaceDark: "#111213",
-  surfaceLight: "#FFFFFF",
-  fgDark: "#F5F5F6",
-  fgLight: "#0F1115",
-} as const;
+export function getCssToken(name: string): string {
+  if (typeof document === "undefined") return "";
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
 
-export const LINEAR_SERIES_ORDER = [
-  LINEAR_COLORS.blue,
-  LINEAR_COLORS.sky,
-  LINEAR_COLORS.green,
-  LINEAR_COLORS.amber,
-  LINEAR_COLORS.teal,
-  LINEAR_COLORS.pink,
-  LINEAR_COLORS.purple,
-  LINEAR_COLORS.orange,
+export function resolveCssColor(tokenOrValue: string): string {
+  const trimmed = tokenOrValue.trim();
+  const match = /^var\((--[^)]+)\)$/.exec(trimmed);
+  const token = match ? match[1] : trimmed.startsWith("--") ? trimmed : "";
+  return token ? getCssToken(token) : trimmed;
+}
+
+export const LINEAR_SERIES_TOKENS = [
+  "--primary",
+  "--sky",
+  "--amber",
+  "--pink",
+  "--purple",
 ] as const;
 
-export const getLinearEChartsOption = (isDark: boolean = true) => ({
-  backgroundColor: "transparent",
-  textStyle: {
-    fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-    fontSize: 12,
-    color: isDark ? LINEAR_COLORS.textDark : LINEAR_COLORS.textLight,
-  },
-  grid: {
-    top: 20,
-    right: 16,
-    bottom: 24,
-    left: 44,
-    borderColor: isDark ? LINEAR_COLORS.borderDark : LINEAR_COLORS.borderLight,
-  },
-  tooltip: {
-    backgroundColor: isDark ? LINEAR_COLORS.surfaceDark : LINEAR_COLORS.surfaceLight,
-    borderColor: isDark ? LINEAR_COLORS.borderDark : LINEAR_COLORS.borderLight,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: [8, 10],
+export function getLinearSeriesOrder(): string[] {
+  return LINEAR_SERIES_TOKENS.map((token) => getCssToken(token));
+}
+
+export function getLinearEChartsOption() {
+  const textMuted = getCssToken("--text-muted");
+  const border = getCssToken("--border");
+  const borderStrong = getCssToken("--border-strong");
+  const chartGrid = getCssToken("--chart-grid");
+  const surface2 = getCssToken("--bg-surface-2");
+  const textFg = getCssToken("--text");
+
+  return {
+    backgroundColor: "transparent",
     textStyle: {
-      color: isDark ? LINEAR_COLORS.fgDark : LINEAR_COLORS.fgLight,
-      fontSize: 12,
       fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-    },
-    extraCssText: isDark
-      ? "box-shadow: none;"
-      : "box-shadow: 0 1px 2px rgb(16 24 40 / 5%);",
-  },
-  xAxis: {
-    axisLine: {
-      lineStyle: { color: isDark ? LINEAR_COLORS.borderDark : LINEAR_COLORS.borderLight },
-    },
-    axisLabel: {
       fontSize: 12,
-      color: isDark ? LINEAR_COLORS.textDark : LINEAR_COLORS.textLight,
+      color: textMuted,
     },
-    splitLine: { show: false },
-    axisTick: { show: false },
-  },
-  yAxis: {
-    axisLine: { show: false },
-    axisLabel: {
-      fontSize: 12,
-      color: isDark ? LINEAR_COLORS.textDark : LINEAR_COLORS.textLight,
+    grid: {
+      top: 20,
+      right: 16,
+      bottom: 24,
+      left: 44,
+      borderColor: border,
     },
-    splitLine: {
-      lineStyle: {
-        type: "dotted" as const,
-        color: isDark ? LINEAR_COLORS.borderDark : LINEAR_COLORS.borderLight,
+    tooltip: {
+      backgroundColor: surface2,
+      borderColor: borderStrong,
+      borderWidth: 1,
+      borderRadius: 4,
+      padding: [8, 10],
+      textStyle: {
+        color: textFg,
+        fontSize: 12,
+        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+      },
+      extraCssText: "box-shadow: var(--shadow-card);",
+    },
+    xAxis: {
+      axisLine: {
+        lineStyle: { color: border },
+      },
+      axisLabel: {
+        fontSize: 12,
+        color: textMuted,
+      },
+      splitLine: { show: false },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      axisLine: { show: false },
+      axisLabel: {
+        fontSize: 12,
+        color: textMuted,
+      },
+      splitLine: {
+        lineStyle: {
+          type: "dotted" as const,
+          color: chartGrid,
+        },
       },
     },
-  },
-  color: [...LINEAR_SERIES_ORDER],
-});
+    color: getLinearSeriesOrder(),
+  };
+}

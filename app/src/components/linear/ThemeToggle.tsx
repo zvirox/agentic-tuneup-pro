@@ -72,7 +72,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       className={`${
         compact ? "size-6 rounded" : "size-7 rounded-md"
-      } inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-colors duration-150 ease-out cursor-pointer ${className}`}
+      } inline-flex items-center justify-center text-muted hover:text-fg hover:bg-hover focus-visible:outline-2 focus-visible:outline-[var(--primary-text)] transition-colors duration-150 ease-out cursor-pointer ${className}`}
     >
       {theme === "dark" ? (
         <Sun className="size-3.5" aria-hidden="true" />

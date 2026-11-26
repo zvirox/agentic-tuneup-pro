@@ -2,17 +2,17 @@ import React, { useId } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { LinearCard } from "./LinearCard";
 
-export type StatTone = "blue" | "sky" | "green" | "red" | "amber" | "teal" | "purple" | "orange";
+export type StatTone = "primary" | "blue" | "sky" | "red" | "amber" | "pink" | "purple" | "orange";
 
 const TONE_CHIP_CLASSES: Record<StatTone, string> = {
-  blue: "bg-[var(--tint-blue)] text-[var(--color-blue)]",
-  sky: "bg-[var(--tint-sky)] text-[var(--color-sky)]",
-  green: "bg-[var(--tint-green)] text-[var(--color-green)]",
-  red: "bg-[var(--tint-red)] text-[var(--color-red)]",
-  amber: "bg-[var(--tint-amber)] text-[var(--color-amber)]",
-  teal: "bg-[var(--tint-teal)] text-[var(--color-teal)]",
-  purple: "bg-[var(--tint-purple)] text-[var(--color-purple)]",
-  orange: "bg-[var(--tint-orange)] text-[var(--color-orange)]",
+  primary: "bg-primary-tint text-primary-text",
+  blue: "bg-surface-2 text-blue",
+  sky: "bg-chip-sky text-sky-text",
+  red: "bg-chip-red text-red-text",
+  amber: "bg-surface-2 text-amber",
+  pink: "bg-surface-2 text-pink",
+  purple: "bg-surface-2 text-purple",
+  orange: "bg-surface-2 text-orange",
 };
 
 export interface StatCardProps {
@@ -36,7 +36,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
   unit,
-  tone = "blue",
+  tone = "primary",
   delta,
   sparklineData,
   sparklinePositive = true,
@@ -45,7 +45,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   onClick,
 }) => {
   const gradId = useId();
-  const strokeVar = sparklinePositive ? "var(--color-green)" : "var(--color-red)";
+  const strokeVar = sparklinePositive ? "var(--sky)" : "var(--red)";
 
   const renderMiniSparkline = () => {
     if (!sparklineData || sparklineData.length < 2) return null;
@@ -75,7 +75,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       >
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={strokeVar} stopOpacity="0.22" />
+            <stop offset="0%" stopColor={strokeVar} stopOpacity="0.15" />
             <stop offset="100%" stopColor={strokeVar} stopOpacity="0" />
           </linearGradient>
         </defs>
@@ -135,8 +135,8 @@ export const StatCard: React.FC<StatCardProps> = ({
           <span
             className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium tabular-nums shrink-0 ${
               delta.positive
-                ? "bg-[var(--tint-green)] text-[var(--color-green)]"
-                : "bg-[var(--tint-red)] text-[var(--color-red)]"
+                ? "bg-chip-sky text-sky-text"
+                : "bg-chip-red text-red-text"
             }`}
           >
             {delta.positive ? (

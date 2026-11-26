@@ -16,15 +16,15 @@ export const LinearCard = forwardRef<HTMLDivElement, LinearCardProps>(
         : 1;
 
     const levelStyles = {
-      1: "bg-[var(--bg-surface)] border-[var(--border)] linear-card",
-      2: "bg-[var(--bg-surface)] border-[var(--border)] linear-card",
-      3: "bg-[var(--bg-surface)] border-[var(--border-strong)] linear-card",
+      1: "bg-surface border-border shadow-card",
+      2: "bg-surface border-border shadow-card",
+      3: "bg-surface border-border-strong shadow-card",
     }[normalizedLevel];
 
     return (
       <div
         ref={ref}
-        className={`rounded-lg border transition-colors duration-150 ease-out text-[var(--text)] ${levelStyles} ${className}`}
+        className={`rounded-lg border transition-colors duration-150 ease-out text-fg ${levelStyles} ${className}`}
         {...props}
       >
         {children}

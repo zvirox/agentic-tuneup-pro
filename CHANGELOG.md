@@ -9,6 +9,14 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.0-beta.3] - 2026-11-26
+
+### Changed
+- **Shared Linear Palette & Cyan Primary (`DESIGN.md` v2.1, `AGENTS.md`)**: Migrated color system to shared Charcoal/Graphite dark (`#1C1C1C` / `#292929`) and light (`#F8F9FA` / `#FFFFFF`) tokens (`app/src/styles/linear-theme.css`) paired with Agentic Tuneup Pro's Cyan primary accent (`app/src/styles/app-accent.css`: `--primary` `#06B6D4` dark / `#0E7490` light) and `.shadow-card` card elevation.
+- **Zero Green / Role-Based Tokens**: Removed all `--green`, `--teal`, green hues, and legacy `--tint-*` / `--accent` tokens across components; healthy, online, positive delta, done, and Safety Boundary states now use `--sky`, `--sky-text`, and `--chip-sky`.
+- **Runtime ECharts CSS Variable Theme**: Updated `app/src/components/linear/echarts-linear-theme.ts` and `TuneupTelemetryChart.tsx` to resolve colors dynamically from `getComputedStyle(document.documentElement)` on live `data-theme` switches (CPU `--primary`, Memory `--orange`, Disk `--purple`) with zero hex literals in chart code.
+- **Hardened `check:linear` Gate**: Updated `app/scripts/check-linear.mjs` to enforce token-file isolation, SHA-256 sync for `linear-theme.css`, exact `app-accent.css` parity, retired hex & foreign-primary bans, green-hue (`75°–170°`) bans, and `var(--shadow-card)`-only shadows.
+
 ## [0.1.0-beta.2] - 2026-11-25
 
 ### Changed

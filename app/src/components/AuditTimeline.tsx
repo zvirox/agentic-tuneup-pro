@@ -47,19 +47,19 @@ export const AuditTimeline: React.FC = () => {
     switch (tier) {
       case 1:
         return (
-          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-[var(--tint-green)] text-[var(--color-green)] border border-[var(--tint-green-border)]">
+          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-chip-sky text-sky-text border border-border">
             Tier 1 · Safe
           </span>
         );
       case 2:
         return (
-          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-[var(--tint-blue)] text-[var(--color-blue)] border border-[var(--tint-blue-border)]">
+          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-primary-tint text-primary-text border border-border">
             Tier 2 · Reversible
           </span>
         );
       case 3:
         return (
-          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-[var(--tint-red)] text-[var(--color-red)] border border-[var(--tint-red-border)]">
+          <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-chip-red text-red-text border border-red">
             Tier 3 · Destructive
           </span>
         );
@@ -99,8 +99,8 @@ export const AuditTimeline: React.FC = () => {
               onClick={() => setInitiatorFilter("starship")}
               className={`px-2.5 py-1 rounded transition-colors duration-150 inline-flex items-center gap-1 cursor-pointer border ${
                 initiatorFilter === "starship"
-                  ? "bg-[var(--bg-surface)] text-[var(--accent)] border-[var(--border)]"
-                  : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] border-transparent"
+                  ? "bg-active text-primary-text border-border-strong"
+                  : "bg-transparent text-muted hover:text-fg border-transparent"
               }`}
             >
               <Bot className="size-3" aria-hidden="true" />
@@ -153,14 +153,14 @@ export const AuditTimeline: React.FC = () => {
                   type="button"
                   onClick={() => toggleExpand(entry.entry_id)}
                   aria-expanded={isExpanded}
-                  className="flex items-center justify-between w-full text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--accent)] rounded"
+                  className="flex items-center justify-between w-full text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--primary-text)] rounded"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
                       className={`size-6 rounded flex items-center justify-center shrink-0 ${
                         isAgent
-                          ? "bg-[var(--tint-blue)] text-[var(--color-blue)]"
-                          : "bg-[var(--bg-surface-2)] text-[var(--text)]"
+                          ? "bg-primary-tint text-primary-text"
+                          : "bg-surface-2 text-fg"
                       }`}
                       title={isAgent ? "Starship Agent Initiated" : "User Initiated"}
                     >

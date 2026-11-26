@@ -237,16 +237,16 @@ export function AgentDrawer({
       className="w-96 shrink-0 border-l border-[var(--border)] bg-[var(--bg-surface)] flex flex-col select-none h-full z-40"
     >
       {/* Header */}
-      <div className="h-11 shrink-0 border-b border-[var(--border)] px-4 flex items-center justify-between bg-[var(--bg-surface-2)]">
+      <div className="h-11 shrink-0 border-b border-border px-4 flex items-center justify-between bg-surface-2">
         <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-[var(--color-green)]" aria-hidden="true" />
-          <span className="text-[13px] font-semibold text-[var(--text)]">
+          <span className="size-2 rounded-full bg-sky" aria-hidden="true" />
+          <span className="text-[13px] font-semibold text-fg">
             Starship Agent
           </span>
           <button
             type="button"
             onClick={() => setSettingsOpen(!settingsOpen)}
-            className="inline-flex items-center gap-1 text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-2 py-0.5 rounded text-[var(--accent)] hover:border-[var(--border-strong)] transition-colors duration-150 cursor-pointer"
+            className="inline-flex items-center gap-1 text-[11px] bg-surface border border-border px-2 py-0.5 rounded text-primary-text hover:border-border-strong transition-colors duration-150 cursor-pointer"
           >
             <span>
               {config.provider === "sovereign_offline"
@@ -262,7 +262,7 @@ export function AgentDrawer({
         <button
           type="button"
           onClick={onClose}
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-bar-idle)] transition-colors duration-150 cursor-pointer"
+          className="size-7 inline-flex items-center justify-center rounded-md text-muted hover:text-fg hover:bg-hover transition-colors duration-150 cursor-pointer"
           aria-label="Close drawer"
         >
           <X className="size-4" aria-hidden="true" />
@@ -271,26 +271,26 @@ export function AgentDrawer({
 
       {/* Settings Dropdown */}
       {settingsOpen && (
-        <div className="p-4 border-b border-[var(--border)] bg-[var(--bg-surface-2)] space-y-3 text-xs">
-          <div className="font-semibold text-[var(--text)] flex items-center justify-between">
+        <div className="p-4 border-b border-border bg-surface-2 space-y-3 text-xs">
+          <div className="font-semibold text-fg flex items-center justify-between">
             <span>LLM Provider Configuration</span>
-            <span className="text-[11px] text-[var(--text-muted)] font-mono">Local Config</span>
+            <span className="text-[11px] text-muted font-mono">Local Config</span>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs text-[var(--text-muted)] block">Provider Engine:</label>
+            <label className="text-xs text-muted block">Provider Engine:</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => handleSaveConfig("sovereign_offline", "offline-planner")}
                 className={`p-2.5 rounded-md border text-left cursor-pointer transition-colors duration-150 ${
                   config.provider === "sovereign_offline"
-                    ? "bg-[var(--tint-blue)] border-[var(--tint-blue-border)] text-[var(--color-blue)] font-medium"
-                    : "bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                    ? "bg-primary-tint border-primary text-primary-text font-medium"
+                    : "bg-surface border-border text-muted hover:text-fg"
                 }`}
               >
                 <div className="font-semibold text-xs">Sovereign Rule-based</div>
-                <div className="text-[11px] text-[var(--text-faint)]">Offline · Sub-second</div>
+                <div className="text-[11px] text-faint">Offline · Sub-second</div>
               </button>
 
               <button
@@ -298,12 +298,12 @@ export function AgentDrawer({
                 onClick={() => handleSaveConfig("ollama", "llama3.1:latest")}
                 className={`p-2.5 rounded-md border text-left cursor-pointer transition-colors duration-150 ${
                   config.provider === "ollama"
-                    ? "bg-[var(--tint-blue)] border-[var(--tint-blue-border)] text-[var(--color-blue)] font-medium"
-                    : "bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                    ? "bg-primary-tint border-primary text-primary-text font-medium"
+                    : "bg-surface border-border text-muted hover:text-fg"
                 }`}
               >
                 <div className="font-semibold text-xs">Local Ollama</div>
-                <div className="text-[11px] text-[var(--text-faint)]">localhost:11434</div>
+                <div className="text-[11px] text-faint">localhost:11434</div>
               </button>
             </div>
           </div>
@@ -314,16 +314,16 @@ export function AgentDrawer({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {!activePlan && (
           <div className="space-y-4">
-            <LinearCard level={1} className="p-4 space-y-2.5 bg-[var(--bg-surface-2)]">
-              <div className="flex items-center gap-2 text-[var(--text)] font-semibold text-xs">
-                <Bot className="size-4 text-[var(--accent)]" aria-hidden="true" />
+            <LinearCard level={1} className="p-4 space-y-2.5 bg-surface-2">
+              <div className="flex items-center gap-2 text-fg font-semibold text-xs">
+                <Bot className="size-4 text-primary-text" aria-hidden="true" />
                 <span>Maintenance Companion</span>
               </div>
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+              <p className="text-xs text-muted leading-relaxed">
                 Describe what you need in plain English. Intents decompose into structured Task
                 Sheets with approval gates before touching your disk.
               </p>
-              <div className="pt-1 flex items-center gap-1.5 text-[11px] text-[var(--color-green)]">
+              <div className="pt-1 flex items-center gap-1.5 text-[11px] text-sky-text">
                 <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
                 <span>Protected paths &amp; browser passwords shielded</span>
               </div>
@@ -331,25 +331,25 @@ export function AgentDrawer({
 
             {/* Suggested Action Chips */}
             <div className="space-y-1.5">
-              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] px-1">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted px-1">
                 Suggested Actions
               </div>
               <div className="space-y-1.5">
                 {[
                   {
-                    icon: <Trash2 className="size-3.5 text-[var(--color-blue)]" />,
+                    icon: <Trash2 className="size-3.5 text-primary-text" />,
                     text: "Free up 5 GB of disk space",
                   },
                   {
-                    icon: <AlertTriangle className="size-3.5 text-[var(--color-amber)]" />,
+                    icon: <AlertTriangle className="size-3.5 text-amber" />,
                     text: "Audit and purge orphan packages",
                   },
                   {
-                    icon: <Cpu className="size-3.5 text-[var(--color-sky)]" />,
+                    icon: <Cpu className="size-3.5 text-sky" />,
                     text: "Check why my machine is running hot",
                   },
                   {
-                    icon: <RefreshCw className="size-3.5 text-[var(--color-green)]" />,
+                    icon: <RefreshCw className="size-3.5 text-sky" />,
                     text: "Restore files from last cleanup",
                   },
                 ].map((item) => (
@@ -357,7 +357,7 @@ export function AgentDrawer({
                     key={item.text}
                     type="button"
                     onClick={() => handleSend(item.text)}
-                    className="w-full px-3 py-2.5 rounded-md bg-[var(--bg-surface-2)] border border-[var(--border)] hover:border-[var(--border-strong)] text-left text-xs flex items-center gap-2.5 transition-colors duration-150 cursor-pointer text-[var(--text-muted)] hover:text-[var(--text)]"
+                    className="w-full px-3 py-2.5 rounded-md bg-surface-2 border border-border hover:border-border-strong text-left text-xs flex items-center gap-2.5 transition-colors duration-150 cursor-pointer text-muted hover:text-fg"
                   >
                     {item.icon}
                     <span>{item.text}</span>
@@ -370,13 +370,13 @@ export function AgentDrawer({
 
         {activePlan && (
           <div className="space-y-3.5">
-            <LinearCard level={1} className="p-3.5 space-y-2 bg-[var(--bg-surface-2)]">
+            <LinearCard level={1} className="p-3.5 space-y-2 bg-surface-2">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-[var(--accent)] font-medium">
+                <span className="text-primary-text font-medium">
                   Task Sheet #{activePlan.plan_id}
                 </span>
                 {activePlan.total_disk_delta_bytes !== 0 && (
-                  <span className="text-[var(--color-green)] font-medium tabular-nums">
+                  <span className="text-sky-text font-medium tabular-nums">
                     Est. {formatBytes(activePlan.total_disk_delta_bytes)}
                   </span>
                 )}
@@ -425,9 +425,9 @@ export function AgentDrawer({
       {/* Input / Chat Bar */}
       <div className="p-3 border-t border-[var(--border)] bg-[var(--bg-surface-2)] space-y-2">
         {isListening && (
-          <div className="flex items-center justify-between gap-3 p-2 rounded-md bg-[var(--bg-surface)] border border-[var(--border)]">
-            <div className="flex items-center gap-2 text-xs font-medium text-[var(--text)]">
-              <span className="size-2 rounded-full bg-[var(--color-red)]" aria-hidden="true" />
+          <div className="flex items-center justify-between gap-3 p-2 rounded-md bg-surface border border-border">
+            <div className="flex items-center gap-2 text-xs font-medium text-fg">
+              <span className="size-2 rounded-full bg-red" aria-hidden="true" />
               <span>Preview</span>
             </div>
             <VoiceWaveform
@@ -446,7 +446,7 @@ export function AgentDrawer({
             e.preventDefault();
             handleSend();
           }}
-          className="flex items-center gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-1 focus-within:border-[var(--accent)] transition-colors duration-150"
+          className="flex items-center gap-1.5 bg-surface border border-border rounded-md p-1 focus-within:border-[var(--primary)] transition-colors duration-150"
         >
           <button
             type="button"
@@ -454,8 +454,8 @@ export function AgentDrawer({
             disabled={planning}
             className={`size-8 rounded-md flex items-center justify-center transition-colors duration-150 cursor-pointer border ${
               isListening
-                ? "bg-[var(--tint-red)] border-[var(--tint-red-border)] text-[var(--color-red)]"
-                : "bg-[var(--bg-surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                ? "bg-chip-red border-red text-red-text"
+                : "bg-surface-2 border-border text-muted hover:text-fg"
             }`}
             title="Voice Dictation Preview (Ctrl + Space)"
             aria-label={isListening ? "Stop voice preview" : "Start voice dictation preview"}
@@ -476,14 +476,14 @@ export function AgentDrawer({
                 : "Ask the agent"
             }
             aria-label="Prompt input"
-            className="flex-1 bg-transparent border-0 outline-none px-2 text-xs text-[var(--text)] placeholder:text-[var(--text-faint)]"
+            className="flex-1 bg-transparent border-0 outline-none px-2 text-xs text-fg placeholder:text-faint"
           />
 
           <button
             type="submit"
             disabled={planning || !prompt.trim()}
             aria-label="Send prompt"
-            className="size-8 rounded-md bg-[var(--accent)] text-[var(--accent-fg)] flex items-center justify-center hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors duration-150 cursor-pointer"
+            className="size-8 rounded-md bg-primary text-primary-fg flex items-center justify-center hover:bg-primary-hover disabled:opacity-40 transition-colors duration-150 cursor-pointer"
           >
             {planning ? (
               <RotateCw className="size-3.5 animate-spin" aria-hidden="true" />

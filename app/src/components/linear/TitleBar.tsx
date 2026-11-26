@@ -75,7 +75,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       role="region"
       aria-label="Window Title Bar"
       data-tauri-drag-region
-      className={`h-10 w-full select-none bg-[var(--bg-app)] border-b border-[var(--border)] flex items-center justify-between px-3 text-[var(--text)] shrink-0 z-50 ${className}`}
+      className={`h-10 w-full select-none bg-app border-b border-border flex items-center justify-between px-3 text-fg shrink-0 z-50 ${className}`}
     >
       {/* Left: app logo (20 px), app name, version tag (11 px, 4 px radius, 1 px border) */}
       <div data-tauri-drag-region className="flex items-center gap-2 shrink-0">
@@ -89,11 +89,11 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             className="size-5 shrink-0 rounded object-contain"
           />
         )}
-        <span className="text-[13px] font-semibold tracking-tight text-[var(--text)]">
+        <span className="text-[13px] font-semibold tracking-tight text-fg">
           {title}
         </span>
         {version && (
-          <span className="px-1.5 py-0.5 text-[11px] leading-none font-normal rounded bg-[var(--bg-surface-2)] border border-[var(--border)] text-[var(--text-muted)] select-none tabular-nums">
+          <span className="px-1.5 py-0.5 text-[11px] leading-none font-normal rounded bg-surface-2 border border-border text-muted select-none tabular-nums">
             {version}
           </span>
         )}
@@ -110,14 +110,14 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       <div className="flex items-center gap-1 shrink-0">
         <ThemeToggle onToggle={onThemeToggle} />
 
-        <div className="w-px h-3.5 bg-[var(--border)] mx-1" aria-hidden="true" />
+        <div className="w-px h-3.5 bg-border mx-1" aria-hidden="true" />
 
         <button
           type="button"
           onClick={handleMinimize}
           aria-label="Minimize window"
           title="Minimize"
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-colors duration-150 ease-out cursor-pointer"
+          className="size-7 inline-flex items-center justify-center rounded-md text-muted hover:text-fg hover:bg-hover focus-visible:outline-2 focus-visible:outline-[var(--primary-text)] transition-colors duration-150 ease-out cursor-pointer"
         >
           <Minus className="size-3.5" aria-hidden="true" />
         </button>
@@ -127,7 +127,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           onClick={handleToggleMaximize}
           aria-label={isMaximized ? "Restore window" : "Maximize window"}
           title={isMaximized ? "Restore" : "Maximize"}
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-colors duration-150 ease-out cursor-pointer"
+          className="size-7 inline-flex items-center justify-center rounded-md text-muted hover:text-fg hover:bg-hover focus-visible:outline-2 focus-visible:outline-[var(--primary-text)] transition-colors duration-150 ease-out cursor-pointer"
         >
           {isMaximized ? (
             <Copy className="size-3" aria-hidden="true" />
@@ -141,7 +141,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           onClick={handleClose}
           aria-label="Close window"
           title="Close"
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--close-hover)] hover:text-white focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-colors duration-150 ease-out cursor-pointer"
+          className="size-7 inline-flex items-center justify-center rounded-md text-muted hover:bg-close-hover hover:text-white focus-visible:outline-2 focus-visible:outline-[var(--primary-text)] transition-colors duration-150 ease-out cursor-pointer"
         >
           <X className="size-3.5" aria-hidden="true" />
         </button>

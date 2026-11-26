@@ -41,7 +41,7 @@ export const LinearDialog: React.FC<LinearDialogProps> = ({
       aria-labelledby={titleId}
       aria-label={titleId ? undefined : ariaLabel}
       onClick={onClose}
-      className="fixed inset-0 z-50 linear-scrim flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-scrim flex items-center justify-center p-4"
     >
       <LinearCard
         level="modal"

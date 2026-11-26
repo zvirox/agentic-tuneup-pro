@@ -34,7 +34,7 @@ export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
         return (
           <div
             key={index}
-            className="w-1 h-full rounded-[2px] bg-[var(--accent)] origin-center transition-transform duration-150 ease-out"
+            className="w-1 h-full rounded-[2px] bg-primary origin-center transition-transform duration-150 ease-out"
             style={{ transform: `scaleY(${scale})` }}
           />
         );

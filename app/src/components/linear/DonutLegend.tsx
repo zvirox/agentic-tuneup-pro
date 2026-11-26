@@ -19,7 +19,7 @@ export const DonutLegend: React.FC<DonutLegendProps> = ({ items, className = "" 
         <div
           key={item.label + index}
           className={`flex items-center justify-between text-xs gap-3 py-1.5 ${
-            index < items.length - 1 ? "border-b border-dashed border-[var(--border)]" : ""
+            index < items.length - 1 ? "border-b border-dashed border-border" : ""
           }`}
         >
           <div className="flex items-center gap-2 min-w-0">
@@ -28,12 +28,12 @@ export const DonutLegend: React.FC<DonutLegendProps> = ({ items, className = "" 
               style={{ backgroundColor: item.color }}
               aria-hidden="true"
             />
-            <span className="text-[var(--text-muted)] truncate">{item.label}</span>
+            <span className="text-muted truncate">{item.label}</span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
-            <span className="font-semibold text-[var(--text)]">{item.value}</span>
+            <span className="font-semibold text-fg">{item.value}</span>
             {item.subValue && (
-              <span className="text-[var(--text-faint)] text-xs">({item.subValue})</span>
+              <span className="text-faint text-xs">({item.subValue})</span>
             )}
           </div>
         </div>

@@ -21,10 +21,10 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
 
   const strokeToken =
     score >= 85
-      ? "var(--color-green)"
+      ? "var(--sky)"
       : score >= 65
-      ? "var(--color-amber)"
-      : "var(--color-red)";
+      ? "var(--amber)"
+      : "var(--red)";
 
   const statusTone =
     score >= 85 ? "online" : score >= 65 ? "warning" : "alert";
@@ -36,21 +36,21 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
           value: `−${d.points} pts`,
           color:
             idx === 0
-              ? "var(--color-amber)"
+              ? "var(--amber)"
               : idx === 1
-              ? "var(--color-sky)"
-              : "var(--color-red)",
+              ? "var(--sky)"
+              : "var(--red)",
         }))
       : [
           {
             label: "System headroom",
             value: `${score}%`,
-            color: "var(--color-green)",
+            color: "var(--sky)",
           },
           {
             label: "Active deductions",
             value: "0 pts",
-            color: "var(--color-blue)",
+            color: "var(--primary)",
           },
         ];
 
@@ -91,7 +91,7 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
               cx={size / 2}
               cy={size / 2}
               r={radius}
-              stroke="var(--bg-bar-idle)"
+              stroke="var(--bg-track)"
               strokeWidth={strokeWidth}
               fill="transparent"
               strokeDasharray={`${maxArcLength} ${circumference}`}
@@ -131,7 +131,7 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
           <DonutLegend items={legendItems} />
 
           {deductions.length === 0 ? (
-            <div className="flex items-center gap-2 text-xs text-[var(--color-green)] font-medium pt-1">
+            <div className="flex items-center gap-2 text-xs text-sky-text font-medium pt-1">
               <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
               <span>Optimal system state. Zero deductions.</span>
             </div>
@@ -140,16 +140,16 @@ export const HealthGauge: React.FC<HealthGaugeProps> = ({ health, onNavigate }) 
               {deductions.map((d, idx) => (
                 <div
                   key={d.category + idx}
-                  className="flex flex-col gap-1 px-2.5 py-2 rounded-md bg-[var(--bg-surface-2)] border border-[var(--border)] text-xs"
+                  className="flex flex-col gap-1 px-2.5 py-2 rounded-md bg-surface-2 border border-border text-xs"
                 >
-                  <span className="text-[var(--text-muted)] leading-snug">
+                  <span className="text-muted leading-snug">
                     {d.reason}
                   </span>
                   <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={() => onNavigate?.(d.target_page)}
-                      className="text-xs font-medium text-[var(--accent)] hover:underline inline-flex items-center gap-1 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[var(--accent)] rounded cursor-pointer"
+                      className="text-xs font-medium text-primary-text hover:underline inline-flex items-center gap-1 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[var(--primary-text)] rounded cursor-pointer"
                     >
                       <span>{d.action_label}</span>
                       <ArrowRight className="size-3" aria-hidden="true" />

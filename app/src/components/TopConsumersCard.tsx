@@ -1,7 +1,7 @@
 import React from "react";
 import { ArrowRight } from "lucide-react";
 import { AppProcessGroup } from "../types";
-import { LINEAR_SERIES_ORDER, LinearCard, ProgressRow } from "./linear";
+import { LINEAR_SERIES_TOKENS, LinearCard, ProgressRow } from "./linear";
 
 interface TopConsumersCardProps {
   groups?: AppProcessGroup[];
@@ -34,13 +34,13 @@ export const TopConsumersCard: React.FC<TopConsumersCardProps> = ({
   return (
     <LinearCard level={1} className="p-5 flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-muted">
           Top Resource Consumers
         </h3>
         <button
           type="button"
           onClick={() => onNavigate?.("proc")}
-          className="text-xs font-medium text-[var(--accent)] hover:underline inline-flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-[var(--accent)] rounded cursor-pointer"
+          className="text-xs font-medium text-primary-text hover:underline inline-flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-[var(--primary-text)] rounded cursor-pointer"
         >
           <span>Process Explorer</span>
           <ArrowRight className="size-3" aria-hidden="true" />
@@ -54,7 +54,7 @@ export const TopConsumersCard: React.FC<TopConsumersCardProps> = ({
             label={`${proc.name} (${proc.detail})`}
             value={(proc.cpuPercent / maxCpu) * 100}
             displayValue={`${proc.cpuPercent}% CPU · ${proc.memoryMb} MB`}
-            color={LINEAR_SERIES_ORDER[idx % LINEAR_SERIES_ORDER.length]}
+            color={`var(${LINEAR_SERIES_TOKENS[idx % LINEAR_SERIES_TOKENS.length]})`}
           />
         ))}
       </div>

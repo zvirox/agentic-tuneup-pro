@@ -53,7 +53,7 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
       <div
         role="status"
         aria-live="polite"
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--tint-green)] border border-[var(--tint-green-border)] text-[var(--color-green)] text-xs font-medium ${className}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-chip-sky border border-border text-sky-text text-xs font-medium ${className}`}
       >
         <CheckCircle2 className="size-3.5 shrink-0" aria-hidden="true" />
         <span>Restored successfully</span>
@@ -92,7 +92,7 @@ export const UndoButton: React.FC<UndoButtonProps> = ({
         <div
           role="alert"
           aria-live="assertive"
-          className="flex items-center gap-1 text-xs text-[var(--color-red)] font-medium"
+          className="flex items-center gap-1 text-xs text-red-text font-medium"
         >
           <AlertCircle className="size-3 shrink-0" aria-hidden="true" />
           <span>{errorMsg}</span>

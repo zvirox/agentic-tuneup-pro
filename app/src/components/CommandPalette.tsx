@@ -249,8 +249,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       className="overflow-hidden flex flex-col max-h-[75vh] p-0"
     >
       {/* Search Input Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-surface-2)]">
-        <Search className="size-4 text-[var(--accent)] shrink-0" aria-hidden="true" />
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface-2">
+        <Search className="size-4 text-primary-text shrink-0" aria-hidden="true" />
         <input
           ref={inputRef}
           type="text"
@@ -307,32 +307,32 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 onMouseEnter={() => setSelectedIndex(index)}
                 className={`flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors duration-150 cursor-pointer border ${
                   isSelected
-                    ? "bg-[var(--tint-blue)] border-[var(--tint-blue-border)] text-[var(--text)]"
-                    : "hover:bg-[var(--bg-surface-2)] text-[var(--text-muted)] border-transparent"
+                    ? "bg-primary-tint border-primary text-fg"
+                    : "hover:bg-hover text-muted border-transparent"
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
                     className={`p-1.5 rounded-md shrink-0 ${
                       isSelected
-                        ? "bg-[var(--accent)] text-[var(--accent-fg)]"
-                        : "bg-[var(--bg-surface-2)] border border-[var(--border)] text-[var(--accent)]"
+                        ? "bg-primary text-primary-fg"
+                        : "bg-surface-2 border border-border text-primary-text"
                     }`}
                   >
                     <Icon size={15} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-[var(--text)] truncate">
+                      <span className="font-semibold text-fg truncate">
                         {cmd.title}
                       </span>
                       {cmd.badge && (
-                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--bg-surface-2)] text-[var(--text-muted)] border border-[var(--border)] leading-none">
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-2 text-muted border border-border leading-none">
                           {cmd.badge}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+                    <p className="text-xs text-muted truncate mt-0.5">
                       {cmd.description}
                     </p>
                   </div>
@@ -340,12 +340,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                 <div className="flex items-center gap-2 shrink-0 ml-3">
                   {cmd.shortcut && (
-                    <kbd className="font-mono text-[11px] bg-[var(--bg-surface-2)] border border-[var(--border)] px-1.5 py-0.5 rounded text-[var(--text-muted)]">
+                    <kbd className="font-mono text-[11px] bg-surface-2 border border-border px-1.5 py-0.5 rounded text-muted">
                       {cmd.shortcut}
                     </kbd>
                   )}
                   {isSelected && (
-                    <CornerDownLeft className="size-3.5 text-[var(--accent)]" aria-hidden="true" />
+                    <CornerDownLeft className="size-3.5 text-primary-text" aria-hidden="true" />
                   )}
                 </div>
               </li>
@@ -355,25 +355,25 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       </ul>
 
       {/* Footer Hints */}
-      <div className="px-4 py-2 border-t border-[var(--border)] bg-[var(--bg-surface-2)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+      <div className="px-4 py-2 border-t border-border bg-surface-2 flex items-center justify-between text-xs text-muted">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <kbd className="font-mono text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-1 rounded">
+            <kbd className="font-mono text-[11px] bg-surface border border-border px-1 rounded">
               ↑
             </kbd>
-            <kbd className="font-mono text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-1 rounded">
+            <kbd className="font-mono text-[11px] bg-surface border border-border px-1 rounded">
               ↓
             </kbd>
             <span>navigate</span>
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="font-mono text-[11px] bg-[var(--bg-surface)] border border-[var(--border)] px-1 rounded">
+            <kbd className="font-mono text-[11px] bg-surface border border-border px-1 rounded">
               ↵
             </kbd>
             <span>select</span>
           </span>
         </div>
-        <span className="text-[var(--accent)] font-medium">Mother Ship · Starship Bridge</span>
+        <span className="text-primary-text font-medium">Mother Ship · Starship Bridge</span>
       </div>
     </LinearDialog>
   );

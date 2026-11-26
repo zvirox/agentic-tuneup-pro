@@ -19,7 +19,7 @@ export const TelemetrySparkline: React.FC<TelemetrySparklineProps> = ({
   subValue,
   dataPoints,
   maxValue,
-  color = "var(--color-green)",
+  color = "var(--sky)",
   className = "",
 }) => {
   const gradId = useId();

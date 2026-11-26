@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import * as echarts from "echarts";
 import { Activity } from "lucide-react";
 import {
-  LINEAR_SERIES_ORDER,
+  LINEAR_SERIES_TOKENS,
   LinearCard,
   RangeTabs,
   getLinearEChartsOption,
+  getLinearSeriesOrder,
+  resolveCssColor,
   useLinearTheme,
 } from "./linear";
 
@@ -43,7 +45,6 @@ export const TuneupTelemetryChart: React.FC<TuneupTelemetryChartProps> = ({
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
   const theme = useLinearTheme();
-  const isDark = theme === "dark";
   const [range, setRange] = useState<string>("Total");
 
   const pointLimit = WINDOW_SLICES[range] ?? 30;
@@ -60,7 +61,8 @@ export const TuneupTelemetryChart: React.FC<TuneupTelemetryChartProps> = ({
       chartInstance.current = echarts.init(chartRef.current);
     }
 
-    const baseOption = getLinearEChartsOption(isDark);
+    const baseOption = getLinearEChartsOption();
+    const seriesPalette = getLinearSeriesOrder();
     const option = {
       ...baseOption,
       tooltip: {
@@ -80,7 +82,9 @@ export const TuneupTelemetryChart: React.FC<TuneupTelemetryChartProps> = ({
         max: 100,
       },
       series: series.map((s, idx) => {
-        const lineColor = s.color ?? LINEAR_SERIES_ORDER[idx % LINEAR_SERIES_ORDER.length];
+        const lineColor = s.color
+          ? resolveCssColor(s.color)
+          : seriesPalette[idx % seriesPalette.length];
         const sliced = s.data.slice(-pointLimit);
         return {
           name: s.name,
@@ -106,7 +110,7 @@ export const TuneupTelemetryChart: React.FC<TuneupTelemetryChartProps> = ({
     const handleResize = () => chartInstance.current?.resize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [series, isDark, pointLimit, computedLabels]);
+  }, [series, theme, pointLimit, computedLabels]);
 
   useEffect(() => {
     return () => {
@@ -117,24 +121,24 @@ export const TuneupTelemetryChart: React.FC<TuneupTelemetryChartProps> = ({
 
   return (
     <LinearCard level={1} className={`p-5 ${className}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[var(--border)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-border">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <Activity className="size-4 text-[var(--accent)]" aria-hidden="true" />
-            <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">
+            <Activity className="size-4 text-primary-text" aria-hidden="true" />
+            <h3 className="text-sm font-semibold text-fg tracking-tight">
               {title}
             </h3>
           </div>
-          <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>
+          <p className="text-xs text-muted">{subtitle}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-3 text-xs">
             {series.map((s, idx) => {
               const color =
-                s.color ?? LINEAR_SERIES_ORDER[idx % LINEAR_SERIES_ORDER.length];
+                s.color ?? `var(${LINEAR_SERIES_TOKENS[idx % LINEAR_SERIES_TOKENS.length]})`;
               return (
-                <span key={s.name} className="flex items-center gap-1.5 text-[var(--text-muted)]">
+                <span key={s.name} className="flex items-center gap-1.5 text-muted">
                   <span
                     className="size-2 rounded-[2px] shrink-0"
                     style={{ backgroundColor: color }}
